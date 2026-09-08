@@ -17,9 +17,9 @@ if (!defined('SUPPORTED_LANGUAGES')) {
 if (!defined('LANGUAGE_NAMES')) {
     define('LANGUAGE_NAMES', [
         'cs' => 'Čeština',
-        'sk' => 'Slovenčina',
-        'pl' => 'Polski',
-        'en' => 'English',
-        'de' => 'Deutsch',
+        'sk' => 'Slovenština',
+        'pl' => 'Polština',
+        'en' => 'Angličtina',
+        'de' => 'Němčina',
     ]);
 }

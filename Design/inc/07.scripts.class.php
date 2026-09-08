@@ -1,0 +1,1 @@
+<?php include __DIR__ . '/05.scripts.class.php'; ?>

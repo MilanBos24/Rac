@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>404 || Ogency || HTML Template For Creative Agency</title>
+    <title>Products || Ogency || HTML Template For Creative Agency</title>
     <!-- favicons Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicons/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicons/favicon-32x32.png" />
@@ -244,29 +244,238 @@
             <div class="container">
                 <ul class="page-header__breadcrumb list-unstyled">
                     <li><a href="index.html">Home</a></li>
-                    <li><span>404 error</span></li>
+                    <li><span>Shop</span></li>
                 </ul><!-- /.page-breadcrumb list-unstyled -->
-                <h2 class="page-header__title">404 error</h2><!-- /.page-title -->
+                <h2 class="page-header__title">Products</h2><!-- /.page-title -->
             </div><!-- /.container -->
         </section><!-- /.page-header -->
-        <!-- Error Start -->
-        <section class="error-page">
+        <!-- Products Start -->
+        <section class="product">
             <div class="container">
-                <div class="error-page__content">
-                    <h1 class="error-page__404">404<img src="assets/images/resources/404.png" alt="ogency"></h1><!-- 404 -->
-                    <h4 class="error-page__title">Oops! page not found</h4><!-- 404-title -->
-                    <p class="error-page__text">The page you are looking for is not exist.</p><!-- 404-content -->
-                    <form class="error-page__form">
-                        <div class="error-page__form-input">
-                            <input type="search" placeholder="Search here">
-                            <button type="submit"><i class="icon-magnifying-glass"></i></button>
+                <div class="row">
+                    <div class="col-xl-3 col-lg-4 wow fadeInLeft animated" data-wow-delay="200ms">
+                        <div class="product__sidebar">
+                            <div class="product__search">
+                                <form action="#">
+                                    <input type="text" placeholder="Keywrord...">
+                                </form>
+                            </div><!-- /.search-widget -->
+                            <div class="product__price-ranger">
+                                <h3 class="product__sidebar--title">Price</h3>
+                                <div class="price-ranger">
+                                    <div id="slider-range"></div>
+                                    <div class="ranger-min-max-block">
+                                        <input type="text" readonly class="min">
+                                        <span>-</span>
+                                        <input type="text" readonly class="max">
+                                        <input type="submit" value="Filter">
+                                    </div>
+                                </div>
+                            </div><!-- /.price-slider -->
+                            <div class="product__categories">
+                                <h3 class="product__sidebar--title">Categories</h3>
+                                <ul class="list-unstyled">
+                                    <li><a href="products.html"><span class="fa fa-arrow-right"></span>Web Development</a></li>
+                                    <li><a href="products.html"><span class="fa fa-arrow-right"></span>Social Marketing</a></li>
+                                    <li><a href="products.html"><span class="fa fa-arrow-right"></span>Technology</a></li>
+                                    <li><a href="products.html"><span class="fa fa-arrow-right"></span>Digital Solutions</a></li>
+                                    <li><a href="products.html"><span class="fa fa-arrow-right"></span>Business &amp; Finance</a></li>
+                                </ul>
+                            </div><!-- /.category-widget -->
+                        </div><!-- /.shop-sidebar -->
+                    </div><!-- /.column -->
+                    <div class="col-xl-9 col-lg-8">
+                        <div class="product__info-top">
+                            <div class="product__showing-text-box">
+                                <p class="product__showing-text">Showing 1–9 of 12 Results</p>
+                            </div>
+                            <div class="product__showing-sort">
+                                <select class="selectpicker" aria-label="Default select example">
+                                    <option selected>Sort by popular</option>
+                                    <option value="1">Sort by view</option>
+                                    <option value="2">Sort by price</option>
+                                    <option value="3">Sort by ratings</option>
+                                </select>
+                            </div>
                         </div>
-                    </form><!-- 404-search-form -->
-                    <a href="index.html" class="ogency-btn">Back to Home</a><!-- 404-btn -->
-                </div><!-- 404-info -->
+                        <div class="row">
+                            <div class="col-xl-4 col-md-6 wow fadeInUp animated" data-wow-delay="200ms">
+                                <div class="product__item">
+                                    <div class="product__item__img">
+                                        <img src="assets/images/product/product-1.jpg" alt="ogency">
+                                        <div class="product__item__btn">
+                                            <a href="cart.html"><i class="far fa-heart"></i></a>
+                                            <a href="product-details.html"><i class="fas fa-eye"></i></a>
+                                        </div>
+                                    </div><!-- /.product-image -->
+                                    <div class="product__item__content">
+                                        <div class="product__item__ratings">
+                                            <span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span>
+                                        </div><!-- /.product-ratings -->
+                                        <h4 class="product__item__title"><a href="product-details.html">Boss sofa</a></h4><!-- /.product-title -->
+                                        <div class="product__item__price">$82.00</div><!-- /.product-price -->
+                                        <a href="cart.html" class="ogency-btn">Add to Cart</a><!-- /.product-cart-btn -->
+                                    </div><!-- /.product-content -->
+                                </div><!-- /.product-item -->
+                            </div>
+                            <div class="col-xl-4 col-md-6 wow fadeInUp animated" data-wow-delay="300ms">
+                                <div class="product__item">
+                                    <div class="product__item__img">
+                                        <img src="assets/images/product/product-2.jpg" alt="ogency">
+                                        <div class="product__item__btn">
+                                            <a href="cart.html"><i class="far fa-heart"></i></a>
+                                            <a href="product-details.html"><i class="fas fa-eye"></i></a>
+                                        </div>
+                                    </div><!-- /.product-image -->
+                                    <div class="product__item__content">
+                                        <div class="product__item__ratings">
+                                            <span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span>
+                                        </div><!-- /.product-ratings -->
+                                        <h4 class="product__item__title"><a href="product-details.html">Office chair</a></h4><!-- /.product-title -->
+                                        <div class="product__item__price">$78.00</div><!-- /.product-price -->
+                                        <a href="cart.html" class="ogency-btn">Add to Cart</a><!-- /.product-cart-btn -->
+                                    </div><!-- /.product-content -->
+                                </div><!-- /.product-item -->
+                            </div>
+                            <div class="col-xl-4 col-md-6 wow fadeInUp animated" data-wow-delay="400ms">
+                                <div class="product__item">
+                                    <div class="product__item__img">
+                                        <img src="assets/images/product/product-3.jpg" alt="ogency">
+                                        <div class="product__item__btn">
+                                            <a href="cart.html"><i class="far fa-heart"></i></a>
+                                            <a href="product-details.html"><i class="fas fa-eye"></i></a>
+                                        </div>
+                                    </div><!-- /.product-image -->
+                                    <div class="product__item__content">
+                                        <div class="product__item__ratings">
+                                            <span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span>
+                                        </div><!-- /.product-ratings -->
+                                        <h4 class="product__item__title"><a href="product-details.html">Long stool</a></h4><!-- /.product-title -->
+                                        <div class="product__item__price">$33.00</div><!-- /.product-price -->
+                                        <a href="cart.html" class="ogency-btn">Add to Cart</a><!-- /.product-cart-btn -->
+                                    </div><!-- /.product-content -->
+                                </div><!-- /.product-item -->
+                            </div>
+                            <div class="col-xl-4 col-md-6 wow fadeInUp animated" data-wow-delay="500ms">
+                                <div class="product__item">
+                                    <div class="product__item__img">
+                                        <img src="assets/images/product/product-4.jpg" alt="ogency">
+                                        <div class="product__item__btn">
+                                            <a href="cart.html"><i class="far fa-heart"></i></a>
+                                            <a href="product-details.html"><i class="fas fa-eye"></i></a>
+                                        </div>
+                                    </div><!-- /.product-image -->
+                                    <div class="product__item__content">
+                                        <div class="product__item__ratings">
+                                            <span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span>
+                                        </div><!-- /.product-ratings -->
+                                        <h4 class="product__item__title"><a href="product-details.html">Round chair</a></h4><!-- /.product-title -->
+                                        <div class="product__item__price">$49.00</div><!-- /.product-price -->
+                                        <a href="cart.html" class="ogency-btn">Add to Cart</a><!-- /.product-cart-btn -->
+                                    </div><!-- /.product-content -->
+                                </div><!-- /.product-item -->
+                            </div>
+                            <div class="col-xl-4 col-md-6 wow fadeInUp animated" data-wow-delay="600ms">
+                                <div class="product__item">
+                                    <div class="product__item__img">
+                                        <img src="assets/images/product/product-5.jpg" alt="ogency">
+                                        <div class="product__item__btn">
+                                            <a href="cart.html"><i class="far fa-heart"></i></a>
+                                            <a href="product-details.html"><i class="fas fa-eye"></i></a>
+                                        </div>
+                                    </div><!-- /.product-image -->
+                                    <div class="product__item__content">
+                                        <div class="product__item__ratings">
+                                            <span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span>
+                                        </div><!-- /.product-ratings -->
+                                        <h4 class="product__item__title"><a href="product-details.html">Sofa chair</a></h4><!-- /.product-title -->
+                                        <div class="product__item__price">$31.00</div><!-- /.product-price -->
+                                        <a href="cart.html" class="ogency-btn">Add to Cart</a><!-- /.product-cart-btn -->
+                                    </div><!-- /.product-content -->
+                                </div><!-- /.product-item -->
+                            </div>
+                            <div class="col-xl-4 col-md-6 wow fadeInUp animated" data-wow-delay="600ms">
+                                <div class="product__item">
+                                    <div class="product__item__img">
+                                        <img src="assets/images/product/product-6.jpg" alt="ogency">
+                                        <div class="product__item__btn">
+                                            <a href="cart.html"><i class="far fa-heart"></i></a>
+                                            <a href="product-details.html"><i class="fas fa-eye"></i></a>
+                                        </div>
+                                    </div><!-- /.product-image -->
+                                    <div class="product__item__content">
+                                        <div class="product__item__ratings">
+                                            <span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span>
+                                        </div><!-- /.product-ratings -->
+                                        <h4 class="product__item__title"><a href="product-details.html">White chair</a></h4><!-- /.product-title -->
+                                        <div class="product__item__price">$50.00</div><!-- /.product-price -->
+                                        <a href="cart.html" class="ogency-btn">Add to Cart</a><!-- /.product-cart-btn -->
+                                    </div><!-- /.product-content -->
+                                </div><!-- /.product-item -->
+                            </div>
+                            <div class="col-xl-4 col-md-6 wow fadeInUp animated" data-wow-delay="600ms">
+                                <div class="product__item">
+                                    <div class="product__item__img">
+                                        <img src="assets/images/product/product-7.jpg" alt="ogency">
+                                        <div class="product__item__btn">
+                                            <a href="cart.html"><i class="far fa-heart"></i></a>
+                                            <a href="product-details.html"><i class="fas fa-eye"></i></a>
+                                        </div>
+                                    </div><!-- /.product-image -->
+                                    <div class="product__item__content">
+                                        <div class="product__item__ratings">
+                                            <span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span>
+                                        </div><!-- /.product-ratings -->
+                                        <h4 class="product__item__title"><a href="product-details.html">Wood stool</a></h4><!-- /.product-title -->
+                                        <div class="product__item__price">$15.00</div><!-- /.product-price -->
+                                        <a href="cart.html" class="ogency-btn">Add to Cart</a><!-- /.product-cart-btn -->
+                                    </div><!-- /.product-content -->
+                                </div><!-- /.product-item -->
+                            </div>
+                            <div class="col-xl-4 col-md-6 wow fadeInUp animated" data-wow-delay="600ms">
+                                <div class="product__item">
+                                    <div class="product__item__img">
+                                        <img src="assets/images/product/product-8.jpg" alt="ogency">
+                                        <div class="product__item__btn">
+                                            <a href="cart.html"><i class="far fa-heart"></i></a>
+                                            <a href="product-details.html"><i class="fas fa-eye"></i></a>
+                                        </div>
+                                    </div><!-- /.product-image -->
+                                    <div class="product__item__content">
+                                        <div class="product__item__ratings">
+                                            <span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span>
+                                        </div><!-- /.product-ratings -->
+                                        <h4 class="product__item__title"><a href="product-details.html">Sofa seat</a></h4><!-- /.product-title -->
+                                        <div class="product__item__price">$27.00</div><!-- /.product-price -->
+                                        <a href="cart.html" class="ogency-btn">Add to Cart</a><!-- /.product-cart-btn -->
+                                    </div><!-- /.product-content -->
+                                </div><!-- /.product-item -->
+                            </div>
+                            <div class="col-xl-4 col-md-6 wow fadeInUp animated" data-wow-delay="600ms">
+                                <div class="product__item">
+                                    <div class="product__item__img">
+                                        <img src="assets/images/product/product-9.jpg" alt="ogency">
+                                        <div class="product__item__btn">
+                                            <a href="cart.html"><i class="far fa-heart"></i></a>
+                                            <a href="product-details.html"><i class="fas fa-eye"></i></a>
+                                        </div>
+                                    </div><!-- /.product-image -->
+                                    <div class="product__item__content">
+                                        <div class="product__item__ratings">
+                                            <span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span><span class="fa fa-star"></span>
+                                        </div><!-- /.product-ratings -->
+                                        <h4 class="product__item__title"><a href="product-details.html">Long chair</a></h4><!-- /.product-title -->
+                                        <div class="product__item__price">$86.00</div><!-- /.product-price -->
+                                        <a href="cart.html" class="ogency-btn">Add to Cart</a><!-- /.product-cart-btn -->
+                                    </div><!-- /.product-content -->
+                                </div><!-- /.product-item -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
-        <!-- Error End -->
+        <!-- Products End -->
 
         <footer class="main-footer" style="background-image: url(assets/images/backgrounds/footer-bg-1.png);">
             <div class="container">

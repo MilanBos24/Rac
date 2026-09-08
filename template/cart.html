@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>404 || Ogency || HTML Template For Creative Agency</title>
+    <title>Cart || Ogency || HTML Template For Creative Agency</title>
     <!-- favicons Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicons/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicons/favicon-32x32.png" />
@@ -244,29 +244,99 @@
             <div class="container">
                 <ul class="page-header__breadcrumb list-unstyled">
                     <li><a href="index.html">Home</a></li>
-                    <li><span>404 error</span></li>
+                    <li><span>Shop</span></li>
                 </ul><!-- /.page-breadcrumb list-unstyled -->
-                <h2 class="page-header__title">404 error</h2><!-- /.page-title -->
+                <h2 class="page-header__title">Cart</h2><!-- /.page-title -->
             </div><!-- /.container -->
         </section><!-- /.page-header -->
-        <!-- Error Start -->
-        <section class="error-page">
+        <!-- Cart Start -->
+        <section class="cart-page">
             <div class="container">
-                <div class="error-page__content">
-                    <h1 class="error-page__404">404<img src="assets/images/resources/404.png" alt="ogency"></h1><!-- 404 -->
-                    <h4 class="error-page__title">Oops! page not found</h4><!-- 404-title -->
-                    <p class="error-page__text">The page you are looking for is not exist.</p><!-- 404-content -->
-                    <form class="error-page__form">
-                        <div class="error-page__form-input">
-                            <input type="search" placeholder="Search here">
-                            <button type="submit"><i class="icon-magnifying-glass"></i></button>
+                <div class="table-responsive">
+                    <table class="table cart-page__table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                                <th>Remove</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="cart-page__table__meta">
+                                        <div class="cart-page__table__meta-img">
+                                            <img src="assets/images/product/cart-page-img-1.jpg" alt="ogency">
+                                        </div>
+                                        <h3 class="cart-page__table__meta-title"><a href="product-details.html">Office chair</a>
+                                        </h3>
+                                    </div>
+                                </td>
+                                <td>$10.99</td>
+                                <td>
+                                    <div class="product-details__quantity">
+                                        <div class="quantity-box">
+                                            <button type="button" class="sub"><i class="fa fa-minus"></i></button>
+                                            <input type="number" value="1">
+                                            <button type="button" class="add"><i class="fa fa-plus"></i></button>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>$10.99</td>
+                                <td>
+                                    <a href="cart.html" class="table cart-page__table__remove"><span class="icon-close"></span></a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="cart-page__table__meta">
+                                        <div class="cart-page__table__meta-img">
+                                            <img src="assets/images/product/cart-page-img-2.jpg" alt="ogency">
+                                        </div>
+                                        <h3 class="cart-page__table__meta-title"><a href="product-details.html">Round chair</a>
+                                        </h3>
+                                    </div>
+                                </td>
+                                <td>$10.99</td>
+                                <td>
+                                    <div class="product-details__quantity">
+                                        <div class="quantity-box">
+                                            <button type="button" class="sub"><i class="fa fa-minus"></i></button>
+                                            <input type="number" value="1">
+                                            <button type="button" class="add"><i class="fa fa-plus"></i></button>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>$10.99</td>
+                                <td><a href="cart.html" class="table cart-page__table__remove"><span class="icon-close"></span></a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <div class="col-xl-8 col-lg-7">
+                        <form action="#" class="cart-page__coupone-form">
+                            <input type="text" placeholder="Enter coupon code" class="cart-cupon__input">
+                            <button class="ogency-btn" type="submit">Apply Coupon</button>
+                        </form>
+                    </div>
+                    <div class="col-xl-4 col-lg-5">
+                        <ul class="cart-page__cart-total list-unstyled">
+                            <li><span>Subtotal</span><span class="cart-page__cart-total-amount">$20.98 USD</span></li>
+                            <li><span>Shipping cost</span><span class="cart-page__cart-total-amount">$0.00 USD</span></li>
+                            <li><span>Total</span><span class="cart-page__cart-total-amount">$20.98 USD</span></li>
+                        </ul>
+                        <div class="cart-page__buttons">
+                            <a href="cart.html" class="ogency-btn">Update</a>
+                            <a href="checkout.html" class="ogency-btn checkout">Checkout</a>
                         </div>
-                    </form><!-- 404-search-form -->
-                    <a href="index.html" class="ogency-btn">Back to Home</a><!-- 404-btn -->
-                </div><!-- 404-info -->
+                    </div>
+                </div>
             </div>
         </section>
-        <!-- Error End -->
+        <!-- Cart End -->
 
         <footer class="main-footer" style="background-image: url(assets/images/backgrounds/footer-bg-1.png);">
             <div class="container">

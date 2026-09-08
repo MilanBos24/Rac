@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>404 || Ogency || HTML Template For Creative Agency</title>
+    <title>Blog || Ogency || HTML Template For Creative Agency</title>
     <!-- favicons Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicons/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicons/favicon-32x32.png" />
@@ -244,29 +244,277 @@
             <div class="container">
                 <ul class="page-header__breadcrumb list-unstyled">
                     <li><a href="index.html">Home</a></li>
-                    <li><span>404 error</span></li>
+                    <li><span>Blog</span></li>
                 </ul><!-- /.page-breadcrumb list-unstyled -->
-                <h2 class="page-header__title">404 error</h2><!-- /.page-title -->
+                <h2 class="page-header__title">Blog posts</h2><!-- /.page-title -->
             </div><!-- /.container -->
         </section><!-- /.page-header -->
-        <!-- Error Start -->
-        <section class="error-page">
+        <!--Blog Start-->
+        <section class="blog-page">
             <div class="container">
-                <div class="error-page__content">
-                    <h1 class="error-page__404">404<img src="assets/images/resources/404.png" alt="ogency"></h1><!-- 404 -->
-                    <h4 class="error-page__title">Oops! page not found</h4><!-- 404-title -->
-                    <p class="error-page__text">The page you are looking for is not exist.</p><!-- 404-content -->
-                    <form class="error-page__form">
-                        <div class="error-page__form-input">
-                            <input type="search" placeholder="Search here">
-                            <button type="submit"><i class="icon-magnifying-glass"></i></button>
+                <div class="row">
+                    <div class="col-xl-4 col-lg-5 wow fadeInLeft" data-wow-delay="400ms">
+                        <div class="sidebar sidebar__left">
+                            <div class="sidebar__single sidebar__search">
+                                <form action="#" class="sidebar__search-form">
+                                    <input type="search" placeholder="Keywrord...">
+                                    <button type="submit"><i class="icon-magnifying-glass"></i></button>
+                                </form>
+                            </div><!-- search-widget -->
+                            <div class="sidebar__single sidebar__post">
+                                <h3 class="sidebar__title">Latest posts</h3>
+                                <ul class="sidebar__post__list list-unstyled">
+                                    <li>
+                                        <div class="sidebar__post__image">
+                                            <img src="assets/images/blog/lp-1-1.jpg" alt="">
+                                        </div>
+                                        <div class="sidebar__post__content">
+                                            <span class="sidebar__post__content__meta">20 Mar, 2023</span>
+                                            <h3 class="sidebar__post__content__title"><a href="blog-details.html">Get deep knowledge of your audience</a></h3>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="sidebar__post__image">
+                                            <img src="assets/images/blog/lp-1-2.jpg" alt="">
+                                        </div>
+                                        <div class="sidebar__post__content">
+                                            <span class="sidebar__post__content__meta">20 Mar, 2023</span>
+                                            <h3 class="sidebar__post__content__title"><a href="blog-details.html">Aliquam tellus nulla sollicitudin at</a></h3>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="sidebar__post__image">
+                                            <img src="assets/images/blog/lp-1-3.jpg" alt="">
+                                        </div>
+                                        <div class="sidebar__post__content">
+                                            <span class="sidebar__post__content__meta">20 Mar, 2023</span>
+                                            <h3 class="sidebar__post__content__title"><a href="blog-details.html">Donec sit amet is lacinia nulla.</a></h3>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div><!-- latest-post-widget -->
+                            <div class="sidebar__single sidebar__category">
+                                <h3 class="sidebar__title">Categories</h3>
+                                <ul class="sidebar__category-list list-unstyled">
+                                    <li><a href="blog-details.html">Web Development</a></li>
+                                    <li><a href="blog-details.html">Social Marketing</a></li>
+                                    <li><a href="blog-details.html">Technology</a></li>
+                                    <li><a href="blog-details.html">Digital Solutions</a></li>
+                                    <li><a href="blog-details.html">Business & Finance</a></li>
+                                </ul>
+                            </div><!-- category-widget -->
+                            <div class="sidebar__single sidebar__project">
+                                <h3 class="sidebar__title">Projects</h3>
+                                <div class="sidebar__project__carousel ogency-owl__carousel owl-theme owl-carousel" data-owl-options='{
+                            "items": 1,
+                            "margin": 0,
+                            "smartSpeed": 700,
+                            "loop":true,
+                            "autoplay": true,
+                            "nav":false,
+                            "dots":true,
+                            "navText": ["<span class=\"icon-left-arrow\"></span>","<span class=\"icon-right-arrow\"></span>"]
+                            }'>
+                                    <div class="item">
+                                        <div class="sidebar__project-single">
+                                            <div class="sidebar__project-bg" style="background-image: url(assets/images/backgrounds/sidebar-project-bg-1.jpg);">
+                                            </div>
+                                            <h3 class="sidebar__project-single-title">Digital Solutions</h3>
+                                        </div>
+                                    </div>
+                                    <div class="item">
+                                        <div class="sidebar__project-single">
+                                            <div class="sidebar__project-bg" style="background-image: url(assets/images/backgrounds/sidebar-project-bg-2.jpg);">
+                                            </div>
+                                            <h3 class="sidebar__project-single-title">Web Development</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div><!-- category-widget -->
+                            <div class="sidebar__single sidebar__tags">
+                                <h3 class="sidebar__title">Tags</h3>
+                                <div class="sidebar__tags-list">
+                                    <a href="blog-grid-right.html">Marketing</a>
+                                    <a href="blog-grid-right.html">development</a>
+                                    <a href="blog-grid-right.html">Design</a>
+                                    <a href="blog-grid-right.html">Digital</a>
+                                </div>
+                            </div><!-- tags-widget -->
+                            <div class="sidebar__single sidebar__comments">
+                                <h3 class="sidebar__title">Comments</h3>
+                                <ul class="sidebar__comments-list list-unstyled">
+                                    <li>
+                                        <div class="sidebar__comments-icon">
+                                            <span class="fas fa-comment"></span>
+                                        </div>
+                                        <div class="sidebar__comments-text-box">
+                                            <p>A wordpress commenter <br> on launch new mobile app</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="sidebar__comments-icon">
+                                            <span class="fas fa-comment"></span>
+                                        </div>
+                                        <div class="sidebar__comments-text-box">
+                                            <p><a href="blog-grid-right.html">John Doe</a> on Template: <br>Comments</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="sidebar__comments-icon">
+                                            <span class="fas fa-comment"></span>
+                                        </div>
+                                        <div class="sidebar__comments-text-box">
+                                            <p>A wordpress commenter <br> on launch new mobile app</p>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="sidebar__comments-icon">
+                                            <span class="fas fa-comment"></span>
+                                        </div>
+                                        <div class="sidebar__comments-text-box">
+                                            <p><a href="blog-grid-right.html">John Doe</a> on Template: <br> Comments</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div><!-- comment-widget -->
                         </div>
-                    </form><!-- 404-search-form -->
-                    <a href="index.html" class="ogency-btn">Back to Home</a><!-- 404-btn -->
-                </div><!-- 404-info -->
+                    </div>
+                    <div class="col-xl-8 col-lg-7">
+                        <div class="row">
+                            <div class="col-xl-6 col-lg-12 col-md-6 wow fadeInUp" data-wow-delay="200ms">
+                                <div class="blog-one__item">
+                                    <div class="blog-one__item__image">
+                                        <img src="assets/images/blog/blog-1-1.jpg" alt="Trending web code settings for a nice portfolio">
+                                        <a href="blog-details.html"></a>
+                                        <span>16 apr</span>
+                                    </div><!-- /.blog-image -->
+                                    <div class="blog-one__item__content">
+                                        <div class="blog-one__item__meta has-border"><a href="blog-details.html">Design</a><span>.</span>2 Comments</div><!-- /.blog-meta -->
+                                        <h3 class="blog-one__item__title">
+                                            <a href="blog-details.html">Trending web code settings for a nice portfolio</a>
+                                        </h3><!-- /.blog-title -->
+                                        <a class="blog-one__item__btn" href="blog-details.html">Read More<span class="icon-down-right"></span></a><!-- /.blog-read-more -->
+                                    </div><!-- /.blog-content -->
+                                </div><!-- /.blog-card-one -->
+                            </div>
+                            <div class="col-xl-6 col-lg-12 col-md-6 wow fadeInUp" data-wow-delay="300ms">
+                                <div class="blog-one__item">
+                                    <div class="blog-one__item__image">
+                                        <img src="assets/images/blog/blog-1-2.jpg" alt="Get a few solutions to hire a best candidate">
+                                        <a href="blog-details.html"></a>
+                                        <span>16 apr</span>
+                                    </div><!-- /.blog-image -->
+                                    <div class="blog-one__item__content">
+                                        <div class="blog-one__item__meta has-border"><a href="blog-details.html">Design</a><span>.</span>2 Comments</div><!-- /.blog-meta -->
+                                        <h3 class="blog-one__item__title">
+                                            <a href="blog-details.html">Get a few solutions to hire a best candidate</a>
+                                        </h3><!-- /.blog-title -->
+                                        <a class="blog-one__item__btn" href="blog-details.html">Read More<span class="icon-down-right"></span></a><!-- /.blog-read-more -->
+                                    </div><!-- /.blog-content -->
+                                </div><!-- /.blog-card-one -->
+                            </div>
+                            <div class="col-xl-6 col-lg-12 col-md-6 wow fadeInUp" data-wow-delay="400ms">
+                                <div class="blog-one__item">
+                                    <div class="blog-one__item__image">
+                                        <img src="assets/images/blog/blog-1-3.jpg" alt="Introducing the latest tech features for you">
+                                        <a href="blog-details.html"></a>
+                                        <span>16 apr</span>
+                                    </div><!-- /.blog-image -->
+                                    <div class="blog-one__item__content">
+                                        <div class="blog-one__item__meta has-border"><a href="blog-details.html">Design</a><span>.</span>2 Comments</div><!-- /.blog-meta -->
+                                        <h3 class="blog-one__item__title">
+                                            <a href="blog-details.html">Introducing the latest tech features for you</a>
+                                        </h3><!-- /.blog-title -->
+                                        <a class="blog-one__item__btn" href="blog-details.html">Read More<span class="icon-down-right"></span></a><!-- /.blog-read-more -->
+                                    </div><!-- /.blog-content -->
+                                </div><!-- /.blog-card-one -->
+                            </div>
+                            <div class="col-xl-6 col-lg-12 col-md-6 wow fadeInUp" data-wow-delay="500ms">
+                                <div class="blog-one__item">
+                                    <div class="blog-one__item__image">
+                                        <img src="assets/images/blog/blog-1-4.jpg" alt="Get deep knowledge of your audience attention">
+                                        <a href="blog-details.html"></a>
+                                        <span>16 apr</span>
+                                    </div><!-- /.blog-image -->
+                                    <div class="blog-one__item__content">
+                                        <div class="blog-one__item__meta has-border"><a href="blog-details.html">Design</a><span>.</span>2 Comments</div><!-- /.blog-meta -->
+                                        <h3 class="blog-one__item__title">
+                                            <a href="blog-details.html">Get deep knowledge of your audience attention</a>
+                                        </h3><!-- /.blog-title -->
+                                        <a class="blog-one__item__btn" href="blog-details.html">Read More<span class="icon-down-right"></span></a><!-- /.blog-read-more -->
+                                    </div><!-- /.blog-content -->
+                                </div><!-- /.blog-card-one -->
+                            </div>
+                            <div class="col-xl-6 col-lg-12 col-md-6 wow fadeInUp" data-wow-delay="600ms">
+                                <div class="blog-one__item">
+                                    <div class="blog-one__item__image">
+                                        <img src="assets/images/blog/blog-1-5.jpg" alt="It’s through refresing to get such a personal">
+                                        <a href="blog-details.html"></a>
+                                        <span>16 apr</span>
+                                    </div><!-- /.blog-image -->
+                                    <div class="blog-one__item__content">
+                                        <div class="blog-one__item__meta has-border"><a href="blog-details.html">Design</a><span>.</span>2 Comments</div><!-- /.blog-meta -->
+                                        <h3 class="blog-one__item__title">
+                                            <a href="blog-details.html">It’s through refresing to get such a personal</a>
+                                        </h3><!-- /.blog-title -->
+                                        <a class="blog-one__item__btn" href="blog-details.html">Read More<span class="icon-down-right"></span></a><!-- /.blog-read-more -->
+                                    </div><!-- /.blog-content -->
+                                </div><!-- /.blog-card-one -->
+                            </div>
+                            <div class="col-xl-6 col-lg-12 col-md-6 wow fadeInUp" data-wow-delay="700ms">
+                                <div class="blog-one__item">
+                                    <div class="blog-one__item__image">
+                                        <img src="assets/images/blog/blog-1-6.jpg" alt="Due to their excellent service competitive pricing">
+                                        <a href="blog-details.html"></a>
+                                        <span>16 apr</span>
+                                    </div><!-- /.blog-image -->
+                                    <div class="blog-one__item__content">
+                                        <div class="blog-one__item__meta has-border"><a href="blog-details.html">Design</a><span>.</span>2 Comments</div><!-- /.blog-meta -->
+                                        <h3 class="blog-one__item__title">
+                                            <a href="blog-details.html">Due to their excellent service competitive pricing</a>
+                                        </h3><!-- /.blog-title -->
+                                        <a class="blog-one__item__btn" href="blog-details.html">Read More<span class="icon-down-right"></span></a><!-- /.blog-read-more -->
+                                    </div><!-- /.blog-content -->
+                                </div><!-- /.blog-card-one -->
+                            </div>
+                            <div class="col-xl-6 col-lg-12 col-md-6 wow fadeInUp" data-wow-delay="600ms">
+                                <div class="blog-one__item">
+                                    <div class="blog-one__item__image">
+                                        <img src="assets/images/blog/blog-1-7.jpg" alt="Basic rules of running a small web agency">
+                                        <a href="blog-details.html"></a>
+                                        <span>16 apr</span>
+                                    </div><!-- /.blog-image -->
+                                    <div class="blog-one__item__content">
+                                        <div class="blog-one__item__meta has-border"><a href="blog-details.html">Design</a><span>.</span>2 Comments</div><!-- /.blog-meta -->
+                                        <h3 class="blog-one__item__title">
+                                            <a href="blog-details.html">Basic rules of running a small web agency</a>
+                                        </h3><!-- /.blog-title -->
+                                        <a class="blog-one__item__btn" href="blog-details.html">Read More<span class="icon-down-right"></span></a><!-- /.blog-read-more -->
+                                    </div><!-- /.blog-content -->
+                                </div><!-- /.blog-card-one -->
+                            </div>
+                            <div class="col-xl-6 col-lg-12 col-md-6 wow fadeInUp" data-wow-delay="700ms">
+                                <div class="blog-one__item">
+                                    <div class="blog-one__item__image">
+                                        <img src="assets/images/blog/blog-1-8.jpg" alt="Providing the creative design services">
+                                        <a href="blog-details.html"></a>
+                                        <span>16 apr</span>
+                                    </div><!-- /.blog-image -->
+                                    <div class="blog-one__item__content">
+                                        <div class="blog-one__item__meta has-border"><a href="blog-details.html">Design</a><span>.</span>2 Comments</div><!-- /.blog-meta -->
+                                        <h3 class="blog-one__item__title">
+                                            <a href="blog-details.html">Providing the creative design services</a>
+                                        </h3><!-- /.blog-title -->
+                                        <a class="blog-one__item__btn" href="blog-details.html">Read More<span class="icon-down-right"></span></a><!-- /.blog-read-more -->
+                                    </div><!-- /.blog-content -->
+                                </div><!-- /.blog-card-one -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
-        <!-- Error End -->
+        <!--Blog End-->
 
         <footer class="main-footer" style="background-image: url(assets/images/backgrounds/footer-bg-1.png);">
             <div class="container">

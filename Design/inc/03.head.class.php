@@ -33,4 +33,5 @@
 
     <!-- template styles -->
     <link rel="stylesheet" href="assets/css/ogency.css" />
+    <link rel="stylesheet" href="assets/css/rac.css" />
 </head>

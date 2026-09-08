@@ -11,5 +11,15 @@ if (!defined('DEFAULT_LANGUAGE')) {
 }
 
 if (!defined('SUPPORTED_LANGUAGES')) {
-    define('SUPPORTED_LANGUAGES', ['cs', 'en']);
+    define('SUPPORTED_LANGUAGES', ['cs', 'sk', 'pl', 'en', 'de']);
+}
+
+if (!defined('LANGUAGE_NAMES')) {
+    define('LANGUAGE_NAMES', [
+        'cs' => 'Čeština',
+        'sk' => 'Slovenčina',
+        'pl' => 'Polski',
+        'en' => 'English',
+        'de' => 'Deutsch',
+    ]);
 }

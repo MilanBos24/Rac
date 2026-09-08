@@ -1,3 +1,6 @@
+<?php
+$currentPage = basename($_SERVER['SCRIPT_NAME'] ?? 'index.php');
+?>
 <body class="custom-cursor">
 
     <div class="custom-cursor__cursor"></div>
@@ -12,185 +15,62 @@
             <nav class="main-menu">
                 <div class="container-fluid">
                     <div class="main-menu__logo">
-                        <a href="index.html">
-                            <img src="assets/images/logo-light.png" width="34" height="34" alt="Ogency">
+                        <a href="<?= htmlspecialchars(racUrl('index.php'), ENT_QUOTES, 'UTF-8'); ?>">
+                            <img src="assets/images/logo-light.png" width="34" height="34" alt="RAC">
                         </a>
                     </div><!-- /.main-menu__logo -->
+
                     <div class="main-menu__nav">
                         <ul class="main-menu__list">
-                            <li class="dropdown megamenu">
-                                <a href="index.html">Home</a>
-                                <ul>
-                                    <li>
-                                        <section class="home-showcase">
-                                            <div class="container">
-                                                <div class="home-showcase__inner">
-                                                    <div class="row">
-                                                        <div class="col-lg-3">
-                                                            <div class="home-showcase__item">
-                                                                <div class="home-showcase__image">
-                                                                    <img src="assets/images/home-showcase/home-showcase-1-1.jpg" alt="">
-                                                                    <div class="home-showcase__buttons">
-                                                                        <a href="index.html" class="ogency-btn home-showcase__buttons__item">Multi
-                                                                            Page</a>
-                                                                        <a href="index-one-page.html" class="ogency-btn home-showcase__buttons__item">One
-                                                                            Page</a>
-                                                                    </div>
-                                                                    <!-- /.home-showcase__buttons -->
-                                                                </div><!-- /.home-showcase__image -->
-                                                                <h3 class="home-showcase__title">Homepage 01</h3><!-- /.home-showcase__title -->
-                                                            </div><!-- /.home-showcase__item -->
-                                                        </div><!-- /.col-lg-3 -->
-                                                        <div class="col-lg-3">
-                                                            <div class="home-showcase__item">
-                                                                <div class="home-showcase__image">
-                                                                    <img src="assets/images/home-showcase/home-showcase-1-2.jpg" alt="">
-                                                                    <div class="home-showcase__buttons">
-                                                                        <a href="index-2.html" class="ogency-btn home-showcase__buttons__item">Multi
-                                                                            Page</a>
-                                                                        <a href="index-2-one-page.html" class="ogency-btn home-showcase__buttons__item">One
-                                                                            Page</a>
-                                                                    </div>
-                                                                    <!-- /.home-showcase__buttons -->
-                                                                </div><!-- /.home-showcase__image -->
-                                                                <h3 class="home-showcase__title">Homepage 02</h3><!-- /.home-showcase__title -->
-                                                            </div><!-- /.home-showcase__item -->
-                                                        </div><!-- /.col-lg-3 -->
-                                                        <div class="col-lg-3">
-                                                            <div class="home-showcase__item">
-                                                                <div class="home-showcase__image">
-                                                                    <img src="assets/images/home-showcase/home-showcase-1-3.jpg" alt="">
-                                                                    <div class="home-showcase__buttons">
-                                                                        <a href="index-3.html" class="ogency-btn home-showcase__buttons__item">Multi
-                                                                            Page</a>
-                                                                        <a href="index-3-one-page.html" class="ogency-btn home-showcase__buttons__item">One
-                                                                            Page</a>
-                                                                    </div>
-                                                                    <!-- /.home-showcase__buttons -->
-                                                                </div><!-- /.home-showcase__image -->
-                                                                <h3 class="home-showcase__title">Homepage 03</h3><!-- /.home-showcase__title -->
-                                                            </div><!-- /.home-showcase__item -->
-                                                        </div><!-- /.col-lg-3 -->
-                                                        <div class="col-lg-3">
-                                                            <div class="home-showcase__item">
-                                                                <div class="home-showcase__image">
-                                                                    <img src="assets/images/home-showcase/home-showcase-1-4.jpg" alt="">
-                                                                    <div class="home-showcase__buttons">
-                                                                        <a href="index-light.html" class="ogency-btn home-showcase__buttons__item">View
-                                                                            Page</a>
-                                                                    </div>
-                                                                    <!-- /.home-showcase__buttons -->
-                                                                </div><!-- /.home-showcase__image -->
-                                                                <h3 class="home-showcase__title">Homepage 04</h3><!-- /.home-showcase__title -->
-                                                            </div><!-- /.home-showcase__item -->
-                                                        </div><!-- /.col-lg-3 -->
-                                                    </div><!-- /.row -->
-                                                </div><!-- /.home-showcase__inner -->
-                                            </div><!-- /.container -->
-                                        </section>
-                                    </li>
-                                </ul>
+                            <li<?= $currentPage === 'index.php' ? ' class="current"' : ''; ?>>
+                                <a href="<?= htmlspecialchars(racUrl('index.php'), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars(__('menu.home'), ENT_QUOTES, 'UTF-8'); ?></a>
                             </li>
-                            <li class="dropdown">
-                                <a href="#">Pages</a>
-                                <ul>
-                                    <li><a href="about.html">About us</a></li>
-                                    <li><a href="team.html">Team</a></li>
-                                    <li><a href="team-carousel.html">Team carousel</a></li>
-                                    <li><a href="team-details.html">Team details</a></li>
-                                    <li><a href="gallery.html">Gallery</a></li>
-                                    <li><a href="gallery-carousel.html">Gallery carousel</a></li>
-                                    <li><a href="pricing.html">Pricing</a></li>
-                                    <li><a href="faq.html">FAQs</a></li>
-                                    <li><a href="login.html">Login</a></li>
-                                    <li><a href="404.html">404 error</a></li>
-                                </ul>
+                            <li<?= $currentPage === 'o-autorovi.php' ? ' class="current"' : ''; ?>>
+                                <a href="<?= htmlspecialchars(racUrl('o-autorovi.php'), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars(__('menu.author'), ENT_QUOTES, 'UTF-8'); ?></a>
                             </li>
-                            <li class="dropdown">
-                                <a href="#">Services</a>
-                                <ul>
-                                    <li><a href="services.html">Services</a></li>
-                                    <li><a href="services-carousel.html">Services carousel 01</a></li>
-                                    <li><a href="services-carousel-2.html">Services carousel 02</a></li>
-                                    <li><a href="website-development.html">Website development</a></li>
-                                    <li><a href="graphic-designing.html">Graphic designing</a></li>
-                                    <li><a href="digital-marketing.html">Digital marketing</a></li>
-                                    <li><a href="apps-development.html">Apps development</a></li>
-                                    <li><a href="web-designing.html">Web designing</a></li>
-                                    <li><a href="web-development.html">Web development</a></li>
-                                    <li><a href="web-application.html">Web application</a></li>
-                                </ul>
+                            <li<?= $currentPage === 'knihy.php' ? ' class="current"' : ''; ?>>
+                                <a href="<?= htmlspecialchars(racUrl('knihy.php'), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars(__('menu.books'), ENT_QUOTES, 'UTF-8'); ?></a>
                             </li>
-                            <li class="dropdown">
-                                <a href="#">Portfolio</a>
-                                <ul>
-                                    <li><a href="projects.html">Portfolio</a></li>
-                                    <li><a href="projects-carousel.html">Portfolio carousel</a></li>
-                                    <li><a href="project-details.html">Portfolio details</a></li>
-                                </ul>
+                            <li<?= $currentPage === 'pripravujeme.php' ? ' class="current"' : ''; ?>>
+                                <a href="<?= htmlspecialchars(racUrl('pripravujeme.php'), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars(__('menu.upcoming'), ENT_QUOTES, 'UTF-8'); ?></a>
                             </li>
-                            <li class="dropdown">
-                                <a href="#">Shop</a>
-                                <ul class="sub-menu">
-                                    <li class="dropdown">
-                                        <a href="#">Products</a>
-                                        <ul class="sub-menu">
-                                            <li><a href="products.html">No sidebar</a></li>
-                                            <li><a href="products-left.html">Left sidebar</a></li>
-                                            <li><a href="products-right.html">Right sidebar</a></li>
-                                        </ul>
-                                    </li>
-                                    <li><a href="products-carousel.html">Products carousel</a></li>
-                                    <li><a href="product-details.html">Product details</a></li>
-                                    <li><a href="cart.html">Cart</a></li>
-                                    <li><a href="checkout.html">Checkout</a></li>
-                                </ul>
+                            <li<?= $currentPage === 'kontakt.php' ? ' class="current"' : ''; ?>>
+                                <a href="<?= htmlspecialchars(racUrl('kontakt.php'), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars(__('menu.contact'), ENT_QUOTES, 'UTF-8'); ?></a>
                             </li>
-                            <li class="dropdown">
-                                <a href="#">Blog</a>
-                                <ul class="sub-menu">
-                                    <li class="dropdown">
-                                        <a href="#">Blog grid</a>
-                                        <ul class="sub-menu">
-                                            <li><a href="blog-grid.html">No sidebar</a></li>
-                                            <li><a href="blog-grid-left.html">Left sidebar</a></li>
-                                            <li><a href="blog-grid-right.html">Right sidebar</a></li>
-                                        </ul>
-                                    </li>
-                                    <li class="dropdown">
-                                        <a href="#">Blog list</a>
-                                        <ul class="sub-menu">
-                                            <li><a href="blog-list.html">No sidebar</a></li>
-                                            <li><a href="blog-list-left.html">Left sidebar</a></li>
-                                            <li><a href="blog-list-right.html">Right sidebar</a></li>
-                                        </ul>
-                                    </li>
-                                    <li><a href="blog-carousel.html">Blog carousel</a></li>
-                                    <li class="dropdown">
-                                        <a href="#">Blog details</a>
-                                        <ul class="sub-menu">
-                                            <li><a href="blog-details.html">No sidebar</a></li>
-                                            <li><a href="blog-details-left.html">Left sidebar</a></li>
-                                            <li><a href="blog-details-right.html">Right sidebar</a></li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                            </li>
-                            <li><a href="contact.html">Contact</a></li>
                         </ul>
                     </div><!-- /.main-menu__nav -->
+
                     <div class="main-menu__right">
                         <a href="#" class="main-menu__toggler mobile-nav__toggler">
                             <i class="fa fa-bars"></i>
                         </a><!-- /.mobile menu btn -->
-                        <a href="#" class="main-menu__search search-toggler">
+
+                        <a href="#" class="main-menu__search search-toggler" aria-label="<?= htmlspecialchars(__('action.search'), ENT_QUOTES, 'UTF-8'); ?>">
                             <i class="icon-magnifying-glass"></i>
                         </a><!-- /.search btn -->
-                        <a href="cart.html" class="main-menu__cart cart-toggler">
+
+                        <a href="<?= htmlspecialchars(racUrl('kosik.php'), ENT_QUOTES, 'UTF-8'); ?>" class="main-menu__cart cart-toggler" aria-label="<?= htmlspecialchars(__('cart.title'), ENT_QUOTES, 'UTF-8'); ?>">
                             <i class="icon-shopping-cart"></i>
                         </a><!-- /.cart btn -->
+
+                        <details class="main-menu__language">
+                            <summary class="main-menu__language-toggle" aria-label="<?= htmlspecialchars(__('language.label'), ENT_QUOTES, 'UTF-8'); ?>">
+                                <i class="fas fa-globe"></i>
+                                <span><?= htmlspecialchars(strtoupper($currentLanguage), ENT_QUOTES, 'UTF-8'); ?></span>
+                            </summary>
+                            <ul class="main-menu__language-menu">
+                                <?php foreach (SUPPORTED_LANGUAGES as $languageCode): ?>
+                                    <li>
+                                        <a href="<?= htmlspecialchars(racLanguageUrl($languageCode), ENT_QUOTES, 'UTF-8'); ?>"<?= $languageCode === $currentLanguage ? ' class="is-active" aria-current="true"' : ''; ?>>
+                                            <span><?= htmlspecialchars(LANGUAGE_NAMES[$languageCode] ?? strtoupper($languageCode), ENT_QUOTES, 'UTF-8'); ?></span>
+                                            <span class="main-menu__language-code"><?= htmlspecialchars(strtoupper($languageCode), ENT_QUOTES, 'UTF-8'); ?></span>
+                                        </a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </details>
                     </div><!-- /.main-menu__right -->
-                </div><!-- /.container -->
+                </div><!-- /.container-fluid -->
             </nav>
             <!-- /.main-menu -->
         </header><!-- /.main-header -->

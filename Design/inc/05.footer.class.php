@@ -1,0 +1,1 @@
+<?php include __DIR__ . '/03.footer.class.php'; ?>

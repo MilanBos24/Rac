@@ -51,3 +51,40 @@ function __(string $key, array $replace = []): string
 
     return $text;
 }
+
+function racUrl(string $path): string
+{
+    global $currentLanguage;
+
+    if ($currentLanguage === DEFAULT_LANGUAGE) {
+        return $path;
+    }
+
+    $separator = strpos($path, '?') === false ? '?' : '&';
+
+    return $path . $separator . 'lang=' . rawurlencode($currentLanguage);
+}
+
+function racLanguageUrl(string $language): string
+{
+    if (!in_array($language, SUPPORTED_LANGUAGES, true)) {
+        $language = DEFAULT_LANGUAGE;
+    }
+
+    $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+    $path = parse_url($requestUri, PHP_URL_PATH);
+    $query = parse_url($requestUri, PHP_URL_QUERY);
+
+    if (!is_string($path) || $path === '') {
+        $path = '/';
+    }
+
+    $params = [];
+    if (is_string($query) && $query !== '') {
+        parse_str($query, $params);
+    }
+
+    $params['lang'] = $language;
+
+    return $path . '?' . http_build_query($params);
+}

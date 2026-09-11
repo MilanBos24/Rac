@@ -8,14 +8,14 @@
             <!-- /.page-header__bg -->
             <div class="container">
                 <ul class="page-header__breadcrumb list-unstyled">
-                    <li><a href="/">Home</a></li>
-                    <li><span>Autor</span></li>
+                    <li><a href="<?= htmlspecialchars(racUrl('index.php'), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars(__('breadcrumb.home'), ENT_QUOTES, 'UTF-8'); ?></a></li>
+                    <li><span><?= htmlspecialchars(__('breadcrumb.author'), ENT_QUOTES, 'UTF-8'); ?></span></li>
                 </ul><!-- /.page-breadcrumb list-unstyled -->
                 <h2 class="page-header__title">Štefan Rác</h2><!-- /.page-title -->
             </div><!-- /.container -->
         </section><!-- /.page-header -->
         <!--Main Slider End-->
-              
+
                 <section class="blog-page">
             <div class="container">
                 <div class="row">
@@ -23,17 +23,11 @@
                         <div class="about-two__left">
                             <!-- about content left -->
                             <div class="section-title">
-                                <h2 class="section-title__title">Připravujeme...</h2>
+                                <h2 class="section-title__title"><?= htmlspecialchars(__('author.preparing'), ENT_QUOTES, 'UTF-8'); ?></h2>
                             </div><!-- section-title -->
                         </div><!-- about content left -->
                     </div>                
-                    
+
                 </div>
             </div>
         </section>
-
-
-
-
-
-

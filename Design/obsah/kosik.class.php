@@ -9,10 +9,10 @@
             <!-- /.page-header__bg -->
             <div class="container">
                 <ul class="page-header__breadcrumb list-unstyled">
-                    <li><a href="/">Home</a></li>
-                    <li><span>E-shop</span></li>
+                    <li><a href="<?= htmlspecialchars(racUrl('index.php'), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars(__('breadcrumb.home'), ENT_QUOTES, 'UTF-8'); ?></a></li>
+                    <li><span><?= htmlspecialchars(__('breadcrumb.eshop'), ENT_QUOTES, 'UTF-8'); ?></span></li>
                 </ul><!-- /.page-breadcrumb list-unstyled -->
-                <h2 class="page-header__title">Košík</h2><!-- /.page-title -->
+                <h2 class="page-header__title"><?= htmlspecialchars(__('page.cart'), ENT_QUOTES, 'UTF-8'); ?></h2><!-- /.page-title -->
             </div><!-- /.container -->
         </section><!-- /.page-header -->
         <!-- Cart Start -->
@@ -22,11 +22,11 @@
                     <table class="table cart-page__table">
                         <thead>
                             <tr>
-                                <th>Položka</th>
-                                <th>Cena</th>
-                                <th>Množství</th>
-                                <th>Celkem</th>
-                                <th>Smazat</th>
+                                <th><?= htmlspecialchars(__('cart.item'), ENT_QUOTES, 'UTF-8'); ?></th>
+                                <th><?= htmlspecialchars(__('cart.price'), ENT_QUOTES, 'UTF-8'); ?></th>
+                                <th><?= htmlspecialchars(__('cart.quantity'), ENT_QUOTES, 'UTF-8'); ?></th>
+                                <th><?= htmlspecialchars(__('cart.total'), ENT_QUOTES, 'UTF-8'); ?></th>
+                                <th><?= htmlspecialchars(__('cart.delete'), ENT_QUOTES, 'UTF-8'); ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -34,7 +34,7 @@
                                 <td>
                                     <div class="cart-page__table__meta">
                                         <div class="cart-page__table__meta-img">
-                                            <img src="assets/images/product/laska.jpg" alt="ogency">
+                                            <img src="assets/images/product/laska.jpg" alt="Láska">
                                         </div>
                                         <h3 class="cart-page__table__meta-title"><a href="#">Láska</a>
                                         </h3>
@@ -52,14 +52,14 @@
                                 </td>
                                 <td>$10.99</td>
                                 <td>
-                                    <a href="cart.html" class="table cart-page__table__remove"><span class="icon-close"></span></a>
+                                    <a href="<?= htmlspecialchars(racUrl('kosik.php'), ENT_QUOTES, 'UTF-8'); ?>" class="table cart-page__table__remove"><span class="icon-close"></span></a>
                                 </td>
                             </tr>
                             <tr>
                                 <td>
                                     <div class="cart-page__table__meta">
                                         <div class="cart-page__table__meta-img">
-                                            <img src="assets/images/product/laska.jpg" alt="ogency">
+                                            <img src="assets/images/product/laska.jpg" alt="Život">
                                         </div>
                                         <h3 class="cart-page__table__meta-title"><a href="#">Život</a>
                                         </h3>
@@ -76,7 +76,7 @@
                                     </div>
                                 </td>
                                 <td>$10.99</td>
-                                <td><a href="cart.html" class="table cart-page__table__remove"><span class="icon-close"></span></a></td>
+                                <td><a href="<?= htmlspecialchars(racUrl('kosik.php'), ENT_QUOTES, 'UTF-8'); ?>" class="table cart-page__table__remove"><span class="icon-close"></span></a></td>
                             </tr>
                         </tbody>
                     </table>
@@ -86,17 +86,16 @@
                     </div>
                     <div class="col-xl-4 col-lg-5">
                         <ul class="cart-page__cart-total list-unstyled">
-                            <li><span>Položky</span><span class="cart-page__cart-total-amount">600,- Kč</span></li>
-                            <li><span>Doprava</span><span class="cart-page__cart-total-amount">200,- Kč</span></li>
-                            <li><span>Celkem</span><span class="cart-page__cart-total-amount">800,- Kč</span></li>
+                            <li><span><?= htmlspecialchars(__('cart.items'), ENT_QUOTES, 'UTF-8'); ?></span><span class="cart-page__cart-total-amount">600,- Kč</span></li>
+                            <li><span><?= htmlspecialchars(__('cart.shipping'), ENT_QUOTES, 'UTF-8'); ?></span><span class="cart-page__cart-total-amount">200,- Kč</span></li>
+                            <li><span><?= htmlspecialchars(__('cart.total'), ENT_QUOTES, 'UTF-8'); ?></span><span class="cart-page__cart-total-amount">800,- Kč</span></li>
                         </ul>
                         <div class="cart-page__buttons">
-                            <a href="#" class="ogency-btn">Zpět k nákupu</a>
-                            <a href="#" class="ogency-btn checkout">Pokračovat</a>
+                            <a href="<?= htmlspecialchars(racUrl('knihy.php'), ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn"><?= htmlspecialchars(__('cart.back_to_shop'), ENT_QUOTES, 'UTF-8'); ?></a>
+                            <a href="#" class="ogency-btn checkout"><?= htmlspecialchars(__('cart.continue'), ENT_QUOTES, 'UTF-8'); ?></a>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
         <!-- Cart End -->
-

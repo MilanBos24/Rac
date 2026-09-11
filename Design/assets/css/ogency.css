@@ -271,7 +271,6 @@
 .blog-one__item__image img {
   width: 100%;
   height: auto;
-  mix-blend-mode: luminosity;
 }
 
 .blog-one__item__image a {
@@ -523,7 +522,7 @@
 .blog-page {
   background-color: var(--ogency-black);
   position: relative;
-  padding: 120px 0 90px;
+  padding: 20px 0 50px;
 }
 
 @media (max-width: 767px) {
@@ -1416,7 +1415,7 @@
 
 body {
   font-family: var(--ogency-font);
-  color: var(--ogency-color);
+  color: var(--ogency-white);
   font-size: 15px;
   line-height: 1.875;
   font-weight: 500;
@@ -1522,7 +1521,7 @@ h6 {
   font-size: 16px;
   font-weight: 800;
   font-family: var(--ogency-font);
-  padding: 16px 50px 17px;
+  padding: 10px 30px 17px;
   transition: 500ms;
   overflow: hidden;
   z-index: 2;
@@ -1896,7 +1895,7 @@ h6 {
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 1.4px;
-  color: var(--ogency-color);
+  color: var(--ogency-base);
   font-weight: 500;
   margin: 0 0 7px;
   position: relative;
@@ -1904,7 +1903,6 @@ h6 {
 
 .section-title__tagline--has-dots::before {
   position: relative;
-  content: '';
   width: 7px;
   height: 7px;
   display: block;
@@ -1914,8 +1912,7 @@ h6 {
 }
 
 .section-title__title {
-  font-size: 50px;
-  letter-spacing: -2px;
+  font-size: 25px;
   margin: 0;
 }
 
@@ -2089,7 +2086,6 @@ h6 {
   align-items: center;
   color: var(--ogency-white);
   font-weight: 600;
-  text-transform: capitalize;
   position: relative;
   transition: all 500ms ease;
 }
@@ -3086,7 +3082,7 @@ h6 {
 .main-slider__one-item__shape-1 {
   position: absolute;
   top: 0;
-  right: 38.6%;
+  right: 20.6%;
   opacity: 0;
   transform: translateX(200px);
   z-index: 1;
@@ -3094,7 +3090,6 @@ h6 {
 }
 
 .main-slider__one-item__shape-1 img {
-  mix-blend-mode: luminosity;
   width: auto !important;
 }
 
@@ -3115,7 +3110,6 @@ h6 {
 }
 
 .main-slider__one-item__shape-2 img {
-  mix-blend-mode: luminosity;
   width: auto !important;
 }
 
@@ -4071,7 +4065,7 @@ h6 {
 .client-carousel__tilte {
   text-align: center;
   display: block;
-  color: var(--ogency-color);
+  color: var(--ogency-white);
   font-weight: 500;
   border-bottom: 1px solid RGBA(var(--ogency-white-rgb), 0.1);
   font-size: 13px;
@@ -4206,7 +4200,8 @@ h6 {
   -webkit-transition: -webkit-transform 400ms ease;
   transition: -webkit-transform 400ms ease;
   transition: transform 400ms ease;
-  transition: transform 400ms ease,  -webkit-transform 500ms ease;
+  transition: transform 400ms ease, 
+ -webkit-transform 500ms ease;
 }
 
 @media (max-width: 360px) {
@@ -4276,7 +4271,8 @@ h6 {
   -webkit-transition: -webkit-transform 500ms ease;
   transition: -webkit-transform 500ms ease;
   transition: transform 500ms ease;
-  transition: transform 500ms ease,  -webkit-transform 500ms ease;
+  transition: transform 500ms ease, 
+ -webkit-transform 500ms ease;
   z-index: 2;
 }
 
@@ -4425,7 +4421,6 @@ h6 {
 .about-one__thumb__img img {
   max-width: 100%;
   height: auto;
-  mix-blend-mode: luminosity;
   transition: all 500ms ease;
 }
 
@@ -6935,7 +6930,7 @@ h6 {
   font-size: 16px;
   line-height: 36px;
   font-weight: 400;
-  color: var(--ogency-color);
+  color: var(--ogency-white);
 }
 
 .main-footer__navmenu ul li a {
@@ -7633,7 +7628,7 @@ h6 {
   padding-right: 30px;
   outline: none;
   font-size: 14px;
-  color: var(--ogency-color);
+  color: var(--ogency-white);
   font-family: var(--ogency-font);
   display: block;
   font-weight: 500;
@@ -7661,7 +7656,7 @@ h6 {
   padding: 0;
   padding-left: 30px;
   padding-right: 30px;
-  color: var(--ogency-color) !important;
+  color: var(--ogency-white) !important;
   font-size: 14px;
   line-height: 63px;
   font-weight: 500;
@@ -7706,7 +7701,7 @@ h6 {
 .contact-one__input-box textarea {
   font-size: 14px;
   font-weight: 500;
-  color: var(--ogency-color);
+  color: var(--ogency-white);
   height: 130px;
   width: 100%;
   background-color: var(--ogency-black);
@@ -7844,7 +7839,6 @@ h6 {
   z-index: 2;
   background-color: var(--ogency-black2);
   padding: 57px 40px 61px 60px;
-  margin-bottom: -110px;
 }
 
 @media (max-width: 1199px) {
@@ -7910,7 +7904,7 @@ h6 {
   font-size: 16px;
   line-height: 30px;
   letter-spacing: -.72px;
-  color: var(--ogency-color);
+  color: var(--ogency-white);
   margin: 0 0 0;
 }
 
@@ -8304,7 +8298,7 @@ h6 {
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center center;
-  background-image: url(../images/backgrounds/page-header-bg-1-1.jpg);
+  background-image: url(../images/backgrounds/rc.jpg);
 }
 
 .page-header__overlay {
@@ -8337,7 +8331,6 @@ h6 {
   margin: 0;
   font-size: 60px;
   margin-bottom: 0;
-  letter-spacing: -3.6px;
 }
 
 @media (max-width: 480px) {
@@ -9860,14 +9853,14 @@ h6 {
   font-size: 15px;
   line-height: 26px;
   font-weight: 800;
-  color: var(--ogency-white);
+  color: var(--ogency-base);
   margin: 0 0 26px;
 }
 
 .project-details__info-list li span {
   display: block;
   font-size: 15px;
-  color: var(--ogency-color);
+  color: var(--ogency-white);
   font-weight: 500;
 }
 
@@ -10612,7 +10605,7 @@ h6 {
   -moz-appearance: textfield;
   appearance: textfield;
   font-family: var(--ogency-font);
-  color: var(--ogency-color);
+  color: var(--ogency-white);
   padding-left: 30px;
   outline: none;
   font-size: 18px;
@@ -10623,7 +10616,7 @@ h6 {
 .product-details__quantity .quantity-box button {
   width: 24px;
   height: 24px;
-  color: var(--ogency-color);
+  color: var(--ogency-base);
   font-size: 8px;
   position: absolute;
   top: 1px;
@@ -10994,7 +10987,7 @@ h6 {
 .cart-page__table tbody tr td {
   font-size: 18px;
   font-weight: 500;
-  color: var(--ogency-color);
+  color: var(--ogency-white);
   vertical-align: middle;
   border: none;
   box-shadow: none;
@@ -11123,7 +11116,7 @@ h6 {
 
 .cart-page__cart-total-amount {
   font-size: 18px;
-  color: var(--ogency-color);
+  color: var(--ogency-base);
   letter-spacing: 0;
   display: inline-block;
   min-width: 172px;

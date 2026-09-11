@@ -1,5 +1,11 @@
+/*
+ * RAC - vlastní úpravy šablony
+ * Jazykové menu: kompaktní přepínač vedle lupy a košíku.
+ */
+
 .main-menu__language {
     position: relative;
+    flex: 0 0 auto;
     margin-left: 18px;
 }
 
@@ -12,68 +18,77 @@
 }
 
 .main-menu__language-toggle {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 0;
+    justify-content: center;
+    gap: 7px;
+    min-height: 24px;
+    padding: 0;
     color: #ffffff;
     font-size: 14px;
     font-weight: 700;
     line-height: 1;
+    letter-spacing: .04em;
+    text-transform: uppercase;
     cursor: pointer;
     user-select: none;
+    white-space: nowrap;
+    transition: color 0.3s ease;
 }
 
-.main-menu__language-toggle i {
-    font-size: 16px;
+.main-menu__language-toggle:hover,
+.main-menu__language-toggle:focus {
+    color: var(--ogency-base, #ffffff);
 }
 
-.main-menu__language-toggle::after {
-    content: "\f107";
-    font-family: "Font Awesome 5 Free";
-    font-weight: 900;
-    font-size: 11px;
-    margin-left: 2px;
+.main-menu__language-current {
+    display: inline-block;
 }
 
-.main-menu__language[open] .main-menu__language-toggle::after {
-    transform: rotate(180deg);
-}
-
+/* Dropdown je absolutní - při otevření neposouvá navigaci. */
 .main-menu__language-menu {
     position: absolute;
-    top: calc(100% + 10px);
+    top: calc(100% + 22px);
     right: 0;
-    z-index: 9999;
-    width: 190px;
+    z-index: 99999;
+    width: 210px;
     margin: 0;
     padding: 8px;
     list-style: none;
     background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 4px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.16);
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.20);
 }
 
 .main-menu__language-menu::before {
     content: "";
     position: absolute;
-    top: -10px;
-    left: 0;
+    top: -22px;
+    right: 0;
     width: 100%;
-    height: 10px;
+    height: 22px;
+}
+
+.main-menu__language-menu li {
+    margin: 0;
+    padding: 0;
 }
 
 .main-menu__language-menu a {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 10px 12px;
+    gap: 14px;
+    width: 100%;
+    padding: 10px 11px;
     color: #1d1d1d;
     font-size: 14px;
     font-weight: 600;
+    line-height: 1.25;
     text-decoration: none;
     border-radius: 3px;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .main-menu__language-menu a:hover,
@@ -83,12 +98,58 @@
     color: #000000;
 }
 
+.main-menu__language-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
 .main-menu__language-code {
+    flex: 0 0 auto;
     min-width: 24px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     text-align: right;
-    opacity: 0.65;
+    letter-spacing: .04em;
+    opacity: 0.55;
+}
+
+.rac-language-flag {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 23px;
+    height: 15px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 1px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.rac-language-flag--cs {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Cpath fill='%23fff' d='M0 0h30v10H0z'/%3E%3Cpath fill='%23d7141a' d='M0 10h30v10H0z'/%3E%3Cpath fill='%2311457e' d='M0 0l15 10L0 20z'/%3E%3C/svg%3E");
+}
+
+.rac-language-flag--sk {
+    background-image: linear-gradient(to bottom, #ffffff 0, #ffffff 33.33%, #0b4ea2 33.33%, #0b4ea2 66.66%, #ee1c25 66.66%, #ee1c25 100%);
+}
+
+.rac-language-flag--pl {
+    background-image: linear-gradient(to bottom, #ffffff 0, #ffffff 50%, #dc143c 50%, #dc143c 100%);
+}
+
+.rac-language-flag--en {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 36'%3E%3Cpath fill='%23012169' d='M0 0h60v36H0z'/%3E%3Cpath stroke='%23fff' stroke-width='8' d='M0 0l60 36M60 0L0 36'/%3E%3Cpath stroke='%23C8102E' stroke-width='4' d='M0 0l60 36M60 0L0 36'/%3E%3Cpath stroke='%23fff' stroke-width='12' d='M30 0v36M0 18h60'/%3E%3Cpath stroke='%23C8102E' stroke-width='7' d='M30 0v36M0 18h60'/%3E%3C/svg%3E");
+}
+
+.rac-language-flag--de {
+    background-image: linear-gradient(to bottom, #000000 0, #000000 33.33%, #dd0000 33.33%, #dd0000 66.66%, #ffce00 66.66%, #ffce00 100%);
+}
+
+.main-menu__language-menu .rac-language-flag {
+    border-color: rgba(0, 0, 0, 0.12);
 }
 
 @media (max-width: 1199px) {
@@ -96,7 +157,7 @@
         margin-left: 12px;
     }
 
-    .main-menu__language-toggle {
-        padding: 8px 0;
+    .main-menu__language-menu {
+        top: calc(100% + 16px);
     }
 }

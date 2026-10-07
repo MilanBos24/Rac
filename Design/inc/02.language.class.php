@@ -12,16 +12,20 @@ function racDetectLanguage(): string
 
     if (isset($_GET['lang']) && is_string($_GET['lang'])) {
         $requested = strtolower(trim($_GET['lang']));
+
         if (in_array($requested, $supported, true)) {
             return $requested;
         }
     }
 
     $path = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+
     if (is_string($path) && $path !== '') {
         $segments = array_values(array_filter(explode('/', trim($path, '/')), 'strlen'));
+
         if (!empty($segments)) {
             $candidate = strtolower($segments[0]);
+
             if (in_array($candidate, $supported, true)) {
                 return $candidate;
             }
@@ -35,9 +39,29 @@ $currentLanguage = racDetectLanguage();
 
 $translationFile = BASE_PATH . '/lang/' . $currentLanguage . '.php';
 $defaultTranslationFile = BASE_PATH . '/lang/' . DEFAULT_LANGUAGE . '.php';
+$czechFallbackFile = BASE_PATH . '/lang/cs.php';
 
-$translations = is_file($translationFile) ? require $translationFile : [];
-$defaultTranslations = is_file($defaultTranslationFile) ? require $defaultTranslationFile : [];
+$translations = is_file($translationFile)
+    ? (array)require $translationFile
+    : [];
+
+$defaultLanguageTranslations = is_file($defaultTranslationFile)
+    ? (array)require $defaultTranslationFile
+    : [];
+
+/*
+ * Čeština zůstává poslední systémová pojistka.
+ * Je důležitá hlavně ve chvíli, kdy v administraci přidáme nový jazyk,
+ * ale jeho lang/<code>.php zatím ještě neexistuje.
+ */
+$czechFallbackTranslations = is_file($czechFallbackFile)
+    ? (array)require $czechFallbackFile
+    : [];
+
+$defaultTranslations = array_replace(
+    $czechFallbackTranslations,
+    $defaultLanguageTranslations
+);
 
 function __(string $key, array $replace = []): string
 {
@@ -46,7 +70,7 @@ function __(string $key, array $replace = []): string
     $text = $translations[$key] ?? $defaultTranslations[$key] ?? $key;
 
     foreach ($replace as $name => $value) {
-        $text = str_replace('{' . $name . '}', (string) $value, $text);
+        $text = str_replace('{' . $name . '}', (string)$value, $text);
     }
 
     return $text;
@@ -80,11 +104,21 @@ function racLanguageUrl(string $language): string
     }
 
     $params = [];
+
     if (is_string($query) && $query !== '') {
         parse_str($query, $params);
     }
 
-    $params['lang'] = $language;
+    /*
+     * Výchozí jazyk má čistou URL bez ?lang=cs / ?lang=en.
+     */
+    if ($language === DEFAULT_LANGUAGE) {
+        unset($params['lang']);
+    } else {
+        $params['lang'] = $language;
+    }
 
-    return $path . '?' . http_build_query($params);
+    $queryString = http_build_query($params);
+
+    return $path . ($queryString !== '' ? '?' . $queryString : '');
 }

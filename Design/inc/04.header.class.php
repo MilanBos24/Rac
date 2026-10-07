@@ -7,7 +7,7 @@ $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? 'index.php');
     <div class="custom-cursor__cursor-two"></div>
 
     <div class="preloader">
-        <div class="preloader__image" style="background-image: url(assets/images/loader.png);"></div>
+        <div class="preloader__image" style="background-image: url(assets/images/loader-sr.png);"></div>
     </div>
     <!-- /.preloader -->
     <div class="page-wrapper">
@@ -16,7 +16,7 @@ $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? 'index.php');
                 <div class="container-fluid">
                     <div class="main-menu__logo">
                         <a href="<?= htmlspecialchars(racUrl('index.php'), ENT_QUOTES, 'UTF-8'); ?>">
-                            <img src="assets/images/logo-light.png" width="34" height="34" alt="RAC">
+                            <img src="assets/images/logo-light-sr.png" width="34" height="34" alt="RAC">
                         </a>
                     </div><!-- /.main-menu__logo -->
 
@@ -45,24 +45,24 @@ $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? 'index.php');
                             <i class="fa fa-bars"></i>
                         </a><!-- /.mobile menu btn -->
 
-                        <a href="#" class="main-menu__search search-toggler" aria-label="<?= htmlspecialchars(__('action.search'), ENT_QUOTES, 'UTF-8'); ?>">
-                            <i class="icon-magnifying-glass"></i>
-                        </a><!-- /.search btn -->
-
                         <a href="<?= htmlspecialchars(racUrl('kosik.php'), ENT_QUOTES, 'UTF-8'); ?>" class="main-menu__cart cart-toggler" aria-label="<?= htmlspecialchars(__('cart.title'), ENT_QUOTES, 'UTF-8'); ?>">
                             <i class="icon-shopping-cart"></i>
                         </a><!-- /.cart btn -->
 
                         <details class="main-menu__language">
                             <summary class="main-menu__language-toggle" aria-label="<?= htmlspecialchars(__('language.label'), ENT_QUOTES, 'UTF-8'); ?>">
-                                <i class="fas fa-globe"></i>
-                                <span><?= htmlspecialchars(strtoupper($currentLanguage), ENT_QUOTES, 'UTF-8'); ?></span>
+                                <span class="rac-language-flag rac-language-flag--<?= htmlspecialchars($currentLanguage, ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></span>
+                                <span class="main-menu__language-current"><?= htmlspecialchars(strtoupper($currentLanguage), ENT_QUOTES, 'UTF-8'); ?></span>
                             </summary>
+
                             <ul class="main-menu__language-menu">
                                 <?php foreach (SUPPORTED_LANGUAGES as $languageCode): ?>
                                     <li>
                                         <a href="<?= htmlspecialchars(racLanguageUrl($languageCode), ENT_QUOTES, 'UTF-8'); ?>"<?= $languageCode === $currentLanguage ? ' class="is-active" aria-current="true"' : ''; ?>>
-                                            <span><?= htmlspecialchars(LANGUAGE_NAMES[$languageCode] ?? strtoupper($languageCode), ENT_QUOTES, 'UTF-8'); ?></span>
+                                            <span class="main-menu__language-option">
+                                                <span class="rac-language-flag rac-language-flag--<?= htmlspecialchars($languageCode, ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></span>
+                                                <span><?= htmlspecialchars(LANGUAGE_NAMES[$languageCode] ?? strtoupper($languageCode), ENT_QUOTES, 'UTF-8'); ?></span>
+                                            </span>
                                             <span class="main-menu__language-code"><?= htmlspecialchars(strtoupper($languageCode), ENT_QUOTES, 'UTF-8'); ?></span>
                                         </a>
                                     </li>

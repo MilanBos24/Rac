@@ -1,11 +1,91 @@
-<?php
 
-return [    'product.detail.author' => 'Autor:',
-    'product.detail.choose_edition' => 'Vyberte vydanie knihy',
-    'product.kind.print' => 'Tlačená kniha',
-    'product.kind.ebook' => 'E-kniha',
-    'product.kind.audio' => 'Audiokniha',
-    'product.detail.about' => 'O knihe',
-    'product.detail.quantity' => 'Počet kusov',
-    'product.detail.sold_out' => 'Vypredané',
+<?php
+return [
+    'meta.title' => 'RAC',
+    'meta.description' => 'Knihy a audioknihy',
+
+    'menu.home' => 'Úvod',
+    'menu.author' => 'O autorovi',
+    'menu.books' => 'Knihy',
+    'menu.upcoming' => 'Pripravujeme',
+    'menu.contact' => 'Kontakt',
+
+    'breadcrumb.home' => 'Úvod',
+    'breadcrumb.author' => 'Autor',
+    'breadcrumb.author_work' => 'Autorská tvorba',
+    'breadcrumb.contact' => 'Kontakt',
+    'breadcrumb.eshop' => 'E-shop',
+    'breadcrumb.portfolio' => 'Portfólio',
+
+    'page.books' => 'Knihy',
+    'page.upcoming' => 'Pripravujeme',
+    'page.contact_information' => 'Kontaktné informácie',
+    'page.cart' => 'Košík',
+
+    'section.author_world' => 'Autorský svet',
+    'section.books_projects' => 'Knihy & projekty',
+    'section.my_work' => 'moja tvorba',
+    'section.next_chapters' => 'Ďalšie kapitoly',
+    'section.work_in_progress' => 'Na čom sa pracuje',
+
+    'books.available_formats' => 'Knihy sú dostupné v týchto podobách:<br /> Elektronická kniha / Tlačená kniha / Audiokniha',
+    'books.status.on_sale' => 'v predaji',
+    'books.status.in_preparation' => 'V príprave',
+    'books.status.first_trilogy' => 'Prvý diel pripravovanej trilógie',
+    'books.status.published' => 'Vydané {date}',
+
+    'action.search' => 'Hľadať',
+    'action.add_to_cart' => 'Pridať do košíka',
+    'action.more_about_book' => 'viac o knihe',
+    'action.buy' => 'kúpiť',
+    'action.previous' => 'Predchádzajúce',
+    'action.next' => 'Ďalšie',
+
+    'upcoming.quote' => 'Bez vymyslených termínov. S dôrazom na kvalitu.',
+
+    'author.preparing' => 'Pripravujeme...',
+
+    'contact.form_label' => 'Kontaktný formulár',
+    'contact.form_title' => 'Pre vydavateľské ponuky, spoluprácu a otázky ku knihám môžete kontaktovať autora',
+    'contact.name' => 'Vaše meno',
+    'contact.email' => 'E-mail',
+    'contact.phone' => 'Telefón',
+    'contact.subject.creation' => 'Otázka k tvorbe',
+    'contact.subject.option1' => 'Možnosť 1',
+    'contact.subject.option2' => 'Možnosť 2',
+    'contact.subject.option3' => 'Možnosť 3',
+    'contact.message' => 'Vaša správa',
+    'contact.send' => 'Odoslať správu',
+    'contact.address' => 'Adresa',
+    'contact.contact' => 'Kontakt',
+    'contact.info' => 'Info',
+
+    'cart.title' => 'Košík',
+    'cart.item' => 'Položka',
+    'cart.price' => 'Cena',
+    'cart.quantity' => 'Množstvo',
+    'cart.total' => 'Celkom',
+    'cart.delete' => 'Odstrániť',
+    'cart.items' => 'Položky',
+    'cart.shipping' => 'Doprava',
+    'cart.back_to_shop' => 'Späť k nákupu',
+    'cart.continue' => 'Pokračovať',
+
+    'product.release_date' => 'Dátum vydania:',
+    'product.author' => 'Autor:',
+    'product.version' => 'Verzia:',
+    'product.version.audiobook' => 'Audiokniha',
+
+    'home.discover_work' => 'Objavte moju tvorbu',
+    'books.status.new' => 'novinka',
+    'action.view_all_work' => 'Zobraziť celú tvorbu',
+    'action.publisher_offers' => 'Vydavateľské ponuky a spolupráca',
+    'action.contact' => 'Kontakt',
+    'action.listen_audio_sample' => 'Vypočuť audioukážku',
+    'footer.contact' => 'Kontakt',
+    'footer.terms' => 'Obchodné podmienky',
+    'footer.all_rights_reserved' => 'Všetky práva vyhradené',
+
+    'language.label' => 'Jazyk',
 ];
+

@@ -1,0 +1,10 @@
+# RAC - clean book URLs, version 2026-10-08-URL01
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+RewriteRule ^([a-z0-9]+(?:-[a-z0-9]+)*)/?$ produkt.php?slug=$1 [L,QSA,NC]
+</IfModule>

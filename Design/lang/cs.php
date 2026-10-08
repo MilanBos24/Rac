@@ -87,5 +87,12 @@ return [
     'footer.all_rights_reserved' => 'Všechna práva vyhrazena',
 
     'language.label' => 'Jazyk',
+    'product.detail.author' => 'Autor:',
+    'product.detail.choose_edition' => 'Vyberte vydání knihy',
+    'product.kind.print' => 'Tištěná kniha',
+    'product.kind.ebook' => 'E-kniha',
+    'product.kind.audio' => 'Audiokniha',
+    'product.detail.about' => 'O knize',
+    'product.detail.quantity' => 'Počet kusů',
+    'product.detail.sold_out' => 'Vyprodáno',
 ];
-

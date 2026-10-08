@@ -399,12 +399,6 @@ details > summary {
     flex-wrap: wrap;
 }
 
-.language-row details {
-    margin-top: 12px;
-    border-top: 1px solid #eee;
-    padding-top: 10px;
-}
-
 .language-danger-zone {
     display: flex;
     align-items: center;
@@ -433,18 +427,6 @@ details > summary {
 
 
 /* Vlajky jazyků */
-.language-code:has(.language-flag-preview) {
-    background: #fff;
-    border: 1px solid var(--rac-border);
-    overflow: hidden;
-}
-
-.language-flag-preview {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
 .language-current-flag {
     display: flex;
     align-items: center;
@@ -458,4 +440,185 @@ details > summary {
     object-fit: cover;
     border: 1px solid var(--rac-border);
     border-radius: 2px;
+}
+
+
+.language-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.language-flag-inline {
+    width: 30px;
+    height: 20px;
+    object-fit: cover;
+    border: 1px solid rgba(0, 0, 0, .14);
+    border-radius: 2px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+}
+
+.language-edit {
+    margin-top: 12px;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+.language-edit > .language-edit-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 9px;
+    width: fit-content;
+    min-width: 96px;
+    margin: 0 0 12px auto;
+    padding: 8px 11px;
+    color: #444;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-weight: 600;
+    line-height: 1.2;
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color .2s ease, background-color .2s ease, color .2s ease;
+}
+
+.language-edit > .language-edit-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.language-edit > .language-edit-toggle::marker {
+    display: none;
+    content: "";
+}
+
+.language-edit > .language-edit-toggle:hover,
+.language-edit > .language-edit-toggle:focus {
+    color: var(--rac-primary);
+    border-color: var(--rac-primary);
+    background: #faf7fb;
+}
+
+.language-edit[open] > .language-edit-toggle {
+    color: #fff;
+    background: var(--rac-primary);
+    border-color: var(--rac-primary);
+}
+
+.language-edit-icon {
+    flex: 0 0 auto;
+    font-size: 16px;
+    line-height: 1;
+}
+
+
+/* RAC CMS - obsah stránek */
+.cms-language-tabs {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.cms-language-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #ccd0d5;
+    border-radius: 4px;
+    background: #fff;
+    color: #555;
+    padding: 8px 11px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cms-language-tab:hover,
+.cms-language-tab.is-active {
+    border-color: var(--rac-primary);
+    color: var(--rac-primary);
+    background: #faf7fb;
+}
+
+.cms-language-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 800;
+}
+
+.cms-language-state.is-complete {
+    background: #e7f5e7;
+    color: #367d36;
+}
+
+.cms-language-state.is-missing {
+    background: #fff0dc;
+    color: #9a6216;
+}
+
+.cms-language-panel {
+    display: none;
+}
+
+.cms-language-panel.is-active {
+    display: block;
+}
+
+.cms-required {
+    color: var(--rac-danger);
+}
+
+.cms-savebar {
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin: 8px 0 0;
+    padding: 14px 16px;
+    border: 1px solid var(--rac-border);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, .06);
+}
+
+.cms-savebar strong,
+.cms-savebar span {
+    display: block;
+}
+
+.cms-savebar span {
+    margin-top: 3px;
+    color: var(--rac-muted);
+    font-size: 12px;
+}
+
+@media (max-width: 650px) {
+    .cms-language-tab {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .cms-savebar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .cms-savebar .btn {
+        width: 100%;
+    }
 }

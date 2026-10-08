@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/inc/01.config.class.php';
 require_once __DIR__ . '/inc/02.language.class.php';
+require_once __DIR__ . '/inc/content.class.php';
+
+$racCmsPageContent = racCmsLoadPage('contact', $currentLanguage);
 
 include __DIR__ . '/inc/03.head.class.php';
 include __DIR__ . '/inc/04.header.class.php';

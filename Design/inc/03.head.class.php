@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><?= htmlspecialchars(__('meta.title'), ENT_QUOTES, 'UTF-8'); ?></title>
+    <title><?= htmlspecialchars(function_exists('racCmsMeta') ? racCmsMeta('meta_title', __('meta.title')) : __('meta.title'), ENT_QUOTES, 'UTF-8'); ?></title>
     <!-- favicons Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="assets/images/favicons/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicons/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicons/favicon-16x16.png" />
     <link rel="manifest" href="assets/images/favicons/site.webmanifest" />
-    <meta name="description" content="<?= htmlspecialchars(__('meta.description'), ENT_QUOTES, 'UTF-8'); ?>" />
+    <meta name="description" content="<?= htmlspecialchars(function_exists('racCmsMeta') ? racCmsMeta('meta_description', __('meta.description')) : __('meta.description'), ENT_QUOTES, 'UTF-8'); ?>" />
 
     <!-- fonts -->
     <link rel="preconnect" href="https://fonts.gstatic.com" />

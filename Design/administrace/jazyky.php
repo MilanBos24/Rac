@@ -536,14 +536,19 @@ include __DIR__ . '/inc/leve-meny.class.php';
                         <div class="language-row<?= (int)$language['active'] !== 1 ? ' is-inactive' : '' ?>">
                             <div class="language-summary">
                                 <div class="language-code">
-                                    <?php if (!empty($language['flag_path'])): ?>
-                                        <img class="language-flag-preview" src="<?= h(language_flag_admin_url((string)$language['flag_path'])) ?>" alt="">
-                                    <?php else: ?>
-                                        <?= h(strtoupper((string)$language['code'])) ?>
-                                    <?php endif; ?>
+                                    <?= h(strtoupper((string)$language['code'])) ?>
                                 </div>
                                 <div>
-                                    <h3><?= h($language['native_name']) ?></h3>
+                                    <h3 class="language-name">
+                                        <span><?= h($language['native_name']) ?></span>
+                                        <?php if (!empty($language['flag_path'])): ?>
+                                            <img
+                                                class="language-flag-inline"
+                                                src="<?= h(language_flag_admin_url((string)$language['flag_path'])) ?>"
+                                                alt="<?= h($language['native_name']) ?>"
+                                            >
+                                        <?php endif; ?>
+                                    </h3>
                                     <p>
                                         <?= h($language['name']) ?>
                                         <?php if (!empty($language['locale'])): ?>
@@ -567,8 +572,11 @@ include __DIR__ . '/inc/leve-meny.class.php';
                                 </div>
                             </div>
 
-                            <details>
-                                <summary>Upravit</summary>
+                            <details class="language-edit">
+                                <summary class="language-edit-toggle">
+                                    <span>Upravit</span>
+                                    <span class="language-edit-icon" aria-hidden="true">✎</span>
+                                </summary>
 
                                 <form method="post" enctype="multipart/form-data">
                                     <input type="hidden" name="csrf" value="<?= h($csrf) ?>">

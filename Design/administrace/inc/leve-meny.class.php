@@ -8,8 +8,16 @@ $currentScript = basename(isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME
             <span class="nav-icon">⌂</span><span>Dashboard</span>
         </a>
 
-
         <div class="nav-heading">Obsah webu</div>
+        <a class="<?= $currentScript === 'obsah-uvod.php' ? 'active' : '' ?>" href="obsah-uvod.php">
+            <span class="nav-icon">⌂</span><span>Úvodní stránka</span>
+        </a>
+        <a class="<?= $currentScript === 'obsah-autor.php' ? 'active' : '' ?>" href="obsah-autor.php">
+            <span class="nav-icon">✎</span><span>O autorovi</span>
+        </a>
+        <a class="<?= $currentScript === 'obsah-kontakt.php' ? 'active' : '' ?>" href="obsah-kontakt.php">
+            <span class="nav-icon">✉</span><span>Kontakt</span>
+        </a>
         <a class="<?= $currentScript === 'jazyky.php' ? 'active' : '' ?>" href="jazyky.php">
             <span class="nav-icon">文</span><span>Jazyky</span>
         </a>

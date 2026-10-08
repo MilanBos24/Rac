@@ -1,5 +1,30 @@
 <?php
 $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? 'index.php');
+
+/**
+ * Vrátí HTML vlajky pro jazyk.
+ * Pokud má jazyk vlastní flag_path z DB, použije jej.
+ * Jinak zůstane stávající CSS fallback rac-language-flag--cs/sk/pl/en/de...
+ */
+function racLanguageFlagMarkup(string $languageCode): string
+{
+    $languageCode = strtolower(trim($languageCode));
+    $flagUrl = defined('LANGUAGE_FLAGS') && isset(LANGUAGE_FLAGS[$languageCode])
+        ? trim((string) LANGUAGE_FLAGS[$languageCode])
+        : '';
+
+    if ($flagUrl !== '') {
+        return '<span class="rac-language-flag" style="background-image:url(\''
+            . htmlspecialchars($flagUrl, ENT_QUOTES, 'UTF-8')
+            . '\');" aria-hidden="true"></span>';
+    }
+
+    $safeCode = preg_replace('/[^a-z0-9-]/', '', $languageCode);
+
+    return '<span class="rac-language-flag rac-language-flag--'
+        . htmlspecialchars((string) $safeCode, ENT_QUOTES, 'UTF-8')
+        . '" aria-hidden="true"></span>';
+}
 ?>
 <body class="custom-cursor">
 
@@ -51,7 +76,7 @@ $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? 'index.php');
 
                         <details class="main-menu__language">
                             <summary class="main-menu__language-toggle" aria-label="<?= htmlspecialchars(__('language.label'), ENT_QUOTES, 'UTF-8'); ?>">
-                                <span class="rac-language-flag rac-language-flag--<?= htmlspecialchars($currentLanguage, ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></span>
+                                <?= racLanguageFlagMarkup($currentLanguage); ?>
                                 <span class="main-menu__language-current"><?= htmlspecialchars(strtoupper($currentLanguage), ENT_QUOTES, 'UTF-8'); ?></span>
                             </summary>
 
@@ -60,7 +85,7 @@ $currentPage = basename($_SERVER['SCRIPT_NAME'] ?? 'index.php');
                                     <li>
                                         <a href="<?= htmlspecialchars(racLanguageUrl($languageCode), ENT_QUOTES, 'UTF-8'); ?>"<?= $languageCode === $currentLanguage ? ' class="is-active" aria-current="true"' : ''; ?>>
                                             <span class="main-menu__language-option">
-                                                <span class="rac-language-flag rac-language-flag--<?= htmlspecialchars($languageCode, ENT_QUOTES, 'UTF-8'); ?>" aria-hidden="true"></span>
+                                                <?= racLanguageFlagMarkup($languageCode); ?>
                                                 <span><?= htmlspecialchars(LANGUAGE_NAMES[$languageCode] ?? strtoupper($languageCode), ENT_QUOTES, 'UTF-8'); ?></span>
                                             </span>
                                             <span class="main-menu__language-code"><?= htmlspecialchars(strtoupper($languageCode), ENT_QUOTES, 'UTF-8'); ?></span>

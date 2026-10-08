@@ -92,50 +92,69 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="200ms">
-                        <div class="blog-one__item">
-                            <div class="blog-one__item__image">
-                                <img src="assets/images/knihy/klasicka.jpg" alt="Poznej sám sebe. Pak pochopíš všechno.">
-                                <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>"></a>
-                                <span><?= htmlspecialchars(__('books.status.new'), ENT_QUOTES, 'UTF-8'); ?></span>
+                    <?php
+                    // RAC home: posledni tri aktivni knihy podle data vlozeni.
+                    $racLatestBooks = array();
+                    $racBooksError = false;
+                    try {
+                        $racProductsHelper = __DIR__ . '/../inc/rac-products.php';
+                        if (!is_file($racProductsHelper)) {
+                            throw new RuntimeException('Chybi rac-products.php');
+                        }
+                        require_once $racProductsHelper;
+                        $racPdo = racFrontendPdo();
+                        if (!$racPdo instanceof PDO) {
+                            throw new RuntimeException('Databaze neni dostupna');
+                        }
+                        $racLatestBooks = array_values(array_filter(
+                            racShopProducts($racPdo, $currentLanguage),
+                            static function ($row) {
+                                return trim((string)($row['title'] ?? '')) !== '';
+                            }
+                        ));
+                        usort($racLatestBooks, static function ($a, $b) {
+                            return (int)$b['id'] <=> (int)$a['id'];
+                        });
+                        $racLatestBooks = array_slice($racLatestBooks, 0, 3);
+                    } catch (Throwable $e) {
+                        error_log('RAC homepage books: ' . $e->getMessage());
+                        $racBooksError = true;
+                    }
+                    ?>
+                    <?php if ($racBooksError): ?>
+                        <div class="col-12"><p>Knihy se nyní nepodařilo načíst.</p></div>
+                    <?php elseif (!$racLatestBooks): ?>
+                        <div class="col-12"><p>Momentálně nejsou k dispozici žádné knihy.</p></div>
+                    <?php else: ?>
+                        <?php foreach ($racLatestBooks as $book): ?>
+                            <?php
+                            $bookTitle = (string)$book['title'];
+                            $bookUrl = racUrl(rawurlencode((string)$book['slug']));
+                            $bookImage = racShopImageUrl($book['image'] ?? null);
+                            ?>
+                            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="200ms">
+                                <div class="blog-one__item">
+                                    <div class="blog-one__item__image">
+                                        <?php if ($bookImage !== ''): ?>
+                                            <img loading="lazy" src="<?= htmlspecialchars($bookImage, ENT_QUOTES, 'UTF-8'); ?>" alt="<?= htmlspecialchars($bookTitle, ENT_QUOTES, 'UTF-8'); ?>">
+                                        <?php else: ?>
+                                            <div class="rac-book-no-image">Bez fotografie</div>
+                                        <?php endif; ?>
+                                        <a href="<?= htmlspecialchars($bookUrl, ENT_QUOTES, 'UTF-8'); ?>" aria-label="<?= htmlspecialchars($bookTitle, ENT_QUOTES, 'UTF-8'); ?>"></a>
+                                        <span><?= htmlspecialchars(__('books.status.on_sale'), ENT_QUOTES, 'UTF-8'); ?></span>
+                                    </div>
+                                    <div class="blog-one__item__content">
+                                        <h3 class="blog-one__item__title">
+                                            <a href="<?= htmlspecialchars($bookUrl, ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($bookTitle, ENT_QUOTES, 'UTF-8'); ?></a>
+                                        </h3>
+                                        <?php if (!empty($book['short_description'])): ?>
+                                            <p><?= htmlspecialchars((string)$book['short_description'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="blog-one__item__content">
-                                <h3 class="blog-one__item__title">
-                                    <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>">Poznej sám sebe. Pak pochopíš všechno.</a>
-                                </h3>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="200ms">
-                        <div class="blog-one__item">
-                            <div class="blog-one__item__image">
-                                <img src="assets/images/knihy/komunikace.jpg" alt="Poznej sám sebe. Pak pochopíš všechno. — Komunikace se sebou">
-                                <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>"></a>
-                                <span><?= htmlspecialchars(__('books.status.new'), ENT_QUOTES, 'UTF-8'); ?></span>
-                            </div>
-                            <div class="blog-one__item__content">
-                                <h3 class="blog-one__item__title">
-                                    <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>">Poznej sám sebe. Pak pochopíš všechno. — Komunikace se sebou</a>
-                                </h3>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="200ms">
-                        <div class="blog-one__item">
-                            <div class="blog-one__item__image">
-                                <img src="assets/images/knihy/rozsirena.jpg" alt="Poznej sám sebe. Pak pochopíš všechno. — Rozšířená verze">
-                                <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>"></a>
-                                <span><?= htmlspecialchars(__('books.status.new'), ENT_QUOTES, 'UTF-8'); ?></span>
-                            </div>
-                            <div class="blog-one__item__content">
-                                <h3 class="blog-one__item__title">
-                                    <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>">Poznej sám sebe. Pak pochopíš všechno. — Rozšířená verze</a>
-                                </h3>
-                            </div>
-                        </div>
-                    </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
 
                     <div class="col-md-12 text-end">
                         <a href="<?= htmlspecialchars(racUrl('knihy.php'), ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn"><?= htmlspecialchars(__('action.view_all_work'), ENT_QUOTES, 'UTF-8'); ?></a>

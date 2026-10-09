@@ -4,27 +4,13 @@
  * verze 2026-09-16-20.33
  */
 ?>
-<!doctype html>
-<html class="fixed header-dark">
-<head>
-<?php include __DIR__ . '/../../inc/title.class.php'; ?>
-<?php include __DIR__ . '/../../inc/meta.class.php'; ?>
-<?php include __DIR__ . '/../../inc/links.class.php'; ?>
-<?php include __DIR__ . '/../../inc/scripts-top.class.php'; ?>
-</head>
-<body>
-<section class="body">
-<?php include __DIR__ . '/../../inc/header.class.php'; ?>
-
-<div class="inner-wrapper">
-<?php include __DIR__ . '/../../inc/leve-meny.class.php'; ?>
-
-<section role="main" class="content-body content-body-modern mt-0">
+<?php include __DIR__ . '/../rac-layout-top.php'; ?>
+<section class="card"><div class="card-body">
     <header class="page-header">
         <h2>Platby – nastavení</h2>
         <div class="right-wrapper text-end">
             <ol class="breadcrumbs">
-                <li><a href="/billing/admin.php"><i class="bx bx-home-alt"></i></a></li>
+                <li><a href="admin.php"><i class="bx bx-home-alt"></i></a></li>
                 <li><span>Platby</span></li>
                 <li><span>Nastavení</span></li>
             </ol>
@@ -39,7 +25,7 @@
     <?php if (!$tableReady): ?>
         <div class="alert alert-warning">
             <strong>Databáze platební administrace ještě není připravena.</strong>
-            Importujte soubor <code>/billing/database/billing-settings.sql</code>.
+            Importujte soubor <code>database/billing-settings.sql</code>.
         </div>
     <?php endif; ?>
 
@@ -243,12 +229,5 @@
             </div>
         </div>
     </form>
-</section>
-</div>
-
-<?php include __DIR__ . '/../../inc/prave-meny.class.php'; ?>
-</section>
-
-<?php include __DIR__ . '/../../inc/scripts-bottom.class.php'; ?>
-</body>
-</html>
+</div></section>
+<?php include __DIR__ . '/../rac-layout-bottom.php'; ?>

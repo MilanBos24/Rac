@@ -1,0 +1,4 @@
+# BOS24 Billing - ochrana konfiguračních souborů
+<FilesMatch "^config\.(local|example)\.php$">
+    Require all denied
+</FilesMatch>

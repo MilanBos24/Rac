@@ -37,22 +37,10 @@ function bp_interval_label(array $product): string
     return '—';
 }
 ?>
-<!doctype html>
-<html class="fixed header-dark">
-<head>
-<?php include __DIR__ . '/../../inc/title.class.php'; ?>
-<?php include __DIR__ . '/../../inc/meta.class.php'; ?>
-<?php include __DIR__ . '/../../inc/links.class.php'; ?>
-<?php include __DIR__ . '/../../inc/scripts-top.class.php'; ?>
-</head>
-<body>
-<section class="body">
-<?php include __DIR__ . '/../../inc/header.class.php'; ?>
-
-<div class="inner-wrapper">
+<?php $pageTitle = 'Billing – RAC'; include __DIR__ . '/../../inc/header.class.php'; ?>
 <?php include __DIR__ . '/../../inc/leve-meny.class.php'; ?>
-
-<section role="main" class="content-body content-body-modern mt-0">
+<main class="admin-content">
+<div class="billing-content">
     <header class="page-header">
         <h2>Platby – produkty</h2>
         <div class="right-wrapper text-end">
@@ -400,41 +388,6 @@ function bp_interval_label(array $product): string
             </div>
         </div>
     </div>
-</section>
 </div>
-
-<?php include __DIR__ . '/../../inc/prave-meny.class.php'; ?>
-</section>
-
-<?php include __DIR__ . '/../../inc/scripts-bottom.class.php'; ?>
-
-<script>
-function billingProductTypeChanged() {
-    var typeField = document.getElementById('payment_type');
-    if (!typeField) {
-        return;
-    }
-
-    var subscription = typeField.value === 'subscription';
-    var elements = document.querySelectorAll('.billing-subscription-only');
-
-    for (var i = 0; i < elements.length; i++) {
-        elements[i].style.display = subscription ? '' : 'none';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    billingProductTypeChanged();
-
-    if (window.location.hash === '#tab-formular') {
-        var trigger = document.querySelector('[data-bs-target="#tab-formular"]');
-
-        if (trigger && window.bootstrap && bootstrap.Tab) {
-            var tab = bootstrap.Tab.getOrCreateInstance(trigger);
-            tab.show();
-        }
-    }
-});
-</script>
-</body>
-</html>
+</main>
+<?php include __DIR__ . '/../../inc/footer.class.php'; ?>

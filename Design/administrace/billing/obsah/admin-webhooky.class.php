@@ -20,26 +20,25 @@ function bwh_query(array $replace = array()): string
 }
 ?>
 <!doctype html>
-<html class="fixed header-dark">
+<html lang="cs">
 <head>
-<?php include __DIR__ . '/../../inc/title.class.php'; ?>
-<?php include __DIR__ . '/../../inc/meta.class.php'; ?>
-<?php include __DIR__ . '/../../inc/links.class.php'; ?>
-<?php include __DIR__ . '/../../inc/scripts-top.class.php'; ?>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAC – Billing</title>
+<link rel="stylesheet" href="../assets/css/admin.css?v=2026-10-09-billing">
 </head>
-<body>
-<section class="body">
-<?php include __DIR__ . '/../../inc/header.class.php'; ?>
-
-<div class="inner-wrapper">
+<body><div class="admin-app">
+<header class="admin-header"><div class="admin-brand">
+<a href="../dashboard.php"><strong>RAC</strong> <span>Administrace</span></a>
+</div><div class="admin-user"><a class="btn btn-light btn-sm" href="../dashboard.php">Zpět do administrace</a></div></header>
 <?php include __DIR__ . '/../../inc/leve-meny.class.php'; ?>
-
-<section role="main" class="content-body content-body-modern mt-0">
+<main class="admin-content">
+<div class="card"><div class="card-body">
     <header class="page-header">
         <h2>Platby – webhooky</h2>
         <div class="right-wrapper text-end">
             <ol class="breadcrumbs">
-                <li><a href="/billing/admin.php"><i class="bx bx-home-alt"></i></a></li>
+                <li><a href="admin.php"><i class="bx bx-home-alt"></i></a></li>
                 <li><span>Platby</span></li>
                 <li><span>Webhooky</span></li>
             </ol>
@@ -49,19 +48,19 @@ function bwh_query(array $replace = array()): string
 
     <div class="row align-items-center pt-2 mb-3">
         <div class="col-12 d-flex flex-wrap">
-            <a href="/billing/admin.php" class="btn btn-default me-2 mb-2">
+            <a href="admin.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-cog me-1"></i> Nastavení
             </a>
-            <a href="/billing/admin-produkty.php" class="btn btn-default me-2 mb-2">
+            <a href="admin-produkty.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-box me-1"></i> Produkty
             </a>
-            <a href="/billing/admin-platby.php" class="btn btn-default me-2 mb-2">
+            <a href="admin-platby.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-credit-card me-1"></i> Platby
             </a>
-            <a href="/billing/admin-predplatne.php" class="btn btn-default me-2 mb-2">
+            <a href="admin-predplatne.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-sync-alt me-1"></i> Předplatná
             </a>
-            <a href="/billing/admin-webhooky.php" class="btn btn-primary me-2 mb-2">
+            <a href="admin-webhooky.php" class="btn btn-primary me-2 mb-2">
                 <i class="fas fa-random me-1"></i> Webhooky
             </a>
         </div>
@@ -327,9 +326,4 @@ function bwh_query(array $replace = array()): string
 </section>
 </div>
 
-<?php include __DIR__ . '/../../inc/prave-meny.class.php'; ?>
-</section>
-
-<?php include __DIR__ . '/../../inc/scripts-bottom.class.php'; ?>
-</body>
-</html>
+</div></div></main></div><script src="../assets/js/admin.js?v=2026-10-09-billing"></script></body></html>

@@ -1,4 +1,4 @@
-    <script src="assets/js/admin.js?v=2026-10-07-01"></script>
+    <script src="/administrace/assets/js/admin.js?v=2026-10-09-02"></script>
 </div>
 </body>
 </html>

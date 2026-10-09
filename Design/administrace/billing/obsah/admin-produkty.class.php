@@ -37,27 +37,13 @@ function bp_interval_label(array $product): string
     return '—';
 }
 ?>
-<!doctype html>
-<html class="fixed header-dark">
-<head>
-<?php include __DIR__ . '/../../inc/title.class.php'; ?>
-<?php include __DIR__ . '/../../inc/meta.class.php'; ?>
-<?php include __DIR__ . '/../../inc/links.class.php'; ?>
-<?php include __DIR__ . '/../../inc/scripts-top.class.php'; ?>
-</head>
-<body>
-<section class="body">
-<?php include __DIR__ . '/../../inc/header.class.php'; ?>
-
-<div class="inner-wrapper">
-<?php include __DIR__ . '/../../inc/leve-meny.class.php'; ?>
-
-<section role="main" class="content-body content-body-modern mt-0">
+<?php include __DIR__ . '/../rac-layout-top.php'; ?>
+<section class="card"><div class="card-body">
     <header class="page-header">
         <h2>Platby – produkty</h2>
         <div class="right-wrapper text-end">
             <ol class="breadcrumbs">
-                <li><a href="/billing/admin.php"><i class="bx bx-home-alt"></i></a></li>
+                <li><a href="admin.php"><i class="bx bx-home-alt"></i></a></li>
                 <li><span>Platby</span></li>
                 <li><span>Produkty</span></li>
             </ol>
@@ -67,10 +53,10 @@ function bp_interval_label(array $product): string
 
     <div class="row align-items-center pt-2 mb-3">
         <div class="col-12 d-flex flex-wrap">
-            <a href="/billing/admin.php" class="btn btn-default me-2 mb-2">
+            <a href="admin.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-cog me-1"></i> Nastavení
             </a>
-            <a href="/billing/admin-produkty.php" class="btn btn-primary me-2 mb-2">
+            <a href="admin-produkty.php" class="btn btn-primary me-2 mb-2">
                 <i class="fas fa-box me-1"></i> Produkty
             </a>
         </div>
@@ -400,41 +386,5 @@ function bp_interval_label(array $product): string
             </div>
         </div>
     </div>
-</section>
-</div>
-
-<?php include __DIR__ . '/../../inc/prave-meny.class.php'; ?>
-</section>
-
-<?php include __DIR__ . '/../../inc/scripts-bottom.class.php'; ?>
-
-<script>
-function billingProductTypeChanged() {
-    var typeField = document.getElementById('payment_type');
-    if (!typeField) {
-        return;
-    }
-
-    var subscription = typeField.value === 'subscription';
-    var elements = document.querySelectorAll('.billing-subscription-only');
-
-    for (var i = 0; i < elements.length; i++) {
-        elements[i].style.display = subscription ? '' : 'none';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    billingProductTypeChanged();
-
-    if (window.location.hash === '#tab-formular') {
-        var trigger = document.querySelector('[data-bs-target="#tab-formular"]');
-
-        if (trigger && window.bootstrap && bootstrap.Tab) {
-            var tab = bootstrap.Tab.getOrCreateInstance(trigger);
-            tab.show();
-        }
-    }
-});
-</script>
-</body>
-</html>
+</div></section>
+<?php include __DIR__ . '/../rac-layout-bottom.php'; ?>

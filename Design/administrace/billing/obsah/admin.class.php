@@ -4,22 +4,10 @@
  * verze 2026-09-16-20.33
  */
 ?>
-<!doctype html>
-<html class="fixed header-dark">
-<head>
-<?php include __DIR__ . '/../../inc/title.class.php'; ?>
-<?php include __DIR__ . '/../../inc/meta.class.php'; ?>
-<?php include __DIR__ . '/../../inc/links.class.php'; ?>
-<?php include __DIR__ . '/../../inc/scripts-top.class.php'; ?>
-</head>
-<body>
-<section class="body">
-<?php include __DIR__ . '/../../inc/header.class.php'; ?>
-
-<div class="inner-wrapper">
+<?php $pageTitle = 'Billing – RAC'; include __DIR__ . '/../../inc/header.class.php'; ?>
 <?php include __DIR__ . '/../../inc/leve-meny.class.php'; ?>
-
-<section role="main" class="content-body content-body-modern mt-0">
+<main class="admin-content">
+<div class="billing-content">
     <header class="page-header">
         <h2>Platby – nastavení</h2>
         <div class="right-wrapper text-end">
@@ -243,12 +231,6 @@
             </div>
         </div>
     </form>
-</section>
 </div>
-
-<?php include __DIR__ . '/../../inc/prave-meny.class.php'; ?>
-</section>
-
-<?php include __DIR__ . '/../../inc/scripts-bottom.class.php'; ?>
-</body>
-</html>
+</main>
+<?php include __DIR__ . '/../../inc/footer.class.php'; ?>

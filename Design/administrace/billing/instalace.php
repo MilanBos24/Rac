@@ -242,7 +242,72 @@ $csrf = (string)$_SESSION['billing_csrf'];
 </form>
 PHP;
 ?>
-<?php include __DIR__ . '/rac-layout-top.php'; ?>
+<!doctype html>
+<html class="fixed header-dark">
+<head>
+<?php include __DIR__ . '/../inc/title.class.php'; ?>
+<?php include __DIR__ . '/../inc/meta.class.php'; ?>
+<?php include __DIR__ . '/../inc/links.class.php'; ?>
+<?php include __DIR__ . '/../inc/scripts-top.class.php'; ?>
+<style>
+    .billing-docs .doc-step {
+        border-left: 3px solid #e5e5e5;
+        padding-left: 18px;
+        margin-bottom: 28px;
+    }
+
+    .billing-docs .doc-step h4 {
+        margin-bottom: 10px;
+    }
+
+    .billing-docs pre {
+        background: #1f2329;
+        color: #f4f4f4;
+        border-radius: 6px;
+        padding: 18px;
+        white-space: pre;
+        overflow: auto;
+        max-height: 620px;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .billing-docs code {
+        word-break: break-word;
+    }
+
+    .billing-docs .copy-wrap {
+        position: relative;
+    }
+
+    .billing-docs .copy-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 2;
+    }
+
+    .billing-docs .toc a {
+        display: block;
+        padding: 5px 0;
+    }
+
+    .billing-docs .checklist li {
+        margin-bottom: 8px;
+    }
+
+    .billing-docs .small-note {
+        font-size: 13px;
+    }
+</style>
+</head>
+<body>
+<section class="body">
+<?php include __DIR__ . '/../inc/header.class.php'; ?>
+
+<div class="inner-wrapper">
+<?php include __DIR__ . '/../inc/leve-meny.class.php'; ?>
+
 <section role="main" class="content-body content-body-modern mt-0 billing-docs">
     <header class="page-header">
         <h2>Platby – instalace a dokumentace</h2>
@@ -839,5 +904,58 @@ PHP;
 </section>
 </div>
 
-</div></section>
-<?php include __DIR__ . '/rac-layout-bottom.php'; ?>
+<?php include __DIR__ . '/../inc/prave-meny.class.php'; ?>
+</section>
+
+<?php include __DIR__ . '/../inc/scripts-bottom.class.php'; ?>
+
+<script>
+(function () {
+    function copyText(targetId, button) {
+        var target = document.getElementById(targetId);
+
+        if (!target) {
+            return;
+        }
+
+        var text = target.innerText || target.textContent || '';
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(function () {
+                var original = button.innerText;
+                button.innerText = 'Zkopírováno';
+                setTimeout(function () {
+                    button.innerText = original;
+                }, 1500);
+            });
+            return;
+        }
+
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        var original = button.innerText;
+        button.innerText = 'Zkopírováno';
+        setTimeout(function () {
+            button.innerText = original;
+        }, 1500);
+    }
+
+    var buttons = document.querySelectorAll('[data-copy-target]');
+
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].addEventListener('click', function () {
+            copyText(this.getAttribute('data-copy-target'), this);
+        });
+    }
+})();
+</script>
+</body>
+</html>

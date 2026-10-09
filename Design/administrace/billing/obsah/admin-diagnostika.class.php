@@ -4,13 +4,27 @@
  * verze 2026-09-16-21.55
  */
 ?>
-<?php include __DIR__ . '/../rac-layout-top.php'; ?>
-<section class="card"><div class="card-body">
+<!doctype html>
+<html class="fixed header-dark">
+<head>
+<?php include __DIR__ . '/../../inc/title.class.php'; ?>
+<?php include __DIR__ . '/../../inc/meta.class.php'; ?>
+<?php include __DIR__ . '/../../inc/links.class.php'; ?>
+<?php include __DIR__ . '/../../inc/scripts-top.class.php'; ?>
+</head>
+<body>
+<section class="body">
+<?php include __DIR__ . '/../../inc/header.class.php'; ?>
+
+<div class="inner-wrapper">
+<?php include __DIR__ . '/../../inc/leve-meny.class.php'; ?>
+
+<section role="main" class="content-body content-body-modern mt-0">
     <header class="page-header">
         <h2>Platby – diagnostika</h2>
         <div class="right-wrapper text-end">
             <ol class="breadcrumbs">
-                <li><a href="admin.php"><i class="bx bx-home-alt"></i></a></li>
+                <li><a href="/billing/admin.php"><i class="bx bx-home-alt"></i></a></li>
                 <li><span>Platby</span></li>
                 <li><span>Diagnostika</span></li>
             </ol>
@@ -20,22 +34,22 @@
 
     <div class="row align-items-center pt-2 mb-3">
         <div class="col-12 d-flex flex-wrap">
-            <a href="admin.php" class="btn btn-default me-2 mb-2">
+            <a href="/billing/admin.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-cog me-1"></i> Nastavení
             </a>
-            <a href="admin-produkty.php" class="btn btn-default me-2 mb-2">
+            <a href="/billing/admin-produkty.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-box me-1"></i> Produkty
             </a>
-            <a href="admin-platby.php" class="btn btn-default me-2 mb-2">
+            <a href="/billing/admin-platby.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-credit-card me-1"></i> Platby
             </a>
-            <a href="admin-predplatne.php" class="btn btn-default me-2 mb-2">
+            <a href="/billing/admin-predplatne.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-sync-alt me-1"></i> Předplatná
             </a>
-            <a href="admin-webhooky.php" class="btn btn-default me-2 mb-2">
+            <a href="/billing/admin-webhooky.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-random me-1"></i> Webhooky
             </a>
-            <a href="admin-diagnostika.php" class="btn btn-primary me-2 mb-2">
+            <a href="/billing/admin-diagnostika.php" class="btn btn-primary me-2 mb-2">
                 <i class="fas fa-stethoscope me-1"></i> Diagnostika
             </a>
         </div>
@@ -297,5 +311,12 @@
             <?php endif; ?>
         </div>
     </section>
-</div></section>
-<?php include __DIR__ . '/../rac-layout-bottom.php'; ?>
+</section>
+</div>
+
+<?php include __DIR__ . '/../../inc/prave-meny.class.php'; ?>
+</section>
+
+<?php include __DIR__ . '/../../inc/scripts-bottom.class.php'; ?>
+</body>
+</html>

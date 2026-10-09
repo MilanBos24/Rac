@@ -19,22 +19,10 @@ function bpay_query(array $replace = array()): string
     return http_build_query($query);
 }
 ?>
-<!doctype html>
-<html class="fixed header-dark">
-<head>
-<?php include __DIR__ . '/../../inc/title.class.php'; ?>
-<?php include __DIR__ . '/../../inc/meta.class.php'; ?>
-<?php include __DIR__ . '/../../inc/links.class.php'; ?>
-<?php include __DIR__ . '/../../inc/scripts-top.class.php'; ?>
-</head>
-<body>
-<section class="body">
-<?php include __DIR__ . '/../../inc/header.class.php'; ?>
-
-<div class="inner-wrapper">
+<?php $pageTitle = 'Billing – RAC'; include __DIR__ . '/../../inc/header.class.php'; ?>
 <?php include __DIR__ . '/../../inc/leve-meny.class.php'; ?>
-
-<section role="main" class="content-body content-body-modern mt-0">
+<main class="admin-content">
+<div class="billing-content">
     <header class="page-header">
         <h2>Platby – přehled</h2>
         <div class="right-wrapper text-end">
@@ -338,12 +326,6 @@ function bpay_query(array $replace = array()): string
             <?php endif; ?>
         </div>
     </section>
-</section>
 </div>
-
-<?php include __DIR__ . '/../../inc/prave-meny.class.php'; ?>
-</section>
-
-<?php include __DIR__ . '/../../inc/scripts-bottom.class.php'; ?>
-</body>
-</html>
+</main>
+<?php include __DIR__ . '/../../inc/footer.class.php'; ?>

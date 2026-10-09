@@ -1,0 +1,3 @@
+# BOS24 Billing
+# Citlivá lokální konfigurace nesmí být verzována.
+config.local.php

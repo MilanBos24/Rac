@@ -1,0 +1,10 @@
+# BOS24 Billing storage - verze 2026-09-16-20.33
+# Tato slozka nesmi byt pristupna pres HTTP.
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+    Deny from all
+</IfModule>

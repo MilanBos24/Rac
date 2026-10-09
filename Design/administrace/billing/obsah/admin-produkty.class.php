@@ -38,25 +38,26 @@ function bp_interval_label(array $product): string
 }
 ?>
 <!doctype html>
-<html lang="cs">
+<html class="fixed header-dark">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RAC – Billing</title>
-<link rel="stylesheet" href="../assets/css/admin.css?v=2026-10-09-billing">
+<?php include __DIR__ . '/../../inc/title.class.php'; ?>
+<?php include __DIR__ . '/../../inc/meta.class.php'; ?>
+<?php include __DIR__ . '/../../inc/links.class.php'; ?>
+<?php include __DIR__ . '/../../inc/scripts-top.class.php'; ?>
 </head>
-<body><div class="admin-app">
-<header class="admin-header"><div class="admin-brand">
-<a href="../dashboard.php"><strong>RAC</strong> <span>Administrace</span></a>
-</div><div class="admin-user"><a class="btn btn-light btn-sm" href="../dashboard.php">Zpět do administrace</a></div></header>
+<body>
+<section class="body">
+<?php include __DIR__ . '/../../inc/header.class.php'; ?>
+
+<div class="inner-wrapper">
 <?php include __DIR__ . '/../../inc/leve-meny.class.php'; ?>
-<main class="admin-content">
-<div class="card"><div class="card-body">
+
+<section role="main" class="content-body content-body-modern mt-0">
     <header class="page-header">
         <h2>Platby – produkty</h2>
         <div class="right-wrapper text-end">
             <ol class="breadcrumbs">
-                <li><a href="admin.php"><i class="bx bx-home-alt"></i></a></li>
+                <li><a href="/administrace/billing/admin.php"><i class="bx bx-home-alt"></i></a></li>
                 <li><span>Platby</span></li>
                 <li><span>Produkty</span></li>
             </ol>
@@ -66,10 +67,10 @@ function bp_interval_label(array $product): string
 
     <div class="row align-items-center pt-2 mb-3">
         <div class="col-12 d-flex flex-wrap">
-            <a href="admin.php" class="btn btn-default me-2 mb-2">
+            <a href="/administrace/billing/admin.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-cog me-1"></i> Nastavení
             </a>
-            <a href="admin-produkty.php" class="btn btn-primary me-2 mb-2">
+            <a href="/administrace/billing/admin-produkty.php" class="btn btn-primary me-2 mb-2">
                 <i class="fas fa-box me-1"></i> Produkty
             </a>
         </div>
@@ -402,4 +403,38 @@ function bp_interval_label(array $product): string
 </section>
 </div>
 
-</div></div></main></div><script src="../assets/js/admin.js?v=2026-10-09-billing"></script></body></html>
+<?php include __DIR__ . '/../../inc/prave-meny.class.php'; ?>
+</section>
+
+<?php include __DIR__ . '/../../inc/scripts-bottom.class.php'; ?>
+
+<script>
+function billingProductTypeChanged() {
+    var typeField = document.getElementById('payment_type');
+    if (!typeField) {
+        return;
+    }
+
+    var subscription = typeField.value === 'subscription';
+    var elements = document.querySelectorAll('.billing-subscription-only');
+
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].style.display = subscription ? '' : 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    billingProductTypeChanged();
+
+    if (window.location.hash === '#tab-formular') {
+        var trigger = document.querySelector('[data-bs-target="#tab-formular"]');
+
+        if (trigger && window.bootstrap && bootstrap.Tab) {
+            var tab = bootstrap.Tab.getOrCreateInstance(trigger);
+            tab.show();
+        }
+    }
+});
+</script>
+</body>
+</html>

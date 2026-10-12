@@ -207,58 +207,59 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="200ms">
-                        <div class="blog-one__item">
-                            <div class="blog-one__item__image">
-                                <img src="assets/images/knihy/laska-2.jpg" alt="Láska — první díl: Kóma">
-                                <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>"></a>
-                                <span><?= htmlspecialchars(__('books.status.first_trilogy'), ENT_QUOTES, 'UTF-8'); ?></span>
+                    <?php
+                    // Posledni tri vlozene koncepty. Pouzivame stejny jazykovy fallback jako stranka Pripravujeme.
+                    $racLatestDrafts = array();
+                    $racDraftsError = false;
+                    try {
+                        require_once dirname(__DIR__) . '/inc/rac-products.php';
+                        $draftPdo = racFrontendPdo();
+                        if (!$draftPdo instanceof PDO) {
+                            throw new RuntimeException('Databaze neni dostupna.');
+                        }
+                        list($draftLangId, $draftDefaultLangId, $draftCzechLangId) = racShopLanguageIds($draftPdo, (string)$currentLanguage);
+                        $draftStmt = $draftPdo->prepare(
+                            "SELECT p.id,
+                               COALESCE(NULLIF(t1.title, ''), NULLIF(t2.title, ''), NULLIF(t3.title, '')) AS title,
+                               COALESCE(NULLIF(t1.short_description, ''), NULLIF(t2.short_description, ''), NULLIF(t3.short_description, ''), '') AS short_description
+                             FROM products p
+                             LEFT JOIN product_translations t1 ON t1.product_id = p.id AND t1.language_id = ?
+                             LEFT JOIN product_translations t2 ON t2.product_id = p.id AND t2.language_id = ?
+                             LEFT JOIN product_translations t3 ON t3.product_id = p.id AND t3.language_id = ?
+                             WHERE p.status = 'draft'
+                             ORDER BY p.id DESC
+                             LIMIT 3"
+                        );
+                        $draftStmt->execute(array($draftLangId, $draftDefaultLangId, $draftCzechLangId));
+                        $racLatestDrafts = $draftStmt->fetchAll(PDO::FETCH_ASSOC);
+                    } catch (Throwable $e) {
+                        error_log('RAC homepage upcoming: ' . $e->getMessage());
+                        $racDraftsError = true;
+                    }
+                    ?>
+                    <?php if ($racDraftsError): ?>
+                        <div class="col-12"><p><?= htmlspecialchars(__('upcoming.unavailable') !== 'upcoming.unavailable' ? __('upcoming.unavailable') : 'Připravované knihy se nyní nepodařilo načíst.', ENT_QUOTES, 'UTF-8'); ?></p></div>
+                    <?php elseif (!$racLatestDrafts): ?>
+                        <div class="col-12"><p><?= htmlspecialchars(__('upcoming.empty') !== 'upcoming.empty' ? __('upcoming.empty') : 'Momentálně nejsou evidovány žádné připravované knihy.', ENT_QUOTES, 'UTF-8'); ?></p></div>
+                    <?php else: ?>
+                        <?php foreach ($racLatestDrafts as $draft): ?>
+                            <?php if (trim((string)($draft['title'] ?? '')) === '') { continue; } ?>
+                            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="200ms">
+                                <div class="blog-one__item">
+                                    <div class="blog-one__item__content">
+                                        <span><?= htmlspecialchars(__('books.status.in_preparation'), ENT_QUOTES, 'UTF-8'); ?></span>
+                                        <h3 class="blog-one__item__title"><?= htmlspecialchars((string)$draft['title'], ENT_QUOTES, 'UTF-8'); ?></h3>
+                                        <?php if (trim((string)$draft['short_description']) !== ''): ?>
+                                            <p><?= htmlspecialchars((string)$draft['short_description'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="blog-one__item__content">
-                                <h3 class="blog-one__item__title">
-                                    <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>">Láska — první díl: Kóma</a>
-                                </h3>
-                            </div>
-                            <div class="product-details__buttons">
-                                <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn wishlist"><?= htmlspecialchars(__('action.more_about_book'), ENT_QUOTES, 'UTF-8'); ?></a>
-                            </div>
-                        </div>
-                    </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
 
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="200ms">
-                        <div class="blog-one__item">
-                            <div class="blog-one__item__image">
-                                <img src="assets/images/knihy/blank.jpg" alt="Civilióza">
-                                <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>"></a>
-                                <span><?= htmlspecialchars(__('books.status.in_preparation'), ENT_QUOTES, 'UTF-8'); ?></span>
-                            </div>
-                            <div class="blog-one__item__content">
-                                <h3 class="blog-one__item__title">
-                                    <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>">Civilióza</a>
-                                </h3>
-                            </div>
-                            <div class="product-details__buttons">
-                                <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn wishlist"><?= htmlspecialchars(__('action.more_about_book'), ENT_QUOTES, 'UTF-8'); ?></a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="200ms">
-                        <div class="blog-one__item">
-                            <div class="blog-one__item__image">
-                                <img src="assets/images/knihy/blank.jpg" alt="Stupně vědomí">
-                                <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>"></a>
-                                <span><?= htmlspecialchars(__('books.status.in_preparation'), ENT_QUOTES, 'UTF-8'); ?></span>
-                            </div>
-                            <div class="blog-one__item__content">
-                                <h3 class="blog-one__item__title">
-                                    <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>">Stupně vědomí</a>
-                                </h3>
-                            </div>
-                            <div class="product-details__buttons">
-                                <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn wishlist"><?= htmlspecialchars(__('action.more_about_book'), ENT_QUOTES, 'UTF-8'); ?></a>
-                            </div>
-                        </div>
+                    <div class="col-md-12 text-end">
+                        <a href="<?= htmlspecialchars(racUrl('pripravujeme.php'), ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn"><?= htmlspecialchars(__('action.view_all_work'), ENT_QUOTES, 'UTF-8'); ?></a>
                     </div>
                 </div>
             </div>

@@ -74,6 +74,7 @@ return [
     'product.version.audiobook' => 'Livre audio',
     'home.discover_work' => 'Découvrez mes œuvres',
     'books.status.new' => 'nouveauté',
+    'action.view_upcoming_titles' => 'Voir les titres à paraître',
     'action.view_all_work' => 'Voir toutes les œuvres',
     'action.publisher_offers' => 'Propositions d’édition et collaborations',
     'action.contact' => 'Contact',

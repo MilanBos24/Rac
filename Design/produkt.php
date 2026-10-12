@@ -1,8 +1,9 @@
 <?php
-// RAC detail knihy – verze 2026-10-08-URL01
+// RAC detail knihy – verze 2026-10-08-13.21
 require_once __DIR__ . '/inc/01.config.class.php';
 require_once __DIR__ . '/inc/02.language.class.php';
 require_once __DIR__ . '/inc/rac-products.php';
+require_once __DIR__ . '/inc/rac-cart.php';
 
 $slug = isset($_GET['slug']) && is_string($_GET['slug']) ? $_GET['slug'] : '';
 $product = null;
@@ -23,9 +24,9 @@ if (preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug)) {
         }
     }
 }
-
-// Presmerovani pouze pri primem pozadavku na produkt.php?slug=...
-if ($product && ($_SERVER['REQUEST_METHOD'] ?? '') === 'GET') {
+// RAC – hezke URL, verze 2026-10-08-URL01.
+// Presmerovani jen pro primo vyzadanou puvodni adresu, ne pro interní rewrite.
+if ($product && isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $requestedPath = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
     if (basename($requestedPath) === 'produkt.php') {
         $basePath = rtrim(str_replace('\\', '/', dirname((string)($_SERVER['SCRIPT_NAME'] ?? '/produkt.php'))), '/');

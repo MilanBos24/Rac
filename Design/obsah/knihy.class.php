@@ -1,3 +1,21 @@
+<?php
+// RAC katalog knih – integrace do původní šablony, verze 2026-10-08-13.45
+// Soubor knihy.php zůstává beze změny.
+require_once dirname(__DIR__) . '/inc/rac-products.php';
+$racBooks = array();
+$racBooksError = false;
+$racPdo = racFrontendPdo();
+if ($racPdo instanceof PDO) {
+    try {
+        $racBooks = racShopProducts($racPdo, $currentLanguage);
+    } catch (Throwable $e) {
+        error_log('RAC katalog knih: ' . $e->getMessage());
+        $racBooksError = true;
+    }
+} else {
+    $racBooksError = true;
+}
+?>
 <div class="stricky-header stricked-menu main-menu">
             <div class="sticky-header__content"></div><!-- /.sticky-header__content -->
         </div><!-- /.stricky-header -->
@@ -30,38 +48,47 @@
                         </div>
                     </div>
 
-                    <?php
-                    $books = [
-                        ['image' => 'klasicka.jpg', 'title' => 'Poznej sám sebe. Pak pochopíš všechno.', 'status' => __('books.status.on_sale')],
-                        ['image' => 'komunikace.jpg', 'title' => 'Poznej sám sebe. Pak pochopíš všechno. — Komunikace se sebou', 'status' => __('books.status.on_sale')],
-                        ['image' => 'rozsirena.jpg', 'title' => 'Poznej sám sebe. Pak pochopíš všechno. — Rozšířená verze', 'status' => __('books.status.on_sale')],
-                        ['image' => 'laska.jpg', 'title' => 'Láska', 'status' => __('books.status.on_sale')],
-                        ['image' => 'zivot.jpg', 'title' => 'Život', 'status' => __('books.status.on_sale')],
-                        ['image' => 'kovalovska.jpg', 'title' => 'Mezi psychopaty', 'status' => __('books.status.published', ['date' => '1. 4. 2022'])],
-                    ];
-                    ?>
-
-                    <?php foreach ($books as $book): ?>
-                        <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="200ms">
-                            <div class="blog-one__item">
-                                <div class="blog-one__item__image">
-                                    <img src="assets/images/knihy/<?= htmlspecialchars($book['image'], ENT_QUOTES, 'UTF-8'); ?>" alt="<?= htmlspecialchars($book['title'], ENT_QUOTES, 'UTF-8'); ?>">
-                                    <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>"></a>
-                                    <span><?= htmlspecialchars($book['status'], ENT_QUOTES, 'UTF-8'); ?></span>
-                                </div>
-                                <div class="blog-one__item__content">
-                                    <h3 class="blog-one__item__title">
-                                        <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($book['title'], ENT_QUOTES, 'UTF-8'); ?></a>
-                                    </h3>
-                                </div>
-                                <div class="product-details__buttons">
-                                    <a href="<?= htmlspecialchars(racUrl('poznej-sam-sebe-pak-pochopis-vsechno-klasicka-verze.php'), ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn wishlist"><?= htmlspecialchars(__('action.more_about_book'), ENT_QUOTES, 'UTF-8'); ?></a>
-                                    <a href="<?= htmlspecialchars(racUrl('kosik.php'), ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn"><?= htmlspecialchars(__('action.buy'), ENT_QUOTES, 'UTF-8'); ?></a>
+                    <?php if ($racBooksError): ?>
+                        <div class="col-12"><p role="status">Katalog knih je dočasně nedostupný.</p></div>
+                    <?php elseif (!$racBooks): ?>
+                        <div class="col-12"><p>Momentálně nejsou k dispozici žádné knihy.</p></div>
+                    <?php else: ?>
+                        <?php foreach ($racBooks as $book): ?>
+                            <?php
+                            if (trim((string)($book['title'] ?? '')) === '') {
+                                continue;
+                            }
+                            $bookTitle = (string)$book['title'];
+                            $bookUrl = racUrl(rawurlencode((string)$book['slug']));
+                            $bookImage = racShopImageUrl($book['image'] ?? null);
+                            ?>
+                            <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="200ms">
+                                <div class="blog-one__item">
+                                    <div class="blog-one__item__image">
+                                        <?php if ($bookImage !== ''): ?>
+                                            <img loading="lazy" src="<?= htmlspecialchars($bookImage, ENT_QUOTES, 'UTF-8'); ?>" alt="<?= htmlspecialchars($bookTitle, ENT_QUOTES, 'UTF-8'); ?>">
+                                        <?php else: ?>
+                                            <div class="rac-book-no-image">Bez fotografie</div>
+                                        <?php endif; ?>
+                                        <a href="<?= htmlspecialchars($bookUrl, ENT_QUOTES, 'UTF-8'); ?>" aria-label="<?= htmlspecialchars($bookTitle, ENT_QUOTES, 'UTF-8'); ?>"></a>
+                                        <span><?= htmlspecialchars(__('books.status.on_sale'), ENT_QUOTES, 'UTF-8'); ?></span>
+                                    </div>
+                                    <div class="blog-one__item__content">
+                                        <h3 class="blog-one__item__title">
+                                            <a href="<?= htmlspecialchars($bookUrl, ENT_QUOTES, 'UTF-8'); ?>"><?= htmlspecialchars($bookTitle, ENT_QUOTES, 'UTF-8'); ?></a>
+                                        </h3>
+                                        <?php if (!empty($book['short_description'])): ?>
+                                            <p><?= htmlspecialchars((string)$book['short_description'], ENT_QUOTES, 'UTF-8'); ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="product-details__buttons">
+                                        <a href="<?= htmlspecialchars($bookUrl, ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn wishlist"><?= htmlspecialchars(__('action.more_about_book'), ENT_QUOTES, 'UTF-8'); ?></a>
+                                        <a href="<?= htmlspecialchars($bookUrl, ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn"><?= htmlspecialchars(__('action.buy'), ENT_QUOTES, 'UTF-8'); ?></a>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </section>
-

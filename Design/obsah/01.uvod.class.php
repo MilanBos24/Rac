@@ -259,7 +259,7 @@
                     <?php endif; ?>
 
                     <div class="col-md-12 text-end">
-                        <a href="<?= htmlspecialchars(racUrl('pripravujeme.php'), ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn"><?= htmlspecialchars(__('action.view_all_work'), ENT_QUOTES, 'UTF-8'); ?></a>
+                        <a href="<?= htmlspecialchars(racUrl('pripravujeme.php'), ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn"><?= htmlspecialchars(__('action.view_upcoming_titles'), ENT_QUOTES, 'UTF-8'); ?></a>
                     </div>
                 </div>
             </div>

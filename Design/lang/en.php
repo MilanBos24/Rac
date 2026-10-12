@@ -78,6 +78,7 @@ return [
 
     'home.discover_work' => 'Discover my work',
     'books.status.new' => 'new',
+    'action.view_upcoming_titles' => 'View upcoming titles',
     'action.view_all_work' => 'View all works',
     'action.publisher_offers' => 'Publishing offers and collaboration',
     'action.contact' => 'Contact',

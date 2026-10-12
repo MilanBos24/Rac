@@ -37,7 +37,10 @@ $subtotal=0;foreach($racCheckoutLines as $l)$subtotal+=$l['total'];
 <div class="checkout-page__input-box"><input type="text" name="shipping_name" maxlength="190" required placeholder="Jméno příjemce *" value="<?= $posted('shipping_name') ?>"></div>
 <div class="checkout-page__input-box"><input type="text" name="shipping_street" maxlength="190" required placeholder="Ulice a číslo *" value="<?= $posted('shipping_street') ?>"></div>
 <div class="row bs-gutter-x-20"><div class="col-md-6"><div class="checkout-page__input-box"><input type="text" name="shipping_city" maxlength="120" required placeholder="Město *" value="<?= $posted('shipping_city') ?>"></div></div><div class="col-md-6"><div class="checkout-page__input-box"><input type="text" name="shipping_postal" maxlength="30" required placeholder="PSČ *" value="<?= $posted('shipping_postal') ?>"></div></div></div>
-<div class="checkout-page__input-box"><label for="shipping_country">Země doručení</label><select class="selectpicker" data-live-search="true" name="shipping_country" id="shipping_country" required><?php foreach($racCheckoutCountries as $cc): ?><option value="<?= $esc($cc) ?>" <?= $cc===$country?'selected':'' ?>><?= $esc($cc) ?></option><?php endforeach; ?></select></div>
+<div class="checkout-page__input-box">
+<label for="shipping_country">Země doručení</label>
+<select class="selectpicker" data-live-search="true" name="shipping_country" id="shipping_country" required><?php foreach($racCheckoutCountries as $cc): ?><option value="<?= $esc($cc) ?>" <?= $cc===$country?'selected':'' ?>><?= $esc($cc) ?></option><?php endforeach; ?></select>
+</div>
 <div class="checkout-page__check-box"><input type="checkbox" id="rac-billing-same" name="billing_same" value="1" <?= !isset($_POST['billing_same']) && ($_SERVER['REQUEST_METHOD']??'GET')!=='POST'||isset($_POST['billing_same'])?'checked':'' ?> ><label for="rac-billing-same"><span></span>Fakturační adresa je shodná s doručovací adresou</label></div>
 <?php else: ?><p>Digitální produkty nevyžadují fyzickou dopravu.</p><?php endif; ?>
 <div id="rac-billing-fields" <?= $racCheckoutPhysical && ((!isset($_POST['billing_same']) && ($_SERVER['REQUEST_METHOD']??'GET')!=='POST')||isset($_POST['billing_same']))?'hidden':'' ?>>

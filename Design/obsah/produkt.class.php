@@ -1,6 +1,6 @@
 <?php
-// RAC oprava množství: 2026-10-08-i18n-01
-// RAC detail – Ogency product-details.html, verze 2026-10-08-13.21
+// RAC layout detailu knihy – verze 2026-10-12-09.45 (PHP 7.4)
+// Cena pod nazvem; vyber vydani jako v objednavce; vydani + mnozstvi 50/50.
 $detailImages = array();
 foreach ($images as $image) {
     $url = racShopImageUrl(isset($image['file_path']) ? $image['file_path'] : null);
@@ -9,6 +9,26 @@ foreach ($images as $image) {
     }
 }
 ?>
+<style>
+/* RAC – pouze layout detailu produktu, bez zmeny globalni sablony. */
+.product-details .rac-product-heading {display:block;}
+.product-details .rac-product-heading .product-details__title {display:block;width:100%;margin-bottom:12px;}
+.product-details .rac-product-heading .product-details__price {display:block;width:100%;margin:0;}
+.product-details .rac-product-heading #rac-variant-original {display:block;margin-top:6px;margin-bottom:12px;}
+.product-details .rac-product-buy-options {display:flex;flex-wrap:wrap;margin:20px -10px 0;align-items:flex-start;}
+.product-details .rac-product-buy-options__col {width:50%;flex:0 0 50%;max-width:50%;padding:0 10px;min-width:0;}
+.product-details .rac-product-buy-options__label {display:block;font-weight:700;margin:0 0 9px;}
+.product-details .rac-product-buy-options .rac-product-variants {margin:0!important;}
+.product-details .rac-product-buy-options .bootstrap-select {width:100%!important;max-width:100%;}
+.product-details .rac-product-buy-options .bootstrap-select > .dropdown-toggle {width:100%;}
+.product-details .rac-product-buy-options .product-details__quantity {display:block;margin:0;}
+.product-details .rac-product-buy-options .product-details__quantity-title {display:block;margin:0 0 9px;}
+.product-details .rac-product-buy-options .quantity-box {max-width:100%;}
+@media (max-width:575px) {
+  .product-details .rac-product-buy-options {margin-left:-6px;margin-right:-6px;}
+  .product-details .rac-product-buy-options__col {padding-left:6px;padding-right:6px;}
+}
+</style>
 <div class="stricky-header stricked-menu main-menu"><div class="sticky-header__content"></div></div>
 <section class="page-header">
     <div class="page-header__bg"></div><div class="page-header__overlay"></div>
@@ -47,12 +67,12 @@ foreach ($images as $image) {
                 </div>
                 <div class="col-lg-6 col-xl-6 wow fadeInRight" data-wow-delay="300ms">
                     <div class="product-details__content">
-                        <div class="product-details__top">
+                        <div class="product-details__top rac-product-heading">
                             <h3 class="product-details__title"><?= racShopH($product['title']) ?></h3>
                             <?php if ($variants): ?>
                                 <?php $first = $variants[0]; $firstPrice = racShopPrice($first); ?>
                                 <div class="product-details__price" id="rac-variant-price"><?= racShopMoney($firstPrice, $first['currency']) ?></div>
-                                <div id="rac-variant-original" style="margin-bottom:12px"><?php if ((float)$firstPrice < (float)$first['price']): ?><del><?= racShopMoney((string)$first['price'], $first['currency']) ?></del><?php endif; ?></div>
+                                <div id="rac-variant-original"><?php if ((float)$firstPrice < (float)$first['price']): ?><del><?= racShopMoney((string)$first['price'], $first['currency']) ?></del><?php endif; ?></div>
                             <?php endif; ?>
                         </div>
                         <div class="product-details__divider"></div>
@@ -61,15 +81,24 @@ foreach ($images as $image) {
                             <?php if (!empty($product['short_description'])): ?><p class="product-details__excerpt-text1"><?= nl2br(racShopH($product['short_description'])) ?></p><?php endif; ?>
                         </div>
                         <?php if ($variants): ?>
-                            <div class="rac-product-variants" style="margin:20px 0">
-                                <label for="rac-variant-select" style="display:block;font-weight:700;margin-bottom:9px"><?= racShopH(__('product.detail.choose_edition')) ?></label>
-                                <select id="rac-variant-select" class="form-control" style="max-width:420px;padding:12px">
-                                    <?php foreach ($variants as $v): $price = racShopPrice($v); $sold = $v['kind'] === 'print' && $v['stock_quantity'] !== null && (int)$v['stock_quantity'] < 1; ?>
-                                    <option value="<?= (int)$v['id'] ?>" data-price="<?= racShopH(racShopMoney($price, $v['currency'])) ?>" data-original="<?= (float)$price < (float)$v['price'] ? racShopH(racShopMoney((string)$v['price'], $v['currency'])) : '' ?>" <?= $sold ? 'disabled' : '' ?>><?= racShopH(__(['print' => 'product.kind.print', 'ebook' => 'product.kind.ebook', 'audio' => 'product.kind.audio'][$v['kind']] ?? 'product.kind.print')) ?> – <?= racShopMoney($price, $v['currency']) ?><?= $sold ? ' (' . racShopH(__('product.detail.sold_out')) . ')' : '' ?></option>
-                                    <?php endforeach; ?>
-                                </select>
+                            <div class="rac-product-buy-options">
+                                <div class="rac-product-buy-options__col">
+                                    <div class="rac-product-variants">
+                                        <h3 class="product-details__quantity-title"><?= racShopH(__('product.detail.choose_edition')) ?></h3>
+                                        <select id="rac-variant-select" class="selectpicker" data-width="100%">
+                                            <?php foreach ($variants as $v): $price = racShopPrice($v); $sold = $v['kind'] === 'print' && $v['stock_quantity'] !== null && (int)$v['stock_quantity'] < 1; ?>
+                                            <option value="<?= (int)$v['id'] ?>" data-price="<?= racShopH(racShopMoney($price, $v['currency'])) ?>" data-original="<?= (float)$price < (float)$v['price'] ? racShopH(racShopMoney((string)$v['price'], $v['currency'])) : '' ?>" <?= $sold ? 'disabled' : '' ?>><?= racShopH(__(['print' => 'product.kind.print', 'ebook' => 'product.kind.ebook', 'audio' => 'product.kind.audio'][$v['kind']] ?? 'product.kind.print')) ?> – <?= racShopMoney($price, $v['currency']) ?><?= $sold ? ' (' . racShopH(__('product.detail.sold_out')) . ')' : '' ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="rac-product-buy-options__col">
+                                    <div class="product-details__quantity">
+                                        <h3 class="product-details__quantity-title"><?= racShopH(__('product.detail.quantity')) ?></h3>
+                                        <div class="quantity-box"><button type="button" class="sub" aria-label="Snížit počet"><i class="fa fa-minus"></i></button><input type="number" id="rac-detail-quantity" min="1" max="99" value="1"><button type="button" class="add" aria-label="Zvýšit počet"><i class="fa fa-plus"></i></button></div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="product-details__quantity"><h3 class="product-details__quantity-title"><?= racShopH(__('product.detail.quantity')) ?></h3><div class="quantity-box"><button type="button" class="sub" aria-label="Snížit počet"><i class="fa fa-minus"></i></button><input type="number" id="rac-detail-quantity" min="1" max="99" value="1"><button type="button" class="add" aria-label="Zvýšit počet"><i class="fa fa-plus"></i></button></div></div>
                             <form action="<?= racShopH(racUrl('kosik.php')) ?>" method="post" style="margin-top:20px">
                                 <input type="hidden" name="csrf" value="<?= racShopH(racCartToken()) ?>">
                                 <input type="hidden" name="action" value="add">
@@ -123,18 +152,17 @@ foreach ($images as $image) {
             for (var i = 0; i < select.options.length; i++) { if (!select.options[i].disabled) { select.selectedIndex = i; break; } }
         }
         update();
+        if (window.jQuery && window.jQuery.fn.selectpicker) { window.jQuery(select).selectpicker('refresh'); }
     }
     var quantity = document.getElementById('rac-detail-quantity');
     if (quantity) {
         var syncQuantity = function() { var v = document.getElementById('rac-cart-quantity'); if (v) { v.value = quantity.value; } };
         // Tlacitka +/- uz obsluhuje JavaScript sablony Ogency.
-        // Nepřidavat dalsi handler, jinak se pocet meni dvakrat.
+        // Nepridavat dalsi handler, jinak se pocet meni dvakrat.
         quantity.addEventListener('input', syncQuantity);
         quantity.addEventListener('change', syncQuantity);
         var cartForm = document.getElementById('rac-cart-submit');
-        if (cartForm && cartForm.form) {
-            cartForm.form.addEventListener('submit', syncQuantity);
-        }
+        if (cartForm && cartForm.form) { cartForm.form.addEventListener('submit', syncQuantity); }
     }
 })();
 </script>

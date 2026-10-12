@@ -78,6 +78,7 @@ return [
 
     'home.discover_work' => 'Objavte moju tvorbu',
     'books.status.new' => 'novinka',
+    'action.view_upcoming_titles' => 'Zobraziť pripravované tituly',
     'action.view_all_work' => 'Zobraziť celú tvorbu',
     'action.publisher_offers' => 'Vydavateľské ponuky a spolupráca',
     'action.contact' => 'Kontakt',

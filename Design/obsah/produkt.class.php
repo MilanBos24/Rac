@@ -1,6 +1,6 @@
 <?php
-// RAC layout detailu knihy – verze 2026-10-12-09.45 (PHP 7.4)
-// Cena pod nazvem; vyber vydani jako v objednavce; vydani + mnozstvi 50/50.
+// RAC layout detailu knihy – verze 2026-10-12-10.00 (PHP 7.4)
+// Jedina zmena oproti verzi 09.45: pole vydani pouziva styl dropdownu Zeme doruceni.
 $detailImages = array();
 foreach ($images as $image) {
     $url = racShopImageUrl(isset($image['file_path']) ? $image['file_path'] : null);
@@ -21,6 +21,10 @@ foreach ($images as $image) {
 .product-details .rac-product-buy-options .rac-product-variants {margin:0!important;}
 .product-details .rac-product-buy-options .bootstrap-select {width:100%!important;max-width:100%;}
 .product-details .rac-product-buy-options .bootstrap-select > .dropdown-toggle {width:100%;}
+/* RAC: bile pismo ve vyberu vydani knihy. */
+.product-details .rac-product-variants .bootstrap-select > .dropdown-toggle,
+.product-details .rac-product-variants .bootstrap-select > .dropdown-toggle .filter-option-inner-inner {color:#fff!important;}
+.product-details .rac-product-variants .bootstrap-select .dropdown-menu > li > a {color:#fff;}
 .product-details .rac-product-buy-options .product-details__quantity {display:block;margin:0;}
 .product-details .rac-product-buy-options .product-details__quantity-title {display:block;margin:0 0 9px;}
 .product-details .rac-product-buy-options .quantity-box {max-width:100%;}
@@ -83,9 +87,9 @@ foreach ($images as $image) {
                         <?php if ($variants): ?>
                             <div class="rac-product-buy-options">
                                 <div class="rac-product-buy-options__col">
-                                    <div class="rac-product-variants">
+                                    <div class="rac-product-variants checkout-page__input-box">
                                         <h3 class="product-details__quantity-title"><?= racShopH(__('product.detail.choose_edition')) ?></h3>
-                                        <select id="rac-variant-select" class="selectpicker" data-width="100%">
+                                        <select id="rac-variant-select" class="selectpicker" data-live-search="false" data-width="100%">
                                             <?php foreach ($variants as $v): $price = racShopPrice($v); $sold = $v['kind'] === 'print' && $v['stock_quantity'] !== null && (int)$v['stock_quantity'] < 1; ?>
                                             <option value="<?= (int)$v['id'] ?>" data-price="<?= racShopH(racShopMoney($price, $v['currency'])) ?>" data-original="<?= (float)$price < (float)$v['price'] ? racShopH(racShopMoney((string)$v['price'], $v['currency'])) : '' ?>" <?= $sold ? 'disabled' : '' ?>><?= racShopH(__(['print' => 'product.kind.print', 'ebook' => 'product.kind.ebook', 'audio' => 'product.kind.audio'][$v['kind']] ?? 'product.kind.print')) ?> – <?= racShopMoney($price, $v['currency']) ?><?= $sold ? ' (' . racShopH(__('product.detail.sold_out')) . ')' : '' ?></option>
                                             <?php endforeach; ?>

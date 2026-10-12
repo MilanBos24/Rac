@@ -1,0 +1,233 @@
+/* Fakturace doklady */
+.doklad-mobile-label {display: none;}
+@media (max-width: 767.98px) {
+.doklad-mobile-label {display: block !important;}
+.doklady-desktop-header {display: none !important;}
+.doklad-actions {text-align: left !important;}
+.doklad-actions .btn {display: block;width: 100%; margin-right: 0 !important;}
+.doklad-card .card-header {padding-left: 15px; padding-right: 15px;}
+}
+/* Fakturace pravidelne */
+.pravidelna-mobile-label {display: none;}
+@media (max-width: 767.98px) {
+.pravidelne-desktop-header {display: none !important;}
+.pravidelna-mobile-label {display: block !important;}
+.pravidelna-actions {text-align: left !important;}
+.pravidelna-actions .btn {display: block; width: 100%; margin-right: 0 !important;}
+}
+
+/* Fakturace pravidelne upravit*/
+.fakturace-autocomplete {position: relative;}
+.fakturace-autocomplete-list {position: absolute; top: 100%; left: 0; right: 0; z-index: 1050; max-height: 260px; overflow-y: auto; background: #fff; border: 1px solid #ced4da; border-top: 0; border-radius: 0 0 4px 4px; box-shadow: 0 8px 18px rgba(0, 0, 0, .12);}
+.fakturace-autocomplete-item {display: block; width: 100%; padding: 8px 12px; border: 0; background: #fff; text-align: left; cursor: pointer;}
+.fakturace-autocomplete-item:hover, .fakturace-autocomplete-item.active {background: #f2f4f6;}
+.fakturace-autocomplete-empty {padding: 8px 12px; color: #777;}
+/* Fakturace responzivita*/
+.dashboard-mobile-label {display: none !important;}
+.dashboard-item-card .form-control[readonly] {background: #fff;}
+.dashboard-actions .btn {white-space: nowrap;}
+.dashboard-item-card .form-control,
+.dashboard-item-card .badge,
+.dashboard-desktop-header label {min-width: 0;white-space: normal;overflow-wrap: anywhere;}
+.dashboard-watch-wrap {min-width: 0;white-space: normal;overflow-wrap: anywhere;word-break: break-word;}
+.dashboard-item-card.dashboard-compact .row > [class*="col-"] {flex: 0 0 100%;max-width: 100%;width: 100%;margin-bottom: 10px;}
+.dashboard-item-card.dashboard-compact .dashboard-mobile-label {display: block !important;}
+.dashboard-item-card.dashboard-compact .dashboard-actions {text-align: left !important;}
+.dashboard-item-card.dashboard-compact .dashboard-actions .btn {display: block;width: 100%;margin-right: 0 !important;}
+/* Pokud JS zjisti zalomeni textu v cele sekci, skryje se desktopova hlavicka sloupcu. */
+.dashboard-responsive-section.dashboard-section-compact .dashboard-desktop-header {display: none !important;}
+@media (max-width: 1199.98px) {.dashboard-desktop-header {display: none !important;}
+.dashboard-mobile-label {display: block !important;}
+.dashboard-actions {text-align: left !important;}
+.dashboard-actions .btn {display: block;width: 100%;margin-right: 0 !important;}
+}
+
+
+
+/* Spolecna responzivita vypisu - labely uvnitr polozek jen v kompaktnim zobrazeni */
+.dashboard-responsive-section:not(.dashboard-section-compact) .dashboard-mobile-label {
+    display: none !important;
+}
+
+.dashboard-responsive-section.dashboard-section-compact .dashboard-mobile-label {
+    display: block !important;
+}
+
+@media (max-width: 1199.98px) {
+    .dashboard-responsive-section .dashboard-desktop-header {
+        display: none !important;
+    }
+
+    .dashboard-responsive-section .dashboard-mobile-label {
+        display: block !important;
+    }
+}
+
+/* Sklad - tlacitka Ulozit/Skryt vedle sebe */
+.sklad-action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.sklad-action-buttons form {
+    display: inline-block;
+    margin: 0;
+}
+
+.sklad-action-buttons .btn {
+    width: auto !important;
+    display: inline-block !important;
+    margin-right: 0 !important;
+}
+
+@media (max-width: 1199.98px) {
+    .sklad-action-buttons {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+}
+
+/* Leve menu - po sbaleni zustane pouze uzky pruh s ikonami. */
+@media only screen and (min-width: 768px) {
+    /* Nadpisy skupin v aktualnim menu (Administrace, Byznys modul atd.). */
+    html.sidebar-left-collapsed #menu > ul.nav-main > li[style*="text-transform: uppercase"],
+    html.sidebar-left-collapsed #menu > ul.nav-main > li[style*="text-transform:uppercase"],
+    html.sidebar-left-collapsed .sidebar-left .nav-group-label,
+    html.sidebar-left-collapsed .sidebar-left .nav-header {
+        display: none !important;
+    }
+
+    /* Porto standardne menu pri najeti znovu rozsiri. Ve sbalenem stavu zustane 73 px. */
+    html.sidebar-left-collapsed .sidebar-left .nano:hover,
+    html.sidebar-left-collapsed .sidebar-left .nano.hovered {
+        width: 73px;
+    }
+
+    html.sidebar-left-collapsed .sidebar-left .nano:hover .nav-main .nav-expanded > ul.nav-children,
+    html.sidebar-left-collapsed .sidebar-left .nano.hovered .nav-main .nav-expanded > ul.nav-children {
+        display: none;
+    }
+
+    html.sidebar-left-collapsed .sidebar-left .nano:hover .nav-main li.nav-parent a::after,
+    html.sidebar-left-collapsed .sidebar-left .nano.hovered .nav-main li.nav-parent a::after {
+        display: none;
+    }
+
+    html.sidebar-left-collapsed .sidebar-left .nano:hover .nav-main li a span,
+    html.sidebar-left-collapsed .sidebar-left .nano.hovered .nav-main li a span {
+        visibility: hidden;
+    }
+
+    html.sidebar-left-collapsed .sidebar-left .nano:hover .sidebar-widget,
+    html.sidebar-left-collapsed .sidebar-left .nano:hover .separator,
+    html.sidebar-left-collapsed .sidebar-left .nano.hovered .sidebar-widget,
+    html.sidebar-left-collapsed .sidebar-left .nano.hovered .separator {
+        display: none;
+    }
+}
+
+/* Horni navigace - ikona a text stejne jako v levem menu */
+.header-nav-main nav > ul > li > a > i {
+    font-size: 18.4px;
+    font-size: 1.15rem;
+    width: 1.1em;
+    margin-right: 0.5em;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.header-nav-main nav > ul > li > a > span {
+    vertical-align: middle;
+}
+/* Horni navigace - hover a aktivni sekce */
+.header-nav-main nav > ul > li > a.nav-link:hover,
+.header-nav-main nav > ul > li > a.nav-link.active {
+    color: #742B85 !important;
+    background-color: transparent !important;
+}
+
+.header-nav-main nav > ul > li > a.nav-link:hover > i,
+.header-nav-main nav > ul > li > a.nav-link:hover > span,
+.header-nav-main nav > ul > li > a.nav-link.active > i,
+.header-nav-main nav > ul > li > a.nav-link.active > span {
+    color: #742B85 !important;
+}
+
+
+/* BOS24 - spolecny toolbar filtru a vyhledavani */
+.bos-toolbar-filter-lg,
+.bos-toolbar-filter-md,
+.bos-toolbar-search .form-control {
+    background-color: #fff !important;
+}
+
+.bos-toolbar-search .btn {
+    background-color: #fff !important;
+    border-color: #ced4da;
+    border-left: 0;
+    border-radius: 0 4px 4px 0 !important;
+}
+
+.bos-toolbar-search .form-control {
+    border-radius: 4px 0 0 4px !important;
+}
+
+.bos-toolbar-search .input-group {
+    border-radius: 4px;
+}
+
+@media (min-width: 992px) {
+    .bos-toolbar-filter-lg {
+        width: 185px;
+        flex: 0 0 185px;
+    }
+
+    .bos-toolbar-filter-md {
+        width: 145px;
+        flex: 0 0 145px;
+    }
+
+    .bos-toolbar-search {
+        width: 300px;
+        flex: 0 0 300px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .bos-toolbar-filter-lg,
+    .bos-toolbar-filter-md,
+    .bos-toolbar-search {
+        width: 100%;
+    }
+}
+
+/* Horni navigace - vychozi barva v tmavem headeru */
+html.header-dark .header-nav-main nav > ul > li > a.nav-link,
+html.header-dark .header-nav-main nav > ul > li > a.nav-link > i,
+html.header-dark .header-nav-main nav > ul > li > a.nav-link > span {
+    color: #fff !important;
+}
+
+/* Aktivni polozka a hover jsou v tmavem headeru vyrazne zlute */
+html.header-dark .header-nav-main nav > ul > li > a.nav-link:hover,
+html.header-dark .header-nav-main nav > ul > li > a.nav-link.active,
+html.header-dark .header-nav-main nav > ul > li > a.nav-link:hover > i,
+html.header-dark .header-nav-main nav > ul > li > a.nav-link:hover > span,
+html.header-dark .header-nav-main nav > ul > li > a.nav-link.active > i,
+html.header-dark .header-nav-main nav > ul > li > a.nav-link.active > span {
+    color: #ffc107 !important;
+}
+
+/* Header - ikona zprav je v tmavem headeru bila */
+html.header-dark .header-right .notification-icon .bx-envelope {
+    color: #fff !important;
+}
+html.header-dark .header-right .notification-icon .bx-bell {
+    color: #fff !important;
+}
+html.header-dark .header-right .notification-icon .bx-list-ol {
+    color: #fff !important;
+}

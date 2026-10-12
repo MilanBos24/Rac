@@ -1,0 +1,21 @@
+/* RAC / BOS24 visual bridge, version 2026-10-12-01.
+   Keep RAC page structure working while sharing Bootstrap + Porto assets. */
+.rac-admin { font-family: Poppins, Arial, sans-serif; }
+.rac-admin .admin-header { z-index: 1040; }
+.rac-admin .admin-sidebar { z-index: 1030; }
+.rac-admin .admin-sidebar a { text-decoration: none; }
+.rac-admin .admin-sidebar .nav-icon i { font-size: 16px; }
+.rac-admin .admin-brand .sidebar-toggle { display: inline-flex; align-items: center; }
+.rac-admin .admin-content { max-width: none; }
+.rac-admin .billing-content .page-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.rac-admin .billing-content .page-header h2 { color: inherit; margin: 0; }
+.rac-admin .billing-content .page-header .breadcrumbs { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.rac-admin .billing-content .page-header .breadcrumbs a, .rac-admin .billing-content .page-header .breadcrumbs span { color: #fff; }
+.rac-admin .billing-content .card-title { font-size: 1.05rem; margin: 0; }
+.rac-admin .billing-content .tab-content { padding-top: 12px; }
+.rac-admin .billing-content .tab-pane:not(.active) { display: none; }
+.rac-admin .billing-content .tab-pane.active { display: block; }
+.rac-admin .billing-content .nav-tabs .nav-link { cursor: pointer; }
+.rac-admin .billing-content .form-label { margin-bottom: 6px; }
+.rac-admin .billing-content .card-featured-left { border-left-width: 4px; }
+@media (max-width: 900px) { .rac-admin .admin-sidebar { z-index: 1045; } }

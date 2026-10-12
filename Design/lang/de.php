@@ -78,6 +78,7 @@ return [
 
     'home.discover_work' => 'Entdecken Sie meine Werke',
     'books.status.new' => 'Neu',
+    'action.view_upcoming_titles' => 'Kommende Titel ansehen',
     'action.view_all_work' => 'Gesamtes Werk ansehen',
     'action.publisher_offers' => 'Verlagsangebote und Zusammenarbeit',
     'action.contact' => 'Kontakt',

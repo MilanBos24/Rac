@@ -35,10 +35,12 @@ foreach ($images as $image) {
 
 .product-details .rac-detail-actions{display:flex;gap:15px;flex-wrap:wrap;align-items:center}
 .product-details .rac-detail-actions .ogency-btn{margin:0}
-.product-details .rac-product-audio-sample{margin-top:24px;display:flex;align-items:center}
-.product-details .rac-audio-play{display:inline-flex;align-items:center;justify-content:center;width:70px;height:70px;border-radius:50%;border:0;background:var(--ogency-base,#e8b85a);color:#fff;font-size:20px;cursor:pointer;transition:transform .2s ease}
-.product-details .rac-audio-play:hover{transform:scale(1.06)}
-.product-details .rac-audio-play--disabled{opacity:.55;cursor:default}
+/* Stejny kruhovy motiv jako homepage; omezeni rozmeru jen pro detail. */
+.product-details .rac-product-audio-sample{margin-top:26px;display:flex;align-items:center;min-height:154px}
+.product-details .rac-product-audio-sample .video-one__banner__curved-circle-box{position:relative;top:auto;right:auto;bottom:auto;left:auto;transform:none;margin:0;display:flex;align-items:center;justify-content:center}
+.product-details .rac-product-audio-sample .curved-circle{pointer-events:none}
+.product-details .rac-product-audio-sample .video-popup{cursor:pointer}
+.product-details .rac-product-audio-sample .rac-audio-inactive{cursor:default;opacity:.65}
 @media(max-width:575px){.product-details .rac-detail-actions{gap:12px}.product-details .rac-detail-actions .ogency-btn{width:100%;text-align:center}}
 </style>
 <div class="stricky-header stricked-menu main-menu"><div class="sticky-header__content"></div></div>
@@ -122,12 +124,21 @@ foreach ($images as $image) {
                                 </div>
                             </form>
                             <div class="rac-product-audio-sample">
-                                <?php // Ukazka se nesmi nacitat ze souboru placeneho vydani audioknihy. ?>
                                 <?php $racAudioSample = isset($product['audio_sample_url']) ? trim((string)$product['audio_sample_url']) : ''; ?>
-                                <?php if ($racAudioSample !== '' && (strpos($racAudioSample, 'https://') === 0 || (strpos($racAudioSample, '/') === 0 && strpos($racAudioSample, '//') !== 0))): ?>
-                                    <button type="button" class="rac-audio-play" id="rac-audio-play" aria-label="<?= racShopH(__('action.listen_audio_sample')) ?>" title="<?= racShopH(__('action.listen_audio_sample')) ?>"><span class="fa fa-play" aria-hidden="true"></span></button>
-                                    <audio id="rac-audio-preview" preload="none" src="<?= racShopH($racAudioSample) ?>"></audio>
-                                <?php else: ?>
+                                <?php $racAudioReady = $racAudioSample !== '' && (strpos($racAudioSample, 'https://') === 0 || (strpos($racAudioSample, '/') === 0 && strpos($racAudioSample, '//') !== 0)); ?>
+                                <div class="video-one__banner__curved-circle-box wow fadeInUp animated" data-wow-delay="400ms">
+                                    <div class="curved-circle">
+                                        <span class="curved-circle-item"><?= str_replace(' ', '&emsp;', racShopH(__('action.listen_audio_sample'))) ?></span>
+                                    </div>
+                                    <?php if ($racAudioReady): ?>
+                                        <button type="button" class="video-popup" id="rac-audio-play" aria-label="<?= racShopH(__('action.listen_audio_sample')) ?>" title="<?= racShopH(__('action.listen_audio_sample')) ?>"><span class="fa fa-play"></span></button>
+                                        <audio id="rac-audio-preview" preload="none" src="<?= racShopH($racAudioSample) ?>"></audio>
+                                    <?php else: ?>
+                                        <span class="video-popup rac-audio-inactive" role="img" aria-label="<?= racShopH(__('action.listen_audio_sample')) ?>" title="<?= racShopH(__('action.listen_audio_sample')) ?>"><span class="fa fa-play"></span></span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php else: ?>
                                     <span class="rac-audio-play rac-audio-play--disabled" aria-label="<?= racShopH(__('action.listen_audio_sample')) ?>" title="<?= racShopH(__('action.listen_audio_sample')) ?>"><span class="fa fa-play" aria-hidden="true"></span></span>
                                 <?php endif; ?>
                             </div>

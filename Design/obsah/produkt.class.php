@@ -1,5 +1,5 @@
 <?php
-// RAC layout detailu knihy – verze 2026-10-12-10.00 (PHP 7.4)
+// RAC layout detailu knihy – verze RAC-AUDIO-2026-10-13-B
 // Jedina zmena oproti verzi 09.45: pole vydani pouziva styl dropdownu Zeme doruceni.
 $detailImages = array();
 foreach ($images as $image) {
@@ -35,12 +35,12 @@ foreach ($images as $image) {
 
 .product-details .rac-detail-actions{display:flex;gap:15px;flex-wrap:wrap;align-items:center}
 .product-details .rac-detail-actions .ogency-btn{margin:0}
-/* Stejny kruhovy motiv jako homepage; omezeni rozmeru jen pro detail. */
-.product-details .rac-product-audio-sample{margin-top:26px;display:flex;align-items:center;min-height:154px}
-.product-details .rac-product-audio-sample .video-one__banner__curved-circle-box{position:relative;top:auto;right:auto;bottom:auto;left:auto;transform:none;margin:0;display:flex;align-items:center;justify-content:center}
-.product-details .rac-product-audio-sample .curved-circle{pointer-events:none}
-.product-details .rac-product-audio-sample .video-popup{cursor:pointer}
-.product-details .rac-product-audio-sample .rac-audio-inactive{cursor:default;opacity:.65}
+/* RAC-AUDIO-2026-10-13-B: animovany prvek z homepage v detailu knihy. */
+.product-details .rac-product-audio-sample{margin-top:28px;display:flex;justify-content:flex-start;align-items:center;min-height:190px}
+.product-details .rac-product-audio-sample .video-one__banner__curved-circle-box{display:block;position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;transform:none!important;margin:0;width:175px;height:175px;min-width:175px;border-radius:50%;background:var(--ogency-black2,#1d1d1d);z-index:1}
+.product-details .rac-product-audio-sample .curved-circle{pointer-events:none;color:#fff!important;animation:textRotate 20s linear infinite!important}
+.product-details .rac-product-audio-sample .video-popup{cursor:pointer;text-decoration:none;z-index:2;border:0;padding:0}
+.product-details .rac-product-audio-sample .rac-audio-inactive{cursor:default;opacity:.75}
 @media(max-width:575px){.product-details .rac-detail-actions{gap:12px}.product-details .rac-detail-actions .ogency-btn{width:100%;text-align:center}}
 </style>
 <div class="stricky-header stricked-menu main-menu"><div class="sticky-header__content"></div></div>

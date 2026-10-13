@@ -32,6 +32,14 @@ foreach ($images as $image) {
   .product-details .rac-product-buy-options {margin-left:-6px;margin-right:-6px;}
   .product-details .rac-product-buy-options__col {padding-left:6px;padding-right:6px;}
 }
+
+.product-details .rac-detail-actions{display:flex;gap:15px;flex-wrap:wrap;align-items:center}
+.product-details .rac-detail-actions .ogency-btn{margin:0}
+.product-details .rac-product-audio-sample{margin-top:24px;display:flex;align-items:center}
+.product-details .rac-audio-play{display:inline-flex;align-items:center;justify-content:center;width:70px;height:70px;border-radius:50%;border:0;background:var(--ogency-base,#e8b85a);color:#fff;font-size:20px;cursor:pointer;transition:transform .2s ease}
+.product-details .rac-audio-play:hover{transform:scale(1.06)}
+.product-details .rac-audio-play--disabled{opacity:.55;cursor:default}
+@media(max-width:575px){.product-details .rac-detail-actions{gap:12px}.product-details .rac-detail-actions .ogency-btn{width:100%;text-align:center}}
 </style>
 <div class="stricky-header stricked-menu main-menu"><div class="sticky-header__content"></div></div>
 <section class="page-header">
@@ -108,8 +116,21 @@ foreach ($images as $image) {
                                 <input type="hidden" name="action" value="add">
                                 <input type="hidden" name="variant_id" id="rac-cart-variant" value="<?= (int)$variants[0]['id'] ?>">
                                 <input type="hidden" name="quantity" id="rac-cart-quantity" value="1">
-                                <div class="product-details__buttons"><button type="submit" class="ogency-btn" id="rac-cart-submit">Vložit do košíku</button></div>
+                                <div class="product-details__buttons rac-detail-actions">
+                                    <button type="submit" class="ogency-btn" id="rac-cart-submit"><?= racShopH(__('action.add_to_cart')) ?></button>
+                                    <a href="<?= racShopH(racUrl('knihy.php')) ?>" class="ogency-btn rac-back-to-shop"><?= racShopH(__('cart.back_to_shop')) ?></a>
+                                </div>
                             </form>
+                            <div class="rac-product-audio-sample">
+                                <?php // Ukazka se nesmi nacitat ze souboru placeneho vydani audioknihy. ?>
+                                <?php $racAudioSample = isset($product['audio_sample_url']) ? trim((string)$product['audio_sample_url']) : ''; ?>
+                                <?php if ($racAudioSample !== '' && (strpos($racAudioSample, 'https://') === 0 || (strpos($racAudioSample, '/') === 0 && strpos($racAudioSample, '//') !== 0))): ?>
+                                    <button type="button" class="rac-audio-play" id="rac-audio-play" aria-label="<?= racShopH(__('action.listen_audio_sample')) ?>" title="<?= racShopH(__('action.listen_audio_sample')) ?>"><span class="fa fa-play" aria-hidden="true"></span></button>
+                                    <audio id="rac-audio-preview" preload="none" src="<?= racShopH($racAudioSample) ?>"></audio>
+                                <?php else: ?>
+                                    <span class="rac-audio-play rac-audio-play--disabled" aria-label="<?= racShopH(__('action.listen_audio_sample')) ?>" title="<?= racShopH(__('action.listen_audio_sample')) ?>"><span class="fa fa-play" aria-hidden="true"></span></span>
+                                <?php endif; ?>
+                            </div>
                         <?php else: ?><p>Momentálně není dostupné žádné vydání této knihy.</p><?php endif; ?>
                     </div>
                 </div>
@@ -133,6 +154,18 @@ foreach ($images as $image) {
             if (popup) { popup.href = btn.getAttribute('data-photo'); }
         });
     });
+
+    var racAudioPlay = document.getElementById('rac-audio-play');
+    var racAudioPreview = document.getElementById('rac-audio-preview');
+    if (racAudioPlay && racAudioPreview) {
+        racAudioPlay.addEventListener('click', function () {
+            if (racAudioPreview.paused) {
+                racAudioPreview.play().catch(function () {});
+            } else {
+                racAudioPreview.pause();
+            }
+        });
+    }
     var select = document.getElementById('rac-variant-select');
     if (select) {
         var update = function() {

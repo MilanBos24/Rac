@@ -72,17 +72,16 @@ $subtotal=0;foreach($racCheckoutLines as $l)$subtotal+=$l['total'];
 <?php endforeach; ?>
 </div><div id="rac-pickup-area" hidden><label>Výdejní místo / adresa a označení místa *</label><div class="checkout-page__input-box"><input type="text" name="pickup_point" maxlength="255" placeholder="Např. Z-BOX, ulice a město" value="<?= $posted('pickup_point') ?>"></div><p>Výběr na mapě dopravce doplníme v další fázi.</p></div>
 <?php else: ?><p>Digitální doručení zdarma</p><?php endif; ?>
-</div></div></div>
+</div>
 <div class="checkout-page__your-order">
 <h2 class="checkout-page__your-order__title">Vaše objednávka</h2>
-<div class="row"><div class="col-xl-7 col-lg-7">
 <table class="checkout-page__order-table"><colgroup><col style="width:58%"><col style="width:42%"></colgroup><thead class="order_table_head"><tr><th>Produkt</th><th class="right">Cena</th></tr></thead><tbody>
 <?php foreach($racCheckoutLines as $l): ?><tr><td class="pro__title"><span class="rac-order-book"><?= $esc($l['product']['title']) ?></span><span class="rac-order-book-meta"> (<?= $esc(__('product.kind.' . $l['variant']['kind'])) ?>) × <?= (int)$l['quantity'] ?></span></td><td class="pro__price"><?= $esc(racShopMoney((string)$l['total'],$racCheckoutCurrency)) ?></td></tr><?php endforeach; ?>
 <tr><td class="pro__title">Mezisoučet</td><td class="pro__price"><?= $esc(racShopMoney((string)$subtotal,$racCheckoutCurrency)) ?></td></tr>
 <tr><td class="pro__title">Doprava</td><td class="pro__price" id="rac-shipping-total"><?= $racCheckoutPhysical?'Dle výběru':'Zdarma' ?></td></tr>
 <tr><td class="pro__title"><strong>Celkem</strong></td><td class="pro__price"><strong id="rac-price-total"><?= $esc(racShopMoney((string)$subtotal,$racCheckoutCurrency)) ?></strong></td></tr>
-</tbody></table></div>
-<div class="col-xl-5 col-lg-5"><div class="checkout-page__payment">
+</tbody></table>
+<div class="checkout-page__payment">
 <div class="checkout-page__payment__item checkout-page__payment__item--active"><h3 class="checkout-page__payment__title">Platba</h3><div class="checkout-page__payment__content" style="display:block">Platební metody doplníme v další fázi. Objednávka se nyní uloží se stavem „čeká na platbu“.</div></div>
 </div><div class="rac-checkout-actions"><a href="<?= $esc(racUrl('kosik.php')) ?>" class="ogency-btn">Zpět do košíku</a><button type="submit" class="ogency-btn">Odeslat objednávku</button></div></div></div>
 </div>

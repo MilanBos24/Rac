@@ -21,6 +21,9 @@ $billingPrefix = $isBillingPage ? '' : 'billing/';
         <a class="<?= $currentScript === 'obsah-kontakt.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>obsah-kontakt.php">
             <span class="nav-icon">✉</span><span>Kontakt</span>
         </a>
+        <a class="<?= $currentScript === 'kontaktni-formular.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>kontaktni-formular.php">
+            <span class="nav-icon">✉</span><span>Kontaktní formulář</span>
+        </a>
         <a class="<?= $currentScript === 'jazyky.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>jazyky.php">
             <span class="nav-icon">文</span><span>Jazyky</span>
         </a>

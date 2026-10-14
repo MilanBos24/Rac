@@ -38,8 +38,9 @@
 
                 <div class="contact-one__left text-center">
                     <div class="contact-one__form-box">
-                        <form action="assets/inc/sendemail.php" method="post" class="contact-one__form contact-form-validated" novalidate="novalidate">
+                        <form data-required-message="<?= htmlspecialchars(__('contact.validation.required'), ENT_QUOTES, 'UTF-8'); ?>" data-failure-message="<?= htmlspecialchars(__('contact.status.failure'), ENT_QUOTES, 'UTF-8'); ?>" action="assets/inc/sendemail.php" method="post" class="contact-one__form contact-form-validated" novalidate="novalidate">
                             <?php if (empty($_SESSION['rac_contact_csrf'])) { $_SESSION['rac_contact_csrf'] = bin2hex(random_bytes(32)); } ?>
+                            <input type="hidden" name="lang" value="<?= htmlspecialchars((string)$currentLanguage, ENT_QUOTES, 'UTF-8'); ?>">
                             <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['rac_contact_csrf'], ENT_QUOTES, 'UTF-8'); ?>">
                             <div class="rac-contact-hp" style="position:absolute;left:-9999px" aria-hidden="true"><label>Web <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
                             <div class="row">
@@ -63,11 +64,24 @@
 
                                 <div class="col-md-6">
                                     <div class="contact-one__input-box">
-                                        <select class="selectpicker" name="subject" required aria-label="<?= htmlspecialchars(__('contact.subject.creation'), ENT_QUOTES, 'UTF-8'); ?>">
-                                            <option value="" selected><?= htmlspecialchars(__('contact.subject.creation'), ENT_QUOTES, 'UTF-8'); ?></option>
-                                            <option value="1"><?= htmlspecialchars(__('contact.subject.option1'), ENT_QUOTES, 'UTF-8'); ?></option>
-                                            <option value="2"><?= htmlspecialchars(__('contact.subject.option2'), ENT_QUOTES, 'UTF-8'); ?></option>
-                                            <option value="3"><?= htmlspecialchars(__('contact.subject.option3'), ENT_QUOTES, 'UTF-8'); ?></option>
+                                        <?php
+                                        $racContactSubjects = array();
+                                        try {
+                                            $racContactDb = racFrontendPdo();
+                                            if ($racContactDb instanceof PDO) {
+                                                $racContactSubjects = $racContactDb->query("SELECT id, label_cs, label_sk, label_pl, label_en, label_de, label_fr FROM contact_form_subjects WHERE is_active=1 ORDER BY sort_order, id")->fetchAll(PDO::FETCH_ASSOC);
+                                            }
+                                        } catch (Throwable $ex) { error_log('RAC subjects: ' . $ex->getMessage()); }
+                                        $racContactLang = in_array((string)$currentLanguage, array('cs','sk','pl','en','de','fr'), true) ? (string)$currentLanguage : 'cs';
+                                        ?>
+                                        <select class="selectpicker" name="subject" required aria-label="<?= htmlspecialchars(__('contact.subject.select'), ENT_QUOTES, 'UTF-8'); ?>">
+                                            <option value="" selected><?= htmlspecialchars(__('contact.subject.select'), ENT_QUOTES, 'UTF-8'); ?></option>
+                                            <option value="creation"><?= htmlspecialchars(__('contact.subject.creation'), ENT_QUOTES, 'UTF-8'); ?></option>
+                                            <option value="other"><?= htmlspecialchars(__('contact.subject.other'), ENT_QUOTES, 'UTF-8'); ?></option>
+                                            <?php foreach ($racContactSubjects as $racSubject): ?>
+                                                <?php $racSubjectLabel = trim((string)($racSubject['label_' . $racContactLang] ?? '')); if ($racSubjectLabel === '') { $racSubjectLabel = (string)$racSubject['label_cs']; } ?>
+                                                <option value="custom:<?= (int)$racSubject['id'] ?>"><?= htmlspecialchars($racSubjectLabel, ENT_QUOTES, 'UTF-8'); ?></option>
+                                            <?php endforeach; ?>
                                         </select>
                                     </div>
                                 </div>

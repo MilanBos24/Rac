@@ -15,14 +15,30 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         $errors[] = 'Neplatný bezpečnostní token.';
     } elseif ($tab === 'settings') {
         $email = trim((string)($_POST['recipient_email'] ?? ''));
+        $senderEmail = trim((string)($_POST['sender_email'] ?? ''));
+        $senderName = trim((string)($_POST['sender_name'] ?? ''));
+        $emailSubject = trim((string)($_POST['email_subject'] ?? ''));
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 254) {
-            $errors[] = 'Zadejte platnou e-mailovou adresu.';
-        } else {
+            $errors[] = 'Zadejte platnou doručovací e-mailovou adresu.';
+        }
+        if ($senderEmail !== '' && (!filter_var($senderEmail, FILTER_VALIDATE_EMAIL) || strlen($senderEmail) > 254)) {
+            $errors[] = 'Adresa odesílatele musí být platný e-mail nebo zůstat prázdná.';
+        }
+        if ($senderName === '' || mb_strlen($senderName) > 120 || preg_match('/[\\r\\n]/', $senderName)) {
+            $errors[] = 'Zadejte platný název odesílatele (max. 120 znaků).';
+        }
+        if ($emailSubject === '' || mb_strlen($emailSubject) > 180 || preg_match('/[\\r\\n]/', $emailSubject)) {
+            $errors[] = 'Zadejte platný předmět e-mailu (max. 180 znaků).';
+        }
+        if (!$errors) {
             try {
-                $stmt = $pdo->prepare('INSERT INTO contact_form_settings (id, recipient_email) VALUES (1, ?) ON DUPLICATE KEY UPDATE recipient_email = VALUES(recipient_email)');
-                $stmt->execute(array($email));
-                $success = 'Cílový e-mail byl uložen.';
-            } catch (Throwable $e) { error_log($e->getMessage()); $errors[] = 'Nastavení nelze uložit. Ověřte import SQL 007_contact_form.sql.'; }
+                $stmt = $pdo->prepare('INSERT INTO contact_form_settings (id, recipient_email, sender_email, sender_name, email_subject) VALUES (1, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE recipient_email=VALUES(recipient_email), sender_email=VALUES(sender_email), sender_name=VALUES(sender_name), email_subject=VALUES(email_subject)');
+                $stmt->execute(array($email, $senderEmail !== '' ? $senderEmail : null, $senderName, $emailSubject));
+                $success = 'E-mailové nastavení bylo uloženo.';
+            } catch (Throwable $ex) {
+                error_log('RAC contact mail settings: ' . $ex->getMessage());
+                $errors[] = 'Nastavení nelze uložit. Ověřte SQL migraci 012_contact_mail_settings.sql.';
+            }
         }
     } elseif ($tab === 'subjects') {
         $action = (string)($_POST['action'] ?? 'add');
@@ -72,10 +88,19 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     }
 }
 $email = '';
+$senderEmail = '';
+$senderName = 'RAC – kontaktní formulář';
+$emailSubject = 'Zpráva z kontaktního formuláře';
 $blocked = array();
 $subjects = array();
 try {
-    $email = (string)$pdo->query('SELECT recipient_email FROM contact_form_settings WHERE id = 1')->fetchColumn();
+    $mailSettings = $pdo->query('SELECT recipient_email, sender_email, sender_name, email_subject FROM contact_form_settings WHERE id = 1')->fetch(PDO::FETCH_ASSOC);
+    if ($mailSettings) {
+        $email = (string)$mailSettings['recipient_email'];
+        $senderEmail = (string)($mailSettings['sender_email'] ?? '');
+        $senderName = (string)($mailSettings['sender_name'] ?? 'RAC – kontaktní formulář');
+        $emailSubject = (string)($mailSettings['email_subject'] ?? 'Zpráva z kontaktního formuláře');
+    }
     $blocked = $pdo->query('SELECT ip_address, created_at FROM contact_blocked_ips ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) { $errors[] = 'Databázové tabulky nejsou dostupné. Nejprve importujte 007_contact_form.sql.'; }
 try { $subjects = $pdo->query('SELECT * FROM contact_form_subjects ORDER BY sort_order, id')->fetchAll(PDO::FETCH_ASSOC); } catch (Throwable $ex) { $errors[] = 'Pro vlastní předměty importujte 011_contact_subjects.sql.'; }
@@ -164,7 +189,27 @@ include __DIR__ . '/inc/leve-meny.class.php';
                                         <div class="form-group mb-3">
                                             <label class="form-label" for="recipient_email">E-mail pro doručování zpráv</label>
                                             <input class="form-control" id="recipient_email" type="email" name="recipient_email" maxlength="254" required value="<?= $e($email) ?>">
-                                            <small class="text-muted">Na tuto adresu budou zasílány zprávy z webu. Odpovídat lze přímo na e-mail návštěvníka (Reply-To).</small>
+                                            <small class="text-muted">Sem budou zprávy doručovány. Při použití tlačítka Odpovědět se použije adresa návštěvníka (Reply-To).</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-8">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label" for="sender_email">Odesílatel (From) – e-mail</label>
+                                            <input class="form-control" id="sender_email" type="email" name="sender_email" maxlength="254" placeholder="<?= $e($email) ?>" value="<?= $e($senderEmail) ?>">
+                                            <small class="text-muted">Nepovinné. Pokud zůstane prázdné, použije se doručovací e-mail. Adresu musí povolovat váš poštovní server.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-8">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label" for="sender_name">Jméno odesílatele</label>
+                                            <input class="form-control" id="sender_name" type="text" name="sender_name" maxlength="120" required value="<?= $e($senderName) ?>">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-8">
+                                        <div class="form-group mb-3">
+                                            <label class="form-label" for="email_subject">Nadpis / předmět doručeného e-mailu</label>
+                                            <input class="form-control" id="email_subject" type="text" name="email_subject" maxlength="180" required value="<?= $e($emailSubject) ?>">
+                                            <small class="text-muted">Za tento nadpis se doplní vybraná kategorie dotazu.</small>
                                         </div>
                                     </div>
                                 </div>

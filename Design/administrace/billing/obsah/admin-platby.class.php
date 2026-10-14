@@ -21,7 +21,7 @@ function bpay_query(array $replace = array()): string
 ?>
 <?php $pageTitle = 'Billing – RAC'; include __DIR__ . '/../../inc/header.class.php'; ?>
 <?php include __DIR__ . '/../../inc/leve-meny.class.php'; ?>
-<main class="admin-content">
+<section role="main" class="content-body content-body-modern mt-0">
 <div class="billing-content">
     <header class="page-header">
         <h2>Platby – přehled</h2>
@@ -327,5 +327,5 @@ function bpay_query(array $replace = array()): string
         </div>
     </section>
 </div>
-</main>
+</section>
 <?php include __DIR__ . '/../../inc/footer.class.php'; ?>

@@ -39,7 +39,7 @@ function bp_interval_label(array $product): string
 ?>
 <?php $pageTitle = 'Billing – RAC'; include __DIR__ . '/../../inc/header.class.php'; ?>
 <?php include __DIR__ . '/../../inc/leve-meny.class.php'; ?>
-<main class="admin-content">
+<section role="main" class="content-body content-body-modern mt-0">
 <div class="billing-content">
     <header class="page-header">
         <h2>Platby – produkty</h2>
@@ -389,5 +389,5 @@ function bp_interval_label(array $product): string
         </div>
     </div>
 </div>
-</main>
+</section>
 <?php include __DIR__ . '/../../inc/footer.class.php'; ?>

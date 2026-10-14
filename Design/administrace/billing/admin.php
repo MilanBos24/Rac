@@ -189,4 +189,4 @@ $webhookUrl = $values['base_url'] !== ''
     ? rtrim($values['base_url'], '/') . '/webhook.php'
     : '';
 
-include __DIR__ . '/obsah/admin.class.php';
+include __DIR__ . '/obsah/admin-porto.class.php';

@@ -9,7 +9,17 @@ $subtotal=0;foreach($racCheckoutLines as $l)$subtotal+=$l['total'];
 .checkout-page #rac-billing-fields[hidden], .checkout-page #rac-company-fields[hidden], .checkout-page #rac-pickup-area[hidden]{display:none!important}
 .checkout-page .checkout-page__your-order{margin-top:45px}
 .checkout-page .checkout-page__order-table{width:100%}
-.checkout-page .checkout-page__order-table .pro__price{text-align:right}
+.checkout-page .checkout-page__order-table{table-layout:fixed}
+.checkout-page .checkout-page__order-table th:first-child,.checkout-page .checkout-page__order-table td:first-child{width:58%;overflow-wrap:anywhere;padding-right:15px}
+.checkout-page .checkout-page__order-table th:last-child,.checkout-page .checkout-page__order-table td:last-child{width:42%;white-space:nowrap;text-align:right}
+.checkout-page .checkout-page__order-table .pro__price{text-align:right;white-space:nowrap;color:#fff!important}
+.checkout-page .checkout-page__order-table .pro__title{color:#fff!important}
+.checkout-page .checkout-page__order-table thead th{color:#fff!important}
+.checkout-page .checkout-page__order-table .rac-order-book{color:var(--ogency-base)!important}
+.checkout-page .checkout-page__order-table .rac-order-book-meta{color:#fff!important}
+.checkout-page .rac-checkout-actions{display:flex;gap:15px;flex-wrap:wrap;justify-content:flex-end;margin-top:20px}
+.checkout-page .rac-checkout-actions .ogency-btn{white-space:nowrap;text-align:center}
+@media(max-width:575px){.checkout-page .rac-checkout-actions{flex-direction:column}.checkout-page .rac-checkout-actions .ogency-btn{width:100%;white-space:normal}.checkout-page .checkout-page__order-table th:first-child,.checkout-page .checkout-page__order-table td:first-child{width:50%}.checkout-page .checkout-page__order-table th:last-child,.checkout-page .checkout-page__order-table td:last-child{width:50%;font-size:14px}}
 .checkout-page .checkout-page__input-box textarea{width:100%;min-height:115px;padding:20px 30px;background:var(--ogency-black2);border:0;color:#fff;font:inherit}
 .checkout-page .checkout-page__input-box textarea::placeholder,.checkout-page .checkout-page__input-box input::placeholder{color:#fff;opacity:.8}
 .checkout-page .checkout-page__input-box input[type="text"],.checkout-page .checkout-page__input-box input[type="email"],.checkout-page .checkout-page__input-box input[type="tel"]{color:#fff}
@@ -66,15 +76,15 @@ $subtotal=0;foreach($racCheckoutLines as $l)$subtotal+=$l['total'];
 <div class="checkout-page__your-order">
 <h2 class="checkout-page__your-order__title">Vaše objednávka</h2>
 <div class="row"><div class="col-xl-7 col-lg-7">
-<table class="checkout-page__order-table"><thead class="order_table_head"><tr><th>Produkt</th><th class="right">Cena</th></tr></thead><tbody>
-<?php foreach($racCheckoutLines as $l): ?><tr><td class="pro__title"><?= $esc($l['product']['title']) ?> (<?= $esc(racShopKind($l['variant']['kind'])) ?>) × <?= (int)$l['quantity'] ?></td><td class="pro__price"><?= $esc(racShopMoney((string)$l['total'],$racCheckoutCurrency)) ?></td></tr><?php endforeach; ?>
+<table class="checkout-page__order-table"><colgroup><col style="width:58%"><col style="width:42%"></colgroup><thead class="order_table_head"><tr><th>Produkt</th><th class="right">Cena</th></tr></thead><tbody>
+<?php foreach($racCheckoutLines as $l): ?><tr><td class="pro__title"><span class="rac-order-book"><?= $esc($l['product']['title']) ?></span><span class="rac-order-book-meta"> (<?= $esc(__('product.kind.' . $l['variant']['kind'])) ?>) × <?= (int)$l['quantity'] ?></span></td><td class="pro__price"><?= $esc(racShopMoney((string)$l['total'],$racCheckoutCurrency)) ?></td></tr><?php endforeach; ?>
 <tr><td class="pro__title">Mezisoučet</td><td class="pro__price"><?= $esc(racShopMoney((string)$subtotal,$racCheckoutCurrency)) ?></td></tr>
 <tr><td class="pro__title">Doprava</td><td class="pro__price" id="rac-shipping-total"><?= $racCheckoutPhysical?'Dle výběru':'Zdarma' ?></td></tr>
 <tr><td class="pro__title"><strong>Celkem</strong></td><td class="pro__price"><strong id="rac-price-total"><?= $esc(racShopMoney((string)$subtotal,$racCheckoutCurrency)) ?></strong></td></tr>
 </tbody></table></div>
 <div class="col-xl-5 col-lg-5"><div class="checkout-page__payment">
 <div class="checkout-page__payment__item checkout-page__payment__item--active"><h3 class="checkout-page__payment__title">Platba</h3><div class="checkout-page__payment__content" style="display:block">Platební metody doplníme v další fázi. Objednávka se nyní uloží se stavem „čeká na platbu“.</div></div>
-</div><div class="text-right d-flex justify-content-end"><button type="submit" class="ogency-btn">Odeslat objednávku</button></div></div></div>
+</div><div class="rac-checkout-actions"><a href="<?= $esc(racUrl('kosik.php')) ?>" class="ogency-btn">Zpět do košíku</a><button type="submit" class="ogency-btn">Odeslat objednávku</button></div></div></div>
 </div>
 </form>
 <script>(function(){var same=document.getElementById('rac-billing-same'),fields=document.getElementById('rac-billing-fields'),country=document.getElementById('shipping_country'),radios=document.querySelectorAll('input[name="shipping_method_id"]'),pickup=document.getElementById('rac-pickup-area'),pickupInput=pickup&&pickup.querySelector('input'),total=document.getElementById('rac-price-total');function update(){if(same&&fields){fields.hidden=same.checked;fields.querySelectorAll('input').forEach(function(el){el.required=!same.checked;});}var selected=document.querySelector('input[name="shipping_method_id"]:checked');if(pickup){pickup.hidden=!(selected&&selected.dataset.type==='pickup_point');if(pickupInput)pickupInput.required=!pickup.hidden;}if(total){var amount=<?= json_encode((float)$subtotal) ?>+(selected?parseFloat(selected.dataset.price)||0:0);total.textContent=amount.toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2})+' <?= $esc($racCheckoutCurrency) ?>';var shippingTotal=document.getElementById('rac-shipping-total');if(shippingTotal){shippingTotal.textContent=selected?(parseFloat(selected.dataset.price)||0).toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2})+' <?= $esc($racCheckoutCurrency) ?>':'Dle výběru';}}}var companyToggle=document.getElementById('rac-company-details-enabled'),companyFields=document.getElementById('rac-company-fields');if(companyToggle&&companyFields){companyToggle.addEventListener('change',function(){companyFields.hidden=!companyToggle.checked;});}if(same)same.addEventListener('change',update);radios.forEach(function(el){el.addEventListener('change',update);});if(country)country.addEventListener('change',function(){var url=new URL(window.location.href);url.searchParams.set('country',country.value);window.location.href=url.toString();});update();})();</script>

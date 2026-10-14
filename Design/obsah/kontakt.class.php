@@ -38,30 +38,34 @@
 
                 <div class="contact-one__left text-center">
                     <div class="contact-one__form-box">
-                        <form action="assets/inc/sendemail.php" class="contact-one__form contact-form-validated" novalidate="novalidate">
+                        <form action="assets/inc/sendemail.php" method="post" class="contact-one__form contact-form-validated" novalidate="novalidate">
+                            <?php if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); } ?>
+                            <?php if (empty($_SESSION['rac_contact_csrf'])) { $_SESSION['rac_contact_csrf'] = bin2hex(random_bytes(32)); } ?>
+                            <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['rac_contact_csrf'], ENT_QUOTES, 'UTF-8'); ?>">
+                            <div class="rac-contact-hp" style="position:absolute;left:-9999px" aria-hidden="true"><label>Web <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="contact-one__input-box">
-                                        <input type="text" placeholder="<?= htmlspecialchars(__('contact.name'), ENT_QUOTES, 'UTF-8'); ?>" name="name">
+                                        <input type="text" placeholder="<?= htmlspecialchars(__('contact.name'), ENT_QUOTES, 'UTF-8'); ?>" name="name" required maxlength="120">
                                     </div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <div class="contact-one__input-box">
-                                        <input type="email" placeholder="<?= htmlspecialchars(__('contact.email'), ENT_QUOTES, 'UTF-8'); ?>" name="email">
+                                        <input type="email" placeholder="<?= htmlspecialchars(__('contact.email'), ENT_QUOTES, 'UTF-8'); ?>" name="email" required maxlength="254">
                                     </div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <div class="contact-one__input-box">
-                                        <input type="text" placeholder="<?= htmlspecialchars(__('contact.phone'), ENT_QUOTES, 'UTF-8'); ?>" name="phone">
+                                        <input type="text" placeholder="<?= htmlspecialchars(__('contact.phone'), ENT_QUOTES, 'UTF-8'); ?>" name="phone" maxlength="40">
                                     </div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <div class="contact-one__input-box">
-                                        <select class="selectpicker" aria-label="<?= htmlspecialchars(__('contact.subject.creation'), ENT_QUOTES, 'UTF-8'); ?>">
-                                            <option selected><?= htmlspecialchars(__('contact.subject.creation'), ENT_QUOTES, 'UTF-8'); ?></option>
+                                        <select class="selectpicker" name="subject" required aria-label="<?= htmlspecialchars(__('contact.subject.creation'), ENT_QUOTES, 'UTF-8'); ?>">
+                                            <option value="" selected><?= htmlspecialchars(__('contact.subject.creation'), ENT_QUOTES, 'UTF-8'); ?></option>
                                             <option value="1"><?= htmlspecialchars(__('contact.subject.option1'), ENT_QUOTES, 'UTF-8'); ?></option>
                                             <option value="2"><?= htmlspecialchars(__('contact.subject.option2'), ENT_QUOTES, 'UTF-8'); ?></option>
                                             <option value="3"><?= htmlspecialchars(__('contact.subject.option3'), ENT_QUOTES, 'UTF-8'); ?></option>
@@ -71,7 +75,7 @@
 
                                 <div class="col-md-12">
                                     <div class="contact-one__input-box text-message-box">
-                                        <textarea name="message" placeholder="<?= htmlspecialchars(__('contact.message'), ENT_QUOTES, 'UTF-8'); ?>"></textarea>
+                                        <textarea name="message" required maxlength="10000" placeholder="<?= htmlspecialchars(__('contact.message'), ENT_QUOTES, 'UTF-8'); ?>"></textarea>
                                     </div>
 
                                     <div class="contact-one__btn-box">

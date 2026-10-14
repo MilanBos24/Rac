@@ -2,7 +2,11 @@
   "use strict";
 
   if ($(".contact-form-validated").length) {
-    $(".contact-form-validated").validate({
+    $(".contact-form-validated").each(function () {
+      var $contactForm = $(this);
+      var requiredText = $contactForm.attr("data-required-message") || "This field is required.";
+      $contactForm.validate({
+      messages: {name: {required: requiredText}, email: {required: requiredText, email: requiredText}, message: {required: requiredText}, subject: {required: requiredText}},
       // initialize the plugin
       rules: {
         name: {
@@ -35,12 +39,13 @@
             }
           },
           error: function (xhr) {
-            $result.html(xhr.responseText || '<div class="inner error"><p>Zprávu se nepodařilo odeslat.</p></div>');
+            $result.html(xhr.responseText || $('<div>').addClass('inner error').append($('<p>').text($form.attr('data-failure-message') || 'Could not send message.')));
           }
         });
         return false;
       },
     });
+      });
   }
 
   // mailchimp form

@@ -53,6 +53,27 @@ if (empty($racUsePortoLayout)) {
               }
           }
           unset($racWarehouseGroup);
+          // Kontaktní formulář patří jednotně do sekce Administrace na všech Porto stránkách.
+          $racContactUrl = '/administrace/kontaktni-formular.php';
+          $racContactItem = ['Kontaktní formulář', $racContactUrl, 'icons icon-envelope'];
+          foreach ($menuGroups as &$racContactGroup) {
+              $racContactGroup[1] = array_values(array_filter($racContactGroup[1], static function ($item) use ($racContactUrl) {
+                  return (string)($item[1] ?? '') !== $racContactUrl;
+              }));
+          }
+          unset($racContactGroup);
+          $racContactAdminFound = false;
+          foreach ($menuGroups as &$racContactGroup) {
+              if ($racContactGroup[0] === 'Administrace') {
+                  $racContactGroup[1][] = $racContactItem;
+                  $racContactAdminFound = true;
+                  break;
+              }
+          }
+          unset($racContactGroup);
+          if (!$racContactAdminFound) {
+              $menuGroups[] = ['Administrace', [$racContactItem]];
+          }
           // Jednotné pořadí sekcí a přesun Jazyků do Administrace.
           // Funguje také u starších stránek, které mají vlastní definici $menuGroups.
           $racSections = ['Přehled', 'Administrace', 'Obsah webu', 'E-shop', 'Platební brána'];

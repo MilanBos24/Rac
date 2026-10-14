@@ -19,7 +19,10 @@
 .rac-cart-grid__remove button:hover {color:var(--ogency-base);}
 .rac-cart-grid__mobile-label {display:none;}
 .rac-cart-actions {display:flex;gap:15px;flex-wrap:wrap;justify-content:flex-end;}
-.rac-cart-actions .ogency-btn {white-space:normal;min-width:0;text-align:center;flex:1 1 160px;padding-left:18px;padding-right:18px;}
+.rac-cart-actions .ogency-btn {white-space:nowrap;min-width:max-content;text-align:center;flex:0 0 auto;padding-left:18px;padding-right:18px;}
+.rac-cart-actions .ogency-btn:first-child {flex-grow:1;}
+.rac-cart-actions .ogency-btn.checkout {flex-grow:1;}
+@media(min-width:992px) { .cart-page .row > .col-xl-4.col-lg-5 {width:auto;min-width:440px;max-width:100%;margin-left:auto;} }
 @media(max-width:991px) {
  .rac-cart-grid__head {display:none;}
  .rac-cart-grid__item {grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px 15px;padding:22px 0;}
@@ -35,7 +38,7 @@
  .rac-cart-grid__book-title {font-size:16px;}
  .rac-cart-grid__image {flex-basis:64px;max-width:64px;}
  .rac-cart-actions {flex-direction:column;gap:12px;}
- .rac-cart-actions .ogency-btn {display:block;width:100%;flex:none;padding:15px 20px;}
+ .rac-cart-actions .ogency-btn {display:block;width:100%;min-width:0;flex:none;padding:15px 20px;white-space:normal;}
 }
 </style>
 <div class="stricky-header stricked-menu main-menu"><div class="sticky-header__content"></div></div>

@@ -106,7 +106,7 @@ $body = "Nová zpráva z kontaktního formuláře RAC\n\n"
     . "Stránka: " . substr((string)($_SERVER['HTTP_REFERER'] ?? ''), 0, 300) . "\n"
     . "Čas: " . date('Y-m-d H:i:s') . "\n";
 $headers = array(
-    $fromHeader
+    $fromHeader,
     'Reply-To: ' . $email,
     'MIME-Version: 1.0',
     'Content-Type: text/plain; charset=UTF-8',

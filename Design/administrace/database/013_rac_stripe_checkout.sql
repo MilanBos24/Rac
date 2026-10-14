@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS shop_payments (
  provider VARCHAR(20) NOT NULL DEFAULT 'stripe',
  environment ENUM('test','live') NOT NULL,
  status VARCHAR(32) NOT NULL DEFAULT 'pending',
- checkout_session_id VARCHAR(255) NULL,
- payment_intent_id VARCHAR(255) NULL,
+ checkout_session_id VARCHAR(191) NULL,
+ payment_intent_id VARCHAR(191) NULL,
  amount_minor BIGINT UNSIGNED NOT NULL,
  currency CHAR(3) NOT NULL,
  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS shop_payments (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 CREATE TABLE IF NOT EXISTS shop_payment_events (
  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
- stripe_event_id VARCHAR(255) NOT NULL,
+ stripe_event_id VARCHAR(191) NOT NULL,
  event_type VARCHAR(100) NOT NULL,
  environment ENUM('test','live') NOT NULL,
  payment_id BIGINT UNSIGNED NULL,

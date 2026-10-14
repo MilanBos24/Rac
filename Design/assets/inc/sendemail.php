@@ -43,7 +43,21 @@ if ($name === '' || strlen($name) > 240 || preg_match('/[\r\n]/', $name)
     || !isset($subjectLabels[$subjectCode]) || $message === '' || strlen($message) > 12000) {
     racContactResponse(422, 'Zkontrolujte prosím povinná pole formuláře.');
 }
-$to = 'stefan.rac1@gmail.com';
+// Recipient and IP blocklist are managed in RAC administration.
+try {
+    require_once dirname(__DIR__, 2) . '/inc/01.config.class.php';
+    $contactPdo = racFrontendPdo();
+    if (!$contactPdo instanceof PDO) { throw new RuntimeException('No database connection'); }
+    $to = (string)$contactPdo->query('SELECT recipient_email FROM contact_form_settings WHERE id = 1')->fetchColumn();
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) { throw new RuntimeException('Missing recipient email'); }
+    $remoteIp = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+    $ipStmt = $contactPdo->prepare('SELECT 1 FROM contact_blocked_ips WHERE ip_address = ? LIMIT 1');
+    $ipStmt->execute(array($remoteIp));
+    if ($ipStmt->fetchColumn()) { racContactResponse(403, 'Odeslání zprávy není povoleno.'); }
+} catch (Throwable $e) {
+    error_log('RAC contact configuration: ' . $e->getMessage());
+    racContactResponse(503, 'Kontaktní formulář je dočasně nedostupný.');
+}
 $host = strtolower((string)($_SERVER['HTTP_HOST'] ?? 'stefanrac.mil24.cz'));
 $host = preg_replace('/:\\d+$/', '', $host);
 if (!preg_match('/^[a-z0-9.-]+$/', $host) || strpos($host, '.') === false) {
@@ -56,7 +70,11 @@ $body = "Nová zpráva z kontaktního formuláře RAC\n\n"
     . "E-mail: " . $email . "\n"
     . "Telefon: " . $phone . "\n"
     . "Předmět: " . $subjectLabels[$subjectCode] . "\n\n"
-    . "Zpráva:\n" . $message . "\n";
+    . "Zpráva:\n" . $message . "\n\n"
+    . "IP: " . (string)($_SERVER['REMOTE_ADDR'] ?? '') . "\n"
+    . "Prohlížeč: " . substr((string)($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 250) . "\n"
+    . "Stránka: " . substr((string)($_SERVER['HTTP_REFERER'] ?? ''), 0, 300) . "\n"
+    . "Čas: " . date('Y-m-d H:i:s') . "\n";
 $headers = array(
     'From: RAC <' . $from . '>',
     'Reply-To: ' . $email,

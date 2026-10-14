@@ -8,13 +8,13 @@ require_once __DIR__.'/inc/rac-checkout.php';
 $racPdo=racFrontendPdo(); $racCheckoutErrors=array(); $racCheckoutSuccess=null;
 $racCheckoutLines=array();$racCheckoutMethods=array();$racCheckoutCurrency=null;$racCheckoutPhysical=false;$racCheckoutCountries=array();
 try {
- if (!$racPdo instanceof PDO) throw new RuntimeException('Databáze není dostupná.');
+ if (!$racPdo instanceof PDO) throw new RuntimeException(__('checkout.error_database'));
  $racCheckoutLines=racCartLines($racPdo,$currentLanguage);
- if (!$racCheckoutLines) throw new RuntimeException('Košík je prázdný.');
+ if (!$racCheckoutLines) throw new RuntimeException(__('checkout.error_empty'));
  foreach ($racCheckoutLines as $line) {
    if ($line['variant']['kind']==='print')$racCheckoutPhysical=true;
    $currency=(string)$line['variant']['currency'];
-   if ($racCheckoutCurrency!==null && $racCheckoutCurrency!==$currency)throw new RuntimeException('V košíku jsou různé měny.');
+   if ($racCheckoutCurrency!==null && $racCheckoutCurrency!==$currency)throw new RuntimeException(__('checkout.error_currency'));
    $racCheckoutCurrency=$currency;
  }
  $racCheckoutCurrency=$racCheckoutCurrency??'CZK';
@@ -24,7 +24,7 @@ try {
  $racCheckoutMethods=$racCheckoutPhysical?racCheckoutShippingMethods($racPdo,$currentLanguage,$country,$racCheckoutCurrency):array();
  if (($_SERVER['REQUEST_METHOD']??'GET')==='POST') {
   try { $racCheckoutSuccess=racCheckoutSubmit($racPdo,$racCheckoutLines,$currentLanguage,$racCheckoutCurrency,$racCheckoutPhysical); }
-  catch(Throwable $e){error_log('RAC checkout: '.$e->getMessage());$racCheckoutErrors[]=$e instanceof InvalidArgumentException?$e->getMessage():'Objednávku se nepodařilo uložit. Ověřte údaje a databázové tabulky.';}
+  catch(Throwable $e){error_log('RAC checkout: '.$e->getMessage());$racCheckoutErrors[]=$e instanceof InvalidArgumentException?$e->getMessage():__('checkout.error_save');}
  }
 } catch(Throwable $e){$racCheckoutErrors[]= $e->getMessage();}
 include __DIR__.'/inc/03.head.class.php'; include __DIR__.'/inc/04.header.class.php';

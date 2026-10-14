@@ -23,7 +23,14 @@ try {
  if ($racCheckoutPhysical && !in_array($country,$racCheckoutCountries,true))$country=$racCheckoutCountries[0]??'CZ';
  $racCheckoutMethods=$racCheckoutPhysical?racCheckoutShippingMethods($racPdo,$currentLanguage,$country,$racCheckoutCurrency):array();
  if (($_SERVER['REQUEST_METHOD']??'GET')==='POST') {
-  try { $racCheckoutSuccess=racCheckoutSubmit($racPdo,$racCheckoutLines,$currentLanguage,$racCheckoutCurrency,$racCheckoutPhysical); }
+  try { $racCheckoutSuccess=racCheckoutSubmit($racPdo,$racCheckoutLines,$currentLanguage,$racCheckoutCurrency,$racCheckoutPhysical);
+  if ($racCheckoutSuccess) {
+   if (session_status() !== PHP_SESSION_ACTIVE) session_start();
+   $_SESSION['rac_payment_order']=(string)$racCheckoutSuccess;
+   $_SESSION['rac_payment_nonce']=bin2hex(random_bytes(24));
+   header('Location: '.racUrl('platba.php'),true,303);
+   exit;
+  } }
   catch(Throwable $e){error_log('RAC checkout: '.$e->getMessage());$racCheckoutErrors[]=$e instanceof InvalidArgumentException?$e->getMessage():__('checkout.error_save');}
  }
 } catch(Throwable $e){$racCheckoutErrors[]= $e->getMessage();}

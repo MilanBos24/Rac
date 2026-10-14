@@ -1,4 +1,5 @@
 <?php
+if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
 require_once __DIR__ . '/inc/01.config.class.php';
 require_once __DIR__ . '/inc/02.language.class.php';
 require_once __DIR__ . '/inc/content.class.php';

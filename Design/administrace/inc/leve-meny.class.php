@@ -1,58 +1,123 @@
 <?php
-$currentScript = basename(isset($_SERVER['SCRIPT_NAME']) ? $_SERVER['SCRIPT_NAME'] : '');
-$isBillingPage = strpos((string)($_SERVER['SCRIPT_NAME'] ?? ''), '/billing/') !== false;
-$adminPrefix = $isBillingPage ? '../' : '';
-$billingPrefix = $isBillingPage ? '' : 'billing/';
+/* RAC shared include. Porto HTML is identical to BOS24 when $racUsePortoLayout=true. */
+if (empty($racUsePortoLayout)) {
+    include __DIR__ . '/rac-legacy-leve-meny.class.php';
+    return;
+}
 ?>
-<aside class="admin-sidebar" id="adminSidebar">
-    <nav>
-        <div class="nav-heading">Přehled</div>
-        <a class="<?= $currentScript === 'dashboard.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>dashboard.php">
-            <span class="nav-icon">⌂</span><span>Dashboard</span>
-        </a>
-
-        <div class="nav-heading">Obsah webu</div>
-        <a class="<?= $currentScript === 'obsah-uvod.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>obsah-uvod.php">
-            <span class="nav-icon">⌂</span><span>Úvodní stránka</span>
-        </a>
-        <a class="<?= $currentScript === 'obsah-autor.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>obsah-autor.php">
-            <span class="nav-icon">✎</span><span>O autorovi</span>
-        </a>
-        <a class="<?= $currentScript === 'obsah-kontakt.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>obsah-kontakt.php">
-            <span class="nav-icon">✉</span><span>Kontakt</span>
-        </a>
-        <a class="<?= $currentScript === 'kontaktni-formular.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>kontaktni-formular.php">
-            <span class="nav-icon">✉</span><span>Kontaktní formulář</span>
-        </a>
-        <a class="<?= $currentScript === 'jazyky.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>jazyky.php">
-            <span class="nav-icon">文</span><span>Jazyky</span>
-        </a>
-
-        <div class="nav-heading">E-shop</div>
-        <a class="<?= $currentScript === 'eshop-doprava.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>eshop-doprava.php">
-            <span class="nav-icon">▣</span><span>Doprava</span>
-        </a>
-
-        <div class="nav-heading">Billing</div>
-        <a class="<?= $isBillingPage && $currentScript === 'admin.php' ? 'active' : '' ?>" href="<?= $billingPrefix ?>admin.php">
-            <span class="nav-icon">⚙</span><span>Nastavení Stripe</span>
-        </a>
-        <a class="<?= $isBillingPage && $currentScript === 'admin-platby.php' ? 'active' : '' ?>" href="<?= $billingPrefix ?>admin-platby.php">
-            <span class="nav-icon">◈</span><span>Platby</span>
-        </a>
-        <a class="<?= $isBillingPage && $currentScript === 'admin-webhooky.php' ? 'active' : '' ?>" href="<?= $billingPrefix ?>admin-webhooky.php">
-            <span class="nav-icon">↔</span><span>Webhooky</span>
-        </a>
-        <a class="<?= $isBillingPage && $currentScript === 'admin-diagnostika.php' ? 'active' : '' ?>" href="<?= $billingPrefix ?>admin-diagnostika.php">
-            <span class="nav-icon">⊙</span><span>Diagnostika</span>
-        </a>
-
-        <div class="nav-heading">Administrace</div>
-        <a class="<?= $currentScript === 'sprava-admin.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>sprava-admin.php">
-            <span class="nav-icon">＋</span><span>Vložit administrátora</span>
-        </a>
-        <a class="<?= $currentScript === 'sprava-admin-zobrazit.php' ? 'active' : '' ?>" href="<?= $adminPrefix ?>sprava-admin-zobrazit.php">
-            <span class="nav-icon">☷</span><span>Zobrazit administrátory</span>
-        </a>
-    </nav>
+<?php
+/** RAC Porto shared left navigation; 2026-10-12-04. */
+?>
+<aside id="sidebar-left" class="sidebar-left">
+  <div class="sidebar-header">
+    <div class="sidebar-title">Navigace</div>
+    <div class="sidebar-toggle d-none d-md-block" data-toggle-class="sidebar-left-collapsed" data-target="html" data-fire-event="sidebar-left-toggle" role="button" tabindex="0" aria-label="Sbalit nebo rozbalit menu"><i class="fas fa-bars"></i></div>
+  </div>
+  <div class="nano">
+    <div class="nano-content">
+      <nav id="menu" class="nav-main" role="navigation">
+        <ul class="nav nav-main">
+          <?php
+          // Jednotná položka E-shop / Produkty i na starších stránkách s vlastním $menuGroups.
+          // Nepřepisuje definici menu na žádné stránce a nevytváří duplicity.
+          $racProductsUrl = '/administrace/eshop-produkty.php';
+          $racHasProducts = false;
+          foreach ($menuGroups as $racGroup) {
+              foreach ($racGroup[1] as $racItem) {
+                  if ($racItem[1] === $racProductsUrl) { $racHasProducts = true; break 2; }
+              }
+          }
+          if (!$racHasProducts) {
+              $racAdded = false;
+              foreach ($menuGroups as &$racGroup) {
+                  if ($racGroup[0] === 'E-shop') {
+                      array_unshift($racGroup[1], ['Produkty', $racProductsUrl, 'icons icon-basket']);
+                      $racAdded = true;
+                      break;
+                  }
+              }
+              unset($racGroup);
+              if (!$racAdded) $menuGroups[] = ['E-shop', [['Produkty', $racProductsUrl, 'icons icon-basket']]];
+          }
+          ?>
+          <?php
+          // Sklad knih je spolecna polozka napric vsemi Porto strankami.
+          $racWarehouseUrl='/administrace/eshop-sklad.php';
+          foreach($menuGroups as &$racWarehouseGroup){
+              if($racWarehouseGroup[0]==='E-shop'){
+                  $racWarehouseExists=false;
+                  foreach($racWarehouseGroup[1] as $racWarehouseItem){if(($racWarehouseItem[1]??'')===$racWarehouseUrl){$racWarehouseExists=true;break;}}
+                  if(!$racWarehouseExists){
+                      $racWarehouseGroup[1][]=['Sklad knih',$racWarehouseUrl,'icons icon-layers'];
+                  }
+              }
+          }
+          unset($racWarehouseGroup);
+          // Jednotné pořadí sekcí a přesun Jazyků do Administrace.
+          // Funguje také u starších stránek, které mají vlastní definici $menuGroups.
+          $racSections = ['Přehled', 'Administrace', 'Obsah webu', 'E-shop', 'Platební brána'];
+          $racLanguagesUrl = '/administrace/jazyky.php';
+          $racLanguagesItem = null;
+          foreach ($menuGroups as &$racGroup) {
+              $racGroup[1] = array_values(array_filter($racGroup[1], static function ($racItem) use (&$racLanguagesItem, $racLanguagesUrl) {
+                  if (($racItem[1] ?? '') === $racLanguagesUrl) {
+                      $racLanguagesItem = $racItem;
+                      return false;
+                  }
+                  return true;
+              }));
+          }
+          unset($racGroup);
+          if ($racLanguagesItem === null) {
+              $racLanguagesItem = ['Jazyky', $racLanguagesUrl, 'icons icon-globe'];
+          }
+          $racAdminIndex = null;
+          foreach ($menuGroups as $racIndex => $racGroup) {
+              if ($racGroup[0] === 'Administrace') { $racAdminIndex = $racIndex; break; }
+          }
+          if ($racAdminIndex === null) {
+              $menuGroups[] = ['Administrace', [$racLanguagesItem]];
+          } else {
+              $menuGroups[$racAdminIndex][1][] = $racLanguagesItem;
+          }
+          // Přejmenovat Billing a skrýt pouze billingové Produkty a Předplatné.
+          // Položku E-shop / Produkty zachovat.
+          foreach ($menuGroups as &$racGroup) {
+              if ($racGroup[0] === 'Billing' || $racGroup[0] === 'Platební brána') {
+                  $racGroup[0] = 'Platební brána';
+                  $racGroup[1] = array_values(array_filter($racGroup[1], static function ($racItem) {
+                      $racUrl = (string)($racItem[1] ?? '');
+                      $racLabel = (string)($racItem[0] ?? '');
+                      return !in_array($racUrl, [
+                          '/administrace/billing/admin-produkty.php',
+                          '/administrace/billing/admin-predplatne.php',
+                      ], true) && !in_array($racLabel, ['Produkty', 'Předplatné'], true);
+                  }));
+              }
+          }
+          unset($racGroup);
+          // Zachovat ostatní sekce i jejich položky; známé sekce seřadit podle zadání.
+          usort($menuGroups, static function ($a, $b) use ($racSections) {
+              $ia = array_search($a[0], $racSections, true);
+              $ib = array_search($b[0], $racSections, true);
+              $ia = $ia === false ? count($racSections) : $ia;
+              $ib = $ib === false ? count($racSections) : $ib;
+              return $ia <=> $ib;
+          });
+          ?>
+          <?php foreach ($menuGroups as $group): ?>
+            <li style="font-size: 12px; font-size: 0.75rem; padding: 12px 25px; text-overflow: ellipsis; text-transform: uppercase; color: #CFA9D8;"><?= $e($group[0]) ?></li>
+            <?php foreach ($group[1] as $item): ?>
+              <?php $active = $currentPath === $item[1]; ?>
+              <li<?= $active ? ' class="nav-active"' : '' ?>>
+                <a class="nav-link<?= $active ? ' active' : '' ?>" href="<?= $e($item[1]) ?>"<?= $active ? ' aria-current="page"' : '' ?>>
+                  <i class="<?= $e($item[2]) ?>" aria-hidden="true"></i><span><?= $e($item[0]) ?></span>
+                </a>
+              </li>
+            <?php endforeach; ?>
+          <?php endforeach; ?>
+        </ul>
+      </nav>
+    </div>
+  </div>
 </aside>

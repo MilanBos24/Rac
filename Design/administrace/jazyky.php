@@ -418,268 +418,166 @@ foreach ($languages as $language) {
     }
 }
 
+$racUsePortoLayout = true;
+$base = '/administrace';
+$assets = $base;
+$title = 'Správa jazyků | RAC';
+$viewer = current_user_row();
+$viewerName = isset($viewer['username']) ? (string)$viewer['username'] : 'Administrátor';
+$e = static function ($value): string { return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8'); };
+$menuGroups = [
+    ['Přehled', [
+        ['Dashboard', '/administrace/dashboard.php', 'bx bx-home-alt'],
+    ]],
+    ['Obsah webu', [
+        ['Úvodní stránka', '/administrace/obsah-uvod.php', 'icons icon-home'],
+        ['O autorovi', '/administrace/obsah-autor.php', 'icons icon-note'],
+        ['Kontakt', '/administrace/obsah-kontakt.php', 'icons icon-envelope'],
+        ['Jazyky', '/administrace/jazyky.php', 'icons icon-globe'],
+    ]],
+    ['E-shop', [
+        ['Doprava', '/administrace/eshop-doprava.php', 'icons icon-drawer'],
+    ]],
+    ['Billing', [
+        ['Nastavení Stripe', '/administrace/billing/admin.php', 'el el-cogs'],
+        ['Produkty', '/administrace/billing/admin-produkty.php', 'icons icon-basket'],
+        ['Platby', '/administrace/billing/admin-platby.php', 'el el-credit-card'],
+        ['Předplatné', '/administrace/billing/admin-predplatne.php', 'icons icon-refresh'],
+        ['Webhooky', '/administrace/billing/admin-webhooky.php', 'icons icon-shuffle'],
+        ['Diagnostika', '/administrace/billing/admin-diagnostika.php', 'icons icon-wrench'],
+    ]],
+    ['Administrace', [
+        ['Vložit administrátora', '/administrace/sprava-admin.php', 'icons icon-user-follow'],
+        ['Zobrazit administrátory', '/administrace/sprava-admin-zobrazit.php', 'icons icon-people'],
+    ]],
+];
+$currentPath = parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?: '/administrace/jazyky.php';
+$viewerRole = isset($viewer['role']) ? (string)$viewer['role'] : '';
+$roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRole;
+
 $pageTitle = 'Jazyky';
 include __DIR__ . '/inc/header.class.php';
 include __DIR__ . '/inc/leve-meny.class.php';
 ?>
-<main class="admin-content">
-    <div class="page-header">
-        <h1>Jazyky</h1>
-        <p>Správa jazykových mutací webu RAC</p>
-    </div>
-
-    <?php if ($ok): ?>
-        <div class="alert alert-success"><?= h($ok) ?></div>
-    <?php endif; ?>
-
-    <?php if ($errors): ?>
-        <div class="alert alert-danger">
-            <ul>
-                <?php foreach ($errors as $error): ?>
-                    <li><?= h($error) ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
-    <?php endif; ?>
-
-    <div class="grid grid-3">
-        <div class="stat-card">
-            <div class="label">Jazykových mutací</div>
-            <div class="value"><?= count($languages) ?></div>
-        </div>
-        <div class="stat-card">
-            <div class="label">Aktivních</div>
-            <div class="value"><?= $activeCount ?></div>
-        </div>
-        <div class="stat-card">
-            <div class="label">Výchozí jazyk</div>
-            <div class="value" style="font-size:22px;">
-                <?= $defaultLanguage ? h($defaultLanguage['native_name']) : '—' ?>
-            </div>
-        </div>
-    </div>
-
-    <section class="card" style="margin-top:22px;">
-        <div class="card-header">
-            <h2>Přidat jazykovou mutaci</h2>
-        </div>
-
-        <form method="post" enctype="multipart/form-data">
-            <div class="card-body">
-                <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                <input type="hidden" name="action" value="add">
-
-                <div class="grid grid-3">
-                    <div class="form-group">
-                        <label>Kód jazyka</label>
-                        <input class="form-control" type="text" name="code" maxlength="32" required placeholder="např. fr">
-                        <div class="form-help">Použije se v URL a systému. Např. cs, en, fr, pt-br.</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Název v administraci</label>
-                        <input class="form-control" type="text" name="name" maxlength="100" required placeholder="Francouzština">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Vlastní název jazyka</label>
-                        <input class="form-control" type="text" name="native_name" maxlength="100" required placeholder="Français">
-                    </div>
-                </div>
-
-                <div class="grid grid-3">
-                    <div class="form-group">
-                        <label>Locale</label>
-                        <input class="form-control" type="text" name="locale" maxlength="20" placeholder="fr_FR">
-                        <div class="form-help">Volitelné. Později pro datumy, formátování apod.</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Vlajka</label>
-                        <input class="form-control" type="file" name="flag" accept="image/jpeg,image/png,image/webp">
-                        <div class="form-help">Volitelné. JPG, PNG nebo WEBP; max. 1 MB. Pokud není nahraná, web může použít vestavěnou CSS vlajku pro známý kód.</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Pořadí</label>
-                        <input class="form-control" type="number" name="sort_order" min="0" step="1" placeholder="automaticky">
-
-                        <label style="font-weight:400;margin-top:10px;">
-                            <input type="checkbox" name="active" value="1" checked>
-                            Aktivní
-                        </label>
-                        <label style="font-weight:400;">
-                            <input type="checkbox" name="is_default" value="1">
-                            Nastavit jako výchozí
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-footer" style="text-align:right;">
-                <button class="btn btn-primary" type="submit">Přidat jazyk</button>
-            </div>
-        </form>
-    </section>
-
-    <section class="card">
-        <div class="card-header">
-            <h2>Aktuální jazykové mutace</h2>
-        </div>
-
+<section role="main" class="content-body content-body-modern mt-0">
+  <header class="page-header">
+    <h2>Správa jazyků</h2>
+    <div class="right-wrapper text-end"><ol class="breadcrumbs"><li><a href="/administrace/dashboard.php"><i class="bx bx-home-alt"></i></a></li><li><span>Jazyky</span></li></ol></div>
+  </header>
+  <div class="row pt-3 mb-4">
+    <div class="col-lg-4 col-md-6 mb-3">
+      <section class="card card-featured-left card-featured-primary h-100">
         <div class="card-body">
-            <?php if (!$languages): ?>
-                <div class="alert alert-info">Nejsou založeny žádné jazyky.</div>
-            <?php else: ?>
-                <div class="language-list">
-                    <?php foreach ($languages as $language): ?>
-                        <div class="language-row<?= (int)$language['active'] !== 1 ? ' is-inactive' : '' ?>">
-                            <div class="language-summary">
-                                <div class="language-code">
-                                    <?= h(strtoupper((string)$language['code'])) ?>
-                                </div>
-                                <div>
-                                    <h3 class="language-name">
-                                        <span><?= h($language['native_name']) ?></span>
-                                        <?php if (!empty($language['flag_path'])): ?>
-                                            <img
-                                                class="language-flag-inline"
-                                                src="<?= h(language_flag_admin_url((string)$language['flag_path'])) ?>"
-                                                alt="<?= h($language['native_name']) ?>"
-                                            >
-                                        <?php endif; ?>
-                                    </h3>
-                                    <p>
-                                        <?= h($language['name']) ?>
-                                        <?php if (!empty($language['locale'])): ?>
-                                            · <?= h($language['locale']) ?>
-                                        <?php endif; ?>
-                                    </p>
-                                </div>
-
-                                <div class="language-badges">
-                                    <?php if ((int)$language['is_default'] === 1): ?>
-                                        <span class="badge badge-primary">Výchozí</span>
-                                    <?php endif; ?>
-
-                                    <?php if ((int)$language['active'] === 1): ?>
-                                        <span class="badge badge-success">Aktivní</span>
-                                    <?php else: ?>
-                                        <span class="badge badge-muted">Neaktivní</span>
-                                    <?php endif; ?>
-
-                                    <span class="badge badge-muted">Pořadí <?= (int)$language['sort_order'] ?></span>
-                                </div>
-                            </div>
-
-                            <details class="language-edit">
-                                <summary class="language-edit-toggle">
-                                    <span>Upravit</span>
-                                    <span class="language-edit-icon" aria-hidden="true">✎</span>
-                                </summary>
-
-                                <form method="post" enctype="multipart/form-data">
-                                    <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                                    <input type="hidden" name="action" value="update">
-                                    <input type="hidden" name="language_id" value="<?= (int)$language['id'] ?>">
-
-                                    <div class="grid grid-3">
-                                        <div class="form-group">
-                                            <label>Kód</label>
-                                            <input class="form-control" type="text" name="code" maxlength="32" required value="<?= h($language['code']) ?>">
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Název v administraci</label>
-                                            <input class="form-control" type="text" name="name" maxlength="100" required value="<?= h($language['name']) ?>">
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Vlastní název</label>
-                                            <input class="form-control" type="text" name="native_name" maxlength="100" required value="<?= h($language['native_name']) ?>">
-                                        </div>
-                                    </div>
-
-                                    <div class="grid grid-3">
-                                        <div class="form-group">
-                                            <label>Locale</label>
-                                            <input class="form-control" type="text" name="locale" maxlength="20" value="<?= h($language['locale']) ?>">
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Vlajka</label>
-                                            <?php if (!empty($language['flag_path'])): ?>
-                                                <div class="language-current-flag">
-                                                    <img src="<?= h(language_flag_admin_url((string)$language['flag_path'])) ?>" alt="">
-                                                    <label style="font-weight:400;">
-                                                        <input type="checkbox" name="remove_flag" value="1">
-                                                        Odstranit vlastní vlajku
-                                                    </label>
-                                                </div>
-                                            <?php endif; ?>
-                                            <input class="form-control" type="file" name="flag" accept="image/jpeg,image/png,image/webp">
-                                            <div class="form-help">Nahráním nové vlajky se původní nahradí.</div>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Pořadí</label>
-                                            <input class="form-control" type="number" name="sort_order" min="0" step="1" value="<?= (int)$language['sort_order'] ?>">
-
-                                            <label style="font-weight:400;margin-top:10px;">
-                                                <input
-                                                    type="checkbox"
-                                                    name="active"
-                                                    value="1"
-                                                    <?= (int)$language['active'] === 1 ? 'checked' : '' ?>
-                                                    <?= (int)$language['is_default'] === 1 ? 'disabled' : '' ?>
-                                                >
-                                                Aktivní
-                                            </label>
-
-                                            <?php if ((int)$language['is_default'] === 1): ?>
-                                                <input type="hidden" name="active" value="1">
-                                                <div class="form-help">Výchozí jazyk musí zůstat aktivní.</div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-
-                                    <div class="inline-actions">
-                                        <button class="btn btn-primary" type="submit">Uložit změny</button>
-                                    </div>
-                                </form>
-
-                                <div class="language-danger-zone">
-                                    <?php if ((int)$language['is_default'] !== 1): ?>
-                                        <form method="post">
-                                            <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                                            <input type="hidden" name="action" value="set_default">
-                                            <input type="hidden" name="language_id" value="<?= (int)$language['id'] ?>">
-                                            <button class="btn btn-light" type="submit">Nastavit jako výchozí</button>
-                                        </form>
-
-                                        <form method="post" onsubmit="return confirm('Opravdu chcete jazykovou mutaci <?= h($language['native_name']) ?> smazat? Pokud k ní budou navázané překlady, smazání nebude povoleno.');">
-                                            <input type="hidden" name="csrf" value="<?= h($csrf) ?>">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="language_id" value="<?= (int)$language['id'] ?>">
-                                            <button class="btn btn-danger" type="submit">Smazat jazyk</button>
-                                        </form>
-                                    <?php else: ?>
-                                        <div class="form-help">Výchozí jazyk nelze smazat. Nejprve nastavte jiný výchozí jazyk.</div>
-                                    <?php endif; ?>
-                                </div>
-                            </details>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
+          <div class="widget-summary">
+            <div class="widget-summary-col">
+              <div class="summary">
+                <h4 class="title">Jazykové mutace</h4>
+                <div class="info"><strong class="amount"><?= count($languages) ?></strong></div>
+              </div>
+            </div>
+          </div>
         </div>
-    </section>
-
-    <div class="alert alert-info">
-        <strong>Poznámka:</strong>
-        V této fázi spravuje stránka databázový seznam jazyků.
-        V dalším kroku napojíme veřejný web na tabulku <code>languages</code>,
-        aby aktivace, pořadí a nové jazykové mutace automaticky ovlivnily přepínač jazyků na webu.
+      </section>
     </div>
-</main>
+    <div class="col-lg-4 col-md-6 mb-3">
+      <section class="card card-featured-left card-featured-success h-100">
+        <div class="card-body">
+          <div class="widget-summary">
+            <div class="widget-summary-col">
+              <div class="summary">
+                <h4 class="title">Aktivní mutace</h4>
+                <div class="info"><strong class="amount"><?= $activeCount ?></strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-3">
+      <section class="card card-featured-left card-featured-warning h-100">
+        <div class="card-body">
+          <div class="widget-summary">
+            <div class="widget-summary-col">
+              <div class="summary">
+                <h4 class="title">Výchozí jazyk</h4>
+                <div class="info"><strong class="amount"><?= $defaultLanguage ? h($defaultLanguage['native_name']) : '—' ?></strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <?php if ($ok): ?><div class="alert alert-success"><?= h($ok) ?></div><?php endif; ?>
+  <?php if ($errors): ?><div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errors as $error): ?><li><?= h($error) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
+  <div class="tabs tabs-primary mb-4">
+    <ul class="nav nav-tabs" role="tablist">
+      <li class="nav-item"><button type="button" class="nav-link active" data-bs-toggle="tab" data-bs-target="#rac-lang-list" role="tab" aria-controls="rac-lang-list" aria-selected="true">Přehled jazyků</button></li>
+      <li class="nav-item"><button type="button" class="nav-link" data-bs-toggle="tab" data-bs-target="#rac-lang-new" role="tab" aria-controls="rac-lang-new" aria-selected="false">Nový jazyk</button></li>
+    </ul>
+    <div class="tab-content">
+      <div id="rac-lang-list" class="tab-pane fade show active" role="tabpanel">
+        <section class="card"><header class="card-header"><h2 class="card-title">Aktuální jazykové mutace</h2></header><div class="card-body">
+          <?php if (!$languages): ?><div class="alert alert-info">Zatím nejsou založeny žádné jazyky.</div><?php endif; ?>
+          <div class="row g-3">
+          <?php foreach ($languages as $language): $lid=(int)$language['id']; $isDefault=(int)$language['is_default']===1; $isActive=(int)$language['active']===1; ?>
+            <div class="col-12"><section class="card border <?= $isActive ? '' : 'opacity-75' ?>">
+              <div class="card-body">
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                  <span class="badge bg-secondary fs-6"><?= h(strtoupper((string)$language['code'])) ?></span>
+                  <?php if (!empty($language['flag_path'])): ?><img src="<?= h(language_flag_admin_url((string)$language['flag_path'])) ?>" alt="" style="width:32px;height:22px;object-fit:cover;border-radius:3px"><?php endif; ?>
+                  <div class="me-auto"><strong><?= h($language['native_name']) ?></strong><div class="small text-muted"><?= h($language['name']) ?><?= !empty($language['locale']) ? ' · '.h($language['locale']) : '' ?></div></div>
+                  <?php if ($isDefault): ?><span class="badge bg-primary">Výchozí</span><?php endif; ?>
+                  <span class="badge <?= $isActive?'bg-success':'bg-secondary' ?>"><?= $isActive?'Aktivní':'Neaktivní' ?></span>
+                  <span class="badge bg-light text-dark">Pořadí <?= (int)$language['sort_order'] ?></span>
+                  <button class="btn btn-default btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#rac-lang-edit-<?= $lid ?>" aria-expanded="false" aria-controls="rac-lang-edit-<?= $lid ?>"><i class="fas fa-edit me-1"></i> Upravit</button>
+                </div>
+                <div class="collapse mt-3" id="rac-lang-edit-<?= $lid ?>"><div class="border-top pt-3">
+                  <form method="post" enctype="multipart/form-data" class="mb-3">
+                    <input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="action" value="update"><input type="hidden" name="language_id" value="<?= $lid ?>">
+                    <div class="row g-3">
+                      <div class="col-12 col-md-4"><label class="form-label" for="code-<?= $lid ?>">Kód jazyka</label><input class="form-control" id="code-<?= $lid ?>" type="text" name="code" maxlength="32" required value="<?= h($language['code']) ?>"></div>
+                      <div class="col-12 col-md-4"><label class="form-label" for="name-<?= $lid ?>">Název v administraci</label><input class="form-control" id="name-<?= $lid ?>" type="text" name="name" maxlength="100" required value="<?= h($language['name']) ?>"></div>
+                      <div class="col-12 col-md-4"><label class="form-label" for="native-<?= $lid ?>">Vlastní název</label><input class="form-control" id="native-<?= $lid ?>" type="text" name="native_name" maxlength="100" required value="<?= h($language['native_name']) ?>"></div>
+                      <div class="col-12 col-md-4"><label class="form-label" for="locale-<?= $lid ?>">Locale</label><input class="form-control" id="locale-<?= $lid ?>" type="text" name="locale" maxlength="20" value="<?= h($language['locale']) ?>"></div>
+                      <div class="col-12 col-md-4"><label class="form-label" for="order-<?= $lid ?>">Pořadí</label><input class="form-control" id="order-<?= $lid ?>" type="number" name="sort_order" min="0" step="1" required value="<?= (int)$language['sort_order'] ?>"></div>
+                      <div class="col-12 col-md-4"><label class="form-label" for="flag-<?= $lid ?>">Nová vlajka</label><input class="form-control" id="flag-<?= $lid ?>" type="file" name="flag" accept="image/jpeg,image/png,image/webp"><small class="text-muted">JPG, PNG, WEBP do 1 MB</small></div>
+                      <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="active" id="active-<?= $lid ?>" value="1" <?= $isActive?'checked':'' ?> <?= $isDefault?'checked disabled':'' ?>><label class="form-check-label" for="active-<?= $lid ?>">Aktivní jazyk<?= $isDefault?' (výchozí jazyk nelze deaktivovat)':'' ?></label></div>
+                      <?php if ($isDefault): ?><input type="hidden" name="active" value="1"><?php endif; ?>
+                      <?php if (!empty($language['flag_path'])): ?><div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="removeflag-<?= $lid ?>" name="remove_flag" value="1"><label class="form-check-label" for="removeflag-<?= $lid ?>">Odstranit stávající vlajku</label></div><?php endif; ?></div>
+                    </div>
+                    <div class="text-end mt-3"><button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i> Uložit změny</button></div>
+                  </form>
+                  <div class="d-flex flex-wrap gap-2">
+                    <?php if (!$isDefault): ?>
+                      <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="action" value="set_default"><input type="hidden" name="language_id" value="<?= $lid ?>"><button type="submit" class="btn btn-default btn-sm">Nastavit jako výchozí</button></form>
+                      <form method="post" onsubmit="return confirm('Opravdu smazat tento jazyk?');"><input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="action" value="delete"><input type="hidden" name="language_id" value="<?= $lid ?>"><button type="submit" class="btn btn-danger btn-sm">Smazat jazyk</button></form>
+                    <?php else: ?><small class="text-muted">Pro smazání nejprve nastavte jiný výchozí jazyk.</small><?php endif; ?>
+                  </div>
+                </div></div>
+              </div>
+            </section></div>
+          <?php endforeach; ?>
+          </div>
+        </div></section>
+      </div>
+      <div id="rac-lang-new" class="tab-pane fade" role="tabpanel">
+        <section class="card"><header class="card-header"><h2 class="card-title">Přidat jazykovou mutaci</h2></header>
+          <form method="post" enctype="multipart/form-data"><div class="card-body">
+            <input type="hidden" name="csrf" value="<?= h($csrf) ?>"><input type="hidden" name="action" value="add">
+            <div class="row g-3">
+              <div class="col-12 col-md-4"><label class="form-label" for="rac-new-code">Kód jazyka</label><input class="form-control" id="rac-new-code" type="text" name="code" maxlength="32" required placeholder="fr"><small class="text-muted">Např. cs, en, fr, pt-br</small></div>
+              <div class="col-12 col-md-4"><label class="form-label" for="rac-new-name">Název v administraci</label><input class="form-control" id="rac-new-name" type="text" name="name" maxlength="100" required placeholder="Francouzština"></div>
+              <div class="col-12 col-md-4"><label class="form-label" for="rac-new-native">Vlastní název</label><input class="form-control" id="rac-new-native" type="text" name="native_name" maxlength="100" required placeholder="Français"></div>
+              <div class="col-12 col-md-4"><label class="form-label" for="rac-new-locale">Locale</label><input class="form-control" id="rac-new-locale" type="text" name="locale" maxlength="20" placeholder="fr_FR"></div>
+              <div class="col-12 col-md-4"><label class="form-label" for="rac-new-flag">Vlajka</label><input class="form-control" id="rac-new-flag" type="file" name="flag" accept="image/jpeg,image/png,image/webp"><small class="text-muted">JPG, PNG, WEBP do 1 MB</small></div>
+              <div class="col-12 col-md-4"><label class="form-label" for="rac-new-order">Pořadí</label><input class="form-control" id="rac-new-order" type="number" name="sort_order" min="0" step="1" placeholder="Automaticky"></div>
+              <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" name="active" id="rac-new-active" value="1" checked><label class="form-check-label" for="rac-new-active">Aktivní</label></div><div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="is_default" id="rac-new-default" value="1"><label class="form-check-label" for="rac-new-default">Nastavit jako výchozí</label></div></div>
+            </div>
+          </div><footer class="card-footer text-end"><button class="btn btn-primary" type="submit">Přidat jazyk</button></footer></form>
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
 <?php include __DIR__ . '/inc/footer.class.php'; ?>

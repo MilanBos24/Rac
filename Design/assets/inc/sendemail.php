@@ -42,7 +42,8 @@ if (!empty($_SESSION['rac_contact_last_sent']) && time() - (int)$_SESSION['rac_c
 $name = trim((string)($_POST['name'] ?? ''));
 $email = trim((string)($_POST['email'] ?? ''));
 $phone = trim((string)($_POST['phone'] ?? ''));
-$subjectCode = trim((string)($_POST['subject'] ?? ''));
+$subjectCode = trim((string)($_POST['subject'] ?? 'creation'));
+if ($subjectCode === '') { $subjectCode = 'creation'; }
 $message = trim((string)($_POST['message'] ?? ''));
 $subjectLabels = array('creation' => racContactText('contact.subject.creation'), 'other' => racContactText('contact.subject.other'));
 $customSubjectId = null;

@@ -39,7 +39,6 @@
                 <div class="contact-one__left text-center">
                     <div class="contact-one__form-box">
                         <form action="assets/inc/sendemail.php" method="post" class="contact-one__form contact-form-validated" novalidate="novalidate">
-                            <?php if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); } ?>
                             <?php if (empty($_SESSION['rac_contact_csrf'])) { $_SESSION['rac_contact_csrf'] = bin2hex(random_bytes(32)); } ?>
                             <input type="hidden" name="csrf" value="<?= htmlspecialchars($_SESSION['rac_contact_csrf'], ENT_QUOTES, 'UTF-8'); ?>">
                             <div class="rac-contact-hp" style="position:absolute;left:-9999px" aria-hidden="true"><label>Web <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>

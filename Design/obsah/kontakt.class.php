@@ -74,9 +74,8 @@
                                         } catch (Throwable $ex) { error_log('RAC subjects: ' . $ex->getMessage()); }
                                         $racContactLang = in_array((string)$currentLanguage, array('cs','sk','pl','en','de','fr'), true) ? (string)$currentLanguage : 'cs';
                                         ?>
-                                        <select class="selectpicker" name="subject" required aria-label="<?= htmlspecialchars(__('contact.subject.select'), ENT_QUOTES, 'UTF-8'); ?>">
-                                            <option value="" selected><?= htmlspecialchars(__('contact.subject.select'), ENT_QUOTES, 'UTF-8'); ?></option>
-                                            <option value="creation"><?= htmlspecialchars(__('contact.subject.creation'), ENT_QUOTES, 'UTF-8'); ?></option>
+                                        <select class="selectpicker" name="subject" aria-label="<?= htmlspecialchars(__('contact.subject.select'), ENT_QUOTES, 'UTF-8'); ?>">
+                                            <option value="creation" selected><?= htmlspecialchars(__('contact.subject.creation'), ENT_QUOTES, 'UTF-8'); ?></option>
                                             <option value="other"><?= htmlspecialchars(__('contact.subject.other'), ENT_QUOTES, 'UTF-8'); ?></option>
                                             <?php foreach ($racContactSubjects as $racSubject): ?>
                                                 <?php $racSubjectLabel = trim((string)($racSubject['label_' . $racContactLang] ?? '')); if ($racSubjectLabel === '') { $racSubjectLabel = (string)$racSubject['label_cs']; } ?>

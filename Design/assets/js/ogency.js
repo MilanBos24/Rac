@@ -21,16 +21,23 @@
       },
       submitHandler: function (form) {
         // sending value with ajax request
-        $.post(
-          $(form).attr("action"),
-          $(form).serialize(),
-          function (response) {
-            $(form).parent().find(".result").append(response);
-            $(form).find('input[type="text"]').val("");
-            $(form).find('input[type="email"]').val("");
-            $(form).find("textarea").val("");
+        var $form = $(form);
+        var $result = $form.parent().find(".result");
+        $.ajax({
+          url: $form.attr("action"),
+          type: "POST",
+          data: $form.serialize(),
+          success: function (response) {
+            $result.html(response);
+            if ($(response).filter('[data-contact-status="success"]').length) {
+              $form.find('input[name="name"], input[name="email"], input[name="phone"], textarea').val("");
+              $form.find('select[name="subject"]').val("").selectpicker("refresh");
+            }
+          },
+          error: function (xhr) {
+            $result.html(xhr.responseText || '<div class="inner error"><p>Zprávu se nepodařilo odeslat.</p></div>');
           }
-        );
+        });
         return false;
       },
     });

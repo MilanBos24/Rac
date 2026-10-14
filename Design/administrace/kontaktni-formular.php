@@ -7,7 +7,7 @@ require_once __DIR__ . '/config/auth_roles.php';
 require_min_role('admin');
 $errors = array();
 $success = '';
-$tab = ((string)($_POST['tab'] ?? $_GET['tab'] ?? 'settings') === 'security') ? 'security' : 'settings';
+$tab = ((string)($_POST['tab'] ?? $_GET['tab'] ?? 'settings') === 'security') ? 'security' : (((string)($_POST['tab'] ?? $_GET['tab'] ?? '') === 'subjects') ? 'subjects' : 'settings');
 $csrf = csrf_token('rac_contact_form_settings');
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     if (!csrf_valid('rac_contact_form_settings', (string)($_POST['csrf'] ?? ''))) {
@@ -22,6 +22,35 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                 $stmt->execute(array($email));
                 $success = 'Cílový e-mail byl uložen.';
             } catch (Throwable $e) { error_log($e->getMessage()); $errors[] = 'Nastavení nelze uložit. Ověřte import SQL 007_contact_form.sql.'; }
+        }
+    } elseif ($tab === 'subjects') {
+        $action = (string)($_POST['action'] ?? 'add');
+        try {
+            if ($action === 'delete') {
+                $id = filter_var($_POST['subject_id'] ?? null, FILTER_VALIDATE_INT);
+                if (!$id || $id < 1) { $errors[] = 'Neplatné ID předmětu.'; }
+                else {
+                    $stmt = $pdo->prepare('DELETE FROM contact_form_subjects WHERE id = ?');
+                    $stmt->execute(array($id));
+                    $success = 'Předmět byl odstraněn.';
+                }
+            } else {
+                $labels = array();
+                foreach (array('cs','sk','pl','en','de','fr') as $code) {
+                    $value = trim((string)($_POST['label_' . $code] ?? ''));
+                    if (strlen($value) > 150 || preg_match('/[\\r\\n]/', $value)) { $errors[] = 'Název předmětu je příliš dlouhý nebo neplatný.'; }
+                    $labels[$code] = $value;
+                }
+                if ($labels['cs'] === '') { $errors[] = 'Český název předmětu je povinný.'; }
+                if (!$errors) {
+                    $stmt = $pdo->prepare('INSERT INTO contact_form_subjects (label_cs,label_sk,label_pl,label_en,label_de,label_fr) VALUES (?,?,?,?,?,?)');
+                    $stmt->execute(array_values($labels));
+                    $success = 'Nový předmět byl přidán.';
+                }
+            }
+        } catch (Throwable $ex) {
+            error_log('RAC contact subjects admin: ' . $ex->getMessage());
+            $errors[] = 'Předměty nelze spravovat. Ověřte instalaci 011_contact_subjects.sql.';
         }
     } else {
         $ip = trim((string)($_POST['ip_address'] ?? ''));
@@ -43,10 +72,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 }
 $email = '';
 $blocked = array();
+$subjects = array();
 try {
     $email = (string)$pdo->query('SELECT recipient_email FROM contact_form_settings WHERE id = 1')->fetchColumn();
     $blocked = $pdo->query('SELECT ip_address, created_at FROM contact_blocked_ips ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) { $errors[] = 'Databázové tabulky nejsou dostupné. Nejprve importujte 007_contact_form.sql.'; }
+try { $subjects = $pdo->query('SELECT * FROM contact_form_subjects ORDER BY sort_order, id')->fetchAll(PDO::FETCH_ASSOC); } catch (Throwable $ex) { $errors[] = 'Pro vlastní předměty importujte 011_contact_subjects.sql.'; }
 // RAC / BOS24 Porto – administrace kontaktního formulare, 2026-10-14
 $pageTitle = 'Kontaktní formulář';
 $racUsePortoLayout = true;
@@ -116,6 +147,7 @@ include __DIR__ . '/inc/leve-meny.class.php';
             <li class="nav-item">
                 <a class="nav-link<?= $tab === 'security' ? ' active' : '' ?>" href="kontaktni-formular.php?tab=security">Bezpečnost</a>
             </li>
+            <li class="nav-item"><a class="nav-link<?= $tab === 'subjects' ? ' active' : '' ?>" href="kontaktni-formular.php?tab=subjects">Předměty</a></li>
         </ul>
         <div class="tab-content">
             <div class="tab-pane fade show active">
@@ -139,7 +171,7 @@ include __DIR__ . '/inc/leve-meny.class.php';
                             </form>
                         </div>
                     </section>
-                <?php else: ?>
+                <?php elseif ($tab === 'security'): ?>
                     <section class="card mb-0">
                         <header class="card-header"><h2 class="card-title">Bezpečnost kontaktního formuláře</h2></header>
                         <div class="card-body">
@@ -181,6 +213,41 @@ include __DIR__ . '/inc/leve-meny.class.php';
                                 </table>
                             </div>
                             <p class="text-muted mt-3 mb-0">Další bezpečnostní nastavení přidáme později.</p>
+                        </div>
+                    </section>
+                <?php else: ?>
+                    <section class="card mb-0">
+                        <header class="card-header"><h2 class="card-title">Předměty kontaktního formuláře</h2></header>
+                        <div class="card-body">
+                            <p class="text-muted">Povinné systémové předměty jsou „Dotaz k tvorbě“ a „Ostatní“. Nelze je odstranit. Nové předměty se přidávají pro všechny jazykové verze, prázdné překlady používají češtinu.</p>
+                            <form method="post" action="kontaktni-formular.php?tab=subjects">
+                                <input type="hidden" name="csrf" value="<?= $e($csrf) ?>">
+                                <input type="hidden" name="tab" value="subjects">
+                                <input type="hidden" name="action" value="add">
+                                <div class="row">
+                                <?php foreach (array('cs'=>'Čeština *','sk'=>'Slovenština','pl'=>'Polština','en'=>'Angličtina','de'=>'Němčina','fr'=>'Francouzština') as $code => $languageLabel): ?>
+                                    <div class="col-lg-4 col-md-6 mb-3"><label class="form-label" for="label_<?= $e($code) ?>"><?= $e($languageLabel) ?></label>
+                                    <input id="label_<?= $e($code) ?>" name="label_<?= $e($code) ?>" class="form-control" maxlength="150" <?= $code === 'cs' ? 'required' : '' ?>></div>
+                                <?php endforeach; ?>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">+ Přidat předmět</button>
+                            </form>
+                            <div class="table-responsive mt-4">
+                                <table class="table table-bordered table-striped"><thead><tr><th>Český název</th><th>Anglický název</th><th>Akce</th></tr></thead><tbody>
+                                <?php foreach ($subjects as $subject): ?>
+                                <tr><td><?= $e($subject['label_cs']) ?></td><td><?= $e($subject['label_en']) ?></td><td>
+                                  <form method="post" action="kontaktni-formular.php?tab=subjects">
+                                    <input type="hidden" name="csrf" value="<?= $e($csrf) ?>">
+                                    <input type="hidden" name="tab" value="subjects">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="subject_id" value="<?= (int)$subject['id'] ?>">
+                                    <button type="submit" class="btn btn-danger btn-sm">Smazat</button>
+                                  </form>
+                                </td></tr>
+                                <?php endforeach; ?>
+                                <?php if (!$subjects): ?><tr><td colspan="3">Zatím nejsou přidány žádné další předměty.</td></tr><?php endif; ?>
+                                </tbody></table>
+                            </div>
                         </div>
                     </section>
                 <?php endif; ?>

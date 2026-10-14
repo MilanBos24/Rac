@@ -1,0 +1,13 @@
+-- RAC Contact form, run once in existing RAC database
+CREATE TABLE IF NOT EXISTS contact_form_settings (
+ id TINYINT UNSIGNED NOT NULL PRIMARY KEY,
+ recipient_email VARCHAR(254) NOT NULL DEFAULT '',
+ updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT IGNORE INTO contact_form_settings (id, recipient_email) VALUES (1, '');
+CREATE TABLE IF NOT EXISTS contact_blocked_ips (
+ id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+ ip_address VARCHAR(45) NOT NULL,
+ created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ UNIQUE KEY ux_contact_ip (ip_address)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

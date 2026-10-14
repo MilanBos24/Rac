@@ -7,7 +7,8 @@ require_once __DIR__ . '/config/auth_roles.php';
 require_min_role('admin');
 $errors = array();
 $success = '';
-$tab = ((string)($_POST['tab'] ?? $_GET['tab'] ?? 'settings') === 'security') ? 'security' : (((string)($_POST['tab'] ?? $_GET['tab'] ?? '') === 'subjects') ? 'subjects' : 'settings');
+$tabValue = (string)($_POST['tab'] ?? $_GET['tab'] ?? 'settings');
+$tab = in_array($tabValue, array('settings', 'security', 'subjects'), true) ? $tabValue : 'settings';
 $csrf = csrf_token('rac_contact_form_settings');
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     if (!csrf_valid('rac_contact_form_settings', (string)($_POST['csrf'] ?? ''))) {

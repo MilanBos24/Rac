@@ -7,7 +7,7 @@ require_once __DIR__ . '/config/auth_roles.php';
 require_min_role('admin');
 $errors = array();
 $success = '';
-$tab = (isset($_POST['tab']) && $_POST['tab'] === 'security') ? 'security' : 'settings';
+$tab = ((string)($_POST['tab'] ?? $_GET['tab'] ?? 'settings') === 'security') ? 'security' : 'settings';
 $csrf = csrf_token('rac_contact_form_settings');
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     if (!csrf_valid('rac_contact_form_settings', (string)($_POST['csrf'] ?? ''))) {
@@ -61,7 +61,7 @@ include __DIR__ . '/inc/leve-meny.class.php';
    <a class="cms-language-tab<?= $tab === 'settings' ? ' is-active' : '' ?>" href="?tab=settings">Nastavení</a>
    <a class="cms-language-tab<?= $tab === 'security' ? ' is-active' : '' ?>" href="?tab=security">Bezpečnost</a>
   </div>
-  <?php if (($tab === 'settings' && !isset($_GET['tab'])) || (isset($_GET['tab']) && $_GET['tab'] !== 'security' && $tab !== 'security')): ?>
+  <?php if ($tab === 'settings'): ?>
     <h2>Cílový e-mail</h2>
     <form method="post">
      <input type="hidden" name="csrf" value="<?= h($csrf) ?>">

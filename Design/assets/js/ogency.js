@@ -7,7 +7,7 @@
       var requiredText = $contactForm.attr("data-required-message") || "This field is required.";
       $contactForm.validate({
       ignore: ":hidden:not(select)",
-      messages: {name: {required: requiredText}, email: {required: requiredText, email: requiredText}, message: {required: requiredText}, subject: {required: requiredText}},
+      messages: {name: {required: requiredText}, email: {required: requiredText, email: requiredText}, message: {required: requiredText}},
       // initialize the plugin
       rules: {
         name: {
@@ -18,9 +18,6 @@
           email: true,
         },
         message: {
-          required: true,
-        },
-        subject: {
           required: true,
         },
       },

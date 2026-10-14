@@ -61,7 +61,17 @@ try {
     require_once dirname(__DIR__, 2) . '/inc/01.config.class.php';
     $contactPdo = racFrontendPdo();
     if (!$contactPdo instanceof PDO) { throw new RuntimeException('No database connection'); }
-    $to = (string)$contactPdo->query('SELECT recipient_email FROM contact_form_settings WHERE id = 1')->fetchColumn();
+    $mailSettings = $contactPdo->query('SELECT recipient_email, sender_email, sender_name, email_subject FROM contact_form_settings WHERE id = 1')->fetch(PDO::FETCH_ASSOC);
+    if (!$mailSettings) { throw new RuntimeException('Missing mail configuration'); }
+    $to = trim((string)$mailSettings['recipient_email']);
+    $configuredFrom = trim((string)($mailSettings['sender_email'] ?? ''));
+    $from = $configuredFrom !== '' ? $configuredFrom : $to;
+    $senderName = trim((string)($mailSettings['sender_name'] ?? 'RAC'));
+    $subjectPrefix = trim((string)($mailSettings['email_subject'] ?? 'Zpráva z kontaktního formuláře'));
+    if (!filter_var($from, FILTER_VALIDATE_EMAIL) || $senderName === '' || $subjectPrefix === '' ||
+        preg_match('/[\\r\\n]/', $senderName) || preg_match('/[\\r\\n]/', $subjectPrefix)) {
+        throw new RuntimeException('Invalid sender / subject configuration');
+    }
     if (!filter_var($to, FILTER_VALIDATE_EMAIL)) { throw new RuntimeException('Missing recipient email'); }
     if ($customSubjectId !== null) {
         $subjectColumn = 'label_' . $racLang;
@@ -79,13 +89,12 @@ try {
     error_log('RAC contact configuration: ' . $e->getMessage());
     racContactResponse(503, racContactText('contact.status.unavailable'));
 }
-$host = strtolower((string)($_SERVER['HTTP_HOST'] ?? 'stefanrac.mil24.cz'));
-$host = preg_replace('/:\\d+$/', '', $host);
-if (!preg_match('/^[a-z0-9.-]+$/', $host) || strpos($host, '.') === false) {
-    $host = 'stefanrac.mil24.cz';
-}
-$from = 'no-reply@' . $host;
-$subject = 'RAC kontakt: ' . $subjectLabels[$subjectCode];
+// Kódování názvu a předmětu podle RFC 2047 pro češtinu a další mutace.
+$mailEncode = static function (string $value): string {
+    return '=?UTF-8?B?' . base64_encode($value) . '?=';
+};
+$subject = $mailEncode($subjectPrefix . ' – ' . $subjectLabels[$subjectCode]);
+$fromHeader = 'From: ' . $mailEncode($senderName) . ' <' . $from . '>';
 $body = "Nová zpráva z kontaktního formuláře RAC\n\n"
     . "Jméno: " . $name . "\n"
     . "E-mail: " . $email . "\n"
@@ -97,7 +106,7 @@ $body = "Nová zpráva z kontaktního formuláře RAC\n\n"
     . "Stránka: " . substr((string)($_SERVER['HTTP_REFERER'] ?? ''), 0, 300) . "\n"
     . "Čas: " . date('Y-m-d H:i:s') . "\n";
 $headers = array(
-    'From: RAC <' . $from . '>',
+    $fromHeader
     'Reply-To: ' . $email,
     'MIME-Version: 1.0',
     'Content-Type: text/plain; charset=UTF-8',

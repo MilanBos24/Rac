@@ -40,14 +40,14 @@
 </style>
 <div class="stricky-header stricked-menu main-menu"><div class="sticky-header__content"></div></div>
 <section class="page-header"><div class="page-header__bg"></div><div class="page-header__overlay"></div><div class="container">
-<ul class="page-header__breadcrumb list-unstyled"><li><a href="<?= racShopH(racUrl('index.php')) ?>">Úvod</a></li><li><span>E-shop</span></li></ul>
-<h2 class="page-header__title">Košík</h2></div></section>
+<ul class="page-header__breadcrumb list-unstyled"><li><a href="<?= racShopH(racUrl('index.php')) ?>"><?= racShopH(__('breadcrumb.home')) ?></a></li><li><span><?= racShopH(__('breadcrumb.eshop')) ?></span></li></ul>
+<h2 class="page-header__title"><?= racShopH(__('cart.title')) ?></h2></div></section>
 <section class="cart-page"><div class="container">
 <?php if ($racCartError): ?><div role="alert" class="alert alert-danger"><?= racShopH($racCartError) ?></div><?php endif; ?>
-<?php if (!$racCartLines): ?><p>Košík je zatím prázdný.</p><a href="<?= racShopH(racUrl('knihy.php')) ?>" class="ogency-btn">Prohlédnout knihy</a>
+<?php if (!$racCartLines): ?><p><?= racShopH(__('cart.empty')) ?></p><a href="<?= racShopH(racUrl('knihy.php')) ?>" class="ogency-btn"><?= racShopH(__('cart.browse_books')) ?></a>
 <?php else: ?>
 <div class="rac-cart-grid">
- <div class="rac-cart-grid__head" aria-hidden="true"><div>Položka</div><div>Cena</div><div>Množství</div><div>Celkem</div><div></div><div></div></div>
+ <div class="rac-cart-grid__head" aria-hidden="true"><div><?= racShopH(__('cart.item')) ?></div><div><?= racShopH(__('cart.price')) ?></div><div><?= racShopH(__('cart.quantity')) ?></div><div><?= racShopH(__('cart.total')) ?></div><div></div><div></div></div>
 <?php $total=0.0; $currency=null; $mixed=false; foreach ($racCartLines as $line):
 $v=$line['variant'];$p=$line['product'];$total+=$line['total'];
 if ($currency===null) {$currency=$v['currency'];} elseif ($currency!==$v['currency']) {$mixed=true;}
@@ -56,23 +56,23 @@ $formId='rac-cart-update-'.(int)$v['id'];
  <div class="rac-cart-grid__item" id="cart-item-<?= (int)$v['id'] ?>" style="scroll-margin-top:120px">
   <div class="rac-cart-grid__book">
    <?php if ($line['image']!==''): ?><div class="rac-cart-grid__image"><img src="<?= racShopH($line['image']) ?>" alt="<?= racShopH($p['title']) ?>"></div><?php endif; ?>
-   <h3 class="rac-cart-grid__book-title"><a href="<?= racShopH(racUrl(rawurlencode($p['slug']))) ?>"><?= racShopH($p['title']) ?></a><small><?= racShopH(racShopKind($v['kind'])) ?></small></h3>
+   <h3 class="rac-cart-grid__book-title"><a href="<?= racShopH(racUrl(rawurlencode($p['slug']))) ?>"><?= racShopH($p['title']) ?></a><small><?= racShopH(__( 'product.kind.' . $v['kind'] )) ?></small></h3>
   </div>
-  <div class="rac-cart-grid__price"><span class="rac-cart-grid__mobile-label">Cena</span><?= racShopMoney((string)$line['price'],$v['currency']) ?></div>
-  <div class="rac-cart-grid__quantity"><span class="rac-cart-grid__mobile-label">Množství</span>
+  <div class="rac-cart-grid__price"><span class="rac-cart-grid__mobile-label"><?= racShopH(__('cart.price')) ?></span><?= racShopMoney((string)$line['price'],$v['currency']) ?></div>
+  <div class="rac-cart-grid__quantity"><span class="rac-cart-grid__mobile-label"><?= racShopH(__('cart.quantity')) ?></span>
    <form id="<?= $formId ?>" method="post" action="<?= racShopH(racUrl('kosik.php')) ?>">
     <input type="hidden" name="csrf" value="<?= racShopH(racCartToken()) ?>"><input type="hidden" name="action" value="update"><input type="hidden" name="variant_id" value="<?= (int)$v['id'] ?>">
-    <div class="product-details__quantity"><div class="quantity-box"><button type="button" class="sub" aria-label="Snížit počet"><i class="fa fa-minus"></i></button><input name="quantity" type="number" required min="1" max="<?= max(1,$line['max']) ?>" value="<?= (int)$line['quantity'] ?>" aria-label="Počet kusů"><button type="button" class="add" aria-label="Zvýšit počet"><i class="fa fa-plus"></i></button></div></div>
-    <?php if ($line['max']<$line['quantity']): ?><small>Dostupných kusů: <?= (int)$line['max'] ?></small><?php endif; ?>
+    <div class="product-details__quantity"><div class="quantity-box"><button type="button" class="sub" aria-label="<?= racShopH(__('cart.decrease_quantity')) ?>"><i class="fa fa-minus"></i></button><input name="quantity" type="number" required min="1" max="<?= max(1,$line['max']) ?>" value="<?= (int)$line['quantity'] ?>" aria-label="<?= racShopH(__('product.detail.quantity')) ?>"><button type="button" class="add" aria-label="<?= racShopH(__('cart.increase_quantity')) ?>"><i class="fa fa-plus"></i></button></div></div>
+    <?php if ($line['max']<$line['quantity']): ?><small><?= racShopH(__('cart.available_pieces', ['count' => (int)$line['max']])) ?></small><?php endif; ?>
    </form>
   </div>
-  <div class="rac-cart-grid__total"><span class="rac-cart-grid__mobile-label">Celkem</span><?= racShopMoney((string)$line['total'],$v['currency']) ?></div>
-  <div class="rac-cart-grid__update"><button type="submit" form="<?= $formId ?>" class="ogency-btn">Aktualizovat</button></div>
-  <div class="rac-cart-grid__remove"><form method="post" action="<?= racShopH(racUrl('kosik.php')) ?>"><input type="hidden" name="csrf" value="<?= racShopH(racCartToken()) ?>"><input type="hidden" name="action" value="remove"><input type="hidden" name="variant_id" value="<?= (int)$v['id'] ?>"><button type="submit" aria-label="Odebrat položku" title="Odebrat položku"><span class="icon-close"></span></button></form></div>
+  <div class="rac-cart-grid__total"><span class="rac-cart-grid__mobile-label"><?= racShopH(__('cart.total')) ?></span><?= racShopMoney((string)$line['total'],$v['currency']) ?></div>
+  <div class="rac-cart-grid__update"><button type="submit" form="<?= $formId ?>" class="ogency-btn"><?= racShopH(__('cart.update')) ?></button></div>
+  <div class="rac-cart-grid__remove"><form method="post" action="<?= racShopH(racUrl('kosik.php')) ?>"><input type="hidden" name="csrf" value="<?= racShopH(racCartToken()) ?>"><input type="hidden" name="action" value="remove"><input type="hidden" name="variant_id" value="<?= (int)$v['id'] ?>"><button type="submit" aria-label="<?= racShopH(__('cart.remove_item')) ?>" title="<?= racShopH(__('cart.remove_item')) ?>"><span class="icon-close"></span></button></form></div>
  </div>
 <?php endforeach; ?>
 </div>
 <div class="row"><div class="col-xl-8 col-lg-7"></div><div class="col-xl-4 col-lg-5"><ul class="cart-page__cart-total list-unstyled">
-<li><span>Mezisoučet</span><span class="cart-page__cart-total-amount"><?= $mixed ? 'Více měn' : racShopMoney((string)$total,(string)$currency) ?></span></li>
-</ul><div class="rac-cart-actions"><a href="<?= racShopH(racUrl('knihy.php')) ?>" class="ogency-btn">Zpět k nákupu</a><a class="ogency-btn checkout" href="<?= racShopH(racUrl('objednavka.php')) ?>">Pokračovat</a></div>
+<li><span><?= racShopH(__('cart.subtotal')) ?></span><span class="cart-page__cart-total-amount"><?= $mixed ? racShopH(__('cart.multiple_currencies')) : racShopMoney((string)$total,(string)$currency) ?></span></li>
+</ul><div class="rac-cart-actions"><a href="<?= racShopH(racUrl('knihy.php')) ?>" class="ogency-btn"><?= racShopH(__('cart.back_to_shop')) ?></a><a class="ogency-btn checkout" href="<?= racShopH(racUrl('objednavka.php')) ?>"><?= racShopH(__('cart.continue')) ?></a></div>
 </div></div><?php endif; ?></div></section>

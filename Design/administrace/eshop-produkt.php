@@ -1,5 +1,5 @@
 <?php
-// RAC Eshop produkt – Porto/BOS24 – 2026-10-12; PHP 7.4+
+// RAC Eshop produkt – Porto/BOS24 – 2026-10-16-20.25; PHP 7.4+
 declare(strict_types=1);
 require_once __DIR__.'/config/session.php';
 require_once __DIR__.'/config/db.php';
@@ -13,7 +13,6 @@ $kinds=array('print'=>'Tištěná kniha','ebook'=>'E-kniha','audio'=>'Audiokniha
 $languages=$pdo->query('SELECT id,code,native_name,is_default FROM languages WHERE active=1 ORDER BY is_default DESC,sort_order,id')->fetchAll(PDO::FETCH_ASSOC);
 $categories=$pdo->query("SELECT c.id,COALESCE(NULLIF(ct.name,''),c.code) AS name FROM product_categories c LEFT JOIN languages l ON l.is_default=1 LEFT JOIN product_category_translations ct ON ct.category_id=c.id AND ct.language_id=l.id WHERE c.active=1 ORDER BY c.sort_order,c.id")->fetchAll(PDO::FETCH_ASSOC);
 $csrf=csrf_token('csrf_eshop_product');
-$viewerStock = current_user_row();
 function product_decimal($value,bool $required,array &$errors,string $label):?string {
  $text=str_replace(',','.',trim((string)$value));
  if ($text===''){if($required)$errors[]='Vyplňte '.$label.'.';return null;}
@@ -83,13 +82,6 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
  }
  if(!$errors){try{
   $pdo->beginTransaction();
-  // Snapshot pred zmenou skladu; zamceno po celou transakci.
-  $stockBefore=array();
-  if($id>0){
-   $lock=$pdo->prepare("SELECT id,stock_quantity FROM product_variants WHERE product_id=? AND kind='print' FOR UPDATE");
-   $lock->execute(array($id));
-   foreach($lock->fetchAll(PDO::FETCH_ASSOC) as $oldPrint){$stockBefore[(int)$oldPrint['id']]=(int)($oldPrint['stock_quantity']??0);}
-  }
   if($id){$st=$pdo->prepare('UPDATE products SET slug=?,author=?,release_date=?,category_id=?,status=?,featured=?,sort_order=? WHERE id=?');$st->execute(array($slug,$author?:null,$date?:null,$category?:null,$status,isset($posted['featured'])?1:0,$order,$id));}
   else{$st=$pdo->prepare('INSERT INTO products(slug,author,release_date,category_id,status,featured,sort_order) VALUES(?,?,?,?,?,?,?)');$st->execute(array($slug,$author?:null,$date?:null,$category?:null,$status,isset($posted['featured'])?1:0,$order));$id=(int)$pdo->lastInsertId();}
   $st=$pdo->prepare('INSERT INTO product_translations(product_id,language_id,title,short_description,description,seo_title,seo_description) VALUES(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE title=VALUES(title),short_description=VALUES(short_description),description=VALUES(description),seo_title=VALUES(seo_title),seo_description=VALUES(seo_description)');
@@ -98,14 +90,6 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
   foreach($cleanVariants as $kind=>$v)$st->execute(array($id,$kind,$v['sku'],$v['isbn'],$v['ean'],$v['price'],$v['sale_price'],$v['sale_starts_at'],$v['sale_ends_at'],$v['currency'],$v['vat_rate'],$v['stock_quantity'],$v['minimum_stock'],$v['weight_grams']));
   $st=$pdo->prepare('UPDATE product_variants SET active=0 WHERE product_id=? AND kind=?');
   foreach($kinds as $kind=>$label)if(!isset($cleanVariants[$kind]))$st->execute(array($id,$kind));
-  // Prvotni vlozeni i rucni upravy poctu kusu se zapisuji do historie.
-  $stockQuery=$pdo->prepare("SELECT id,stock_quantity FROM product_variants WHERE product_id=? AND kind='print' FOR UPDATE");
-  $stockQuery->execute(array($id));
-  $movement=$pdo->prepare('INSERT INTO eshop_stock_movements (variant_id,change_qty,balance_after,source,note,user_id,created_at) VALUES (?,?,?,?,?,?,NOW())');
-  foreach($stockQuery->fetchAll(PDO::FETCH_ASSOC) as $newPrint){
-   $variantId=(int)$newPrint['id'];$after=(int)($newPrint['stock_quantity']??0);$before=$stockBefore[$variantId]??0;
-   if($after!==$before){$movement->execute(array($variantId,$after-$before,$after,'product','Změna zásoby v administraci produktu',(int)($viewerStock['id']??0)?:null));}
-  }
   $pdo->commit();header('Location: eshop-produkt.php?id='.$id.'&saved=1');exit;
  }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();$errors[]='Záznam se nepodařilo uložit. Zkontrolujte unikátnost URL a SKU. Podrobnosti najdete v serverovém error logu.';error_log('RAC eshop product save: '.$e->getMessage());}}
  $product=array_merge($product,$posted);$variants=$postedVariants;
@@ -130,7 +114,7 @@ include __DIR__.'/inc/leve-meny.class.php';
 <section role="main" class="content-body content-body-modern mt-0">
 <header class="page-header"><h2><?= h($pageTitle) ?></h2><div class="right-wrapper text-end"><ol class="breadcrumbs"><li><a href="/administrace/dashboard.php"><i class="bx bx-home-alt"></i></a></li><li><span>E-shop</span></li><li><a href="eshop-produkty.php">Produkty</a></li></ol></div></header>
 <div class="row mt-4"><div class="col-12">
-<div class="d-flex justify-content-between flex-wrap align-items-center gap-2 mb-3"><p class="text-muted mb-0">Základní údaje, jazykové mutace a prodejní varianty</p><a class="btn btn-default" href="eshop-produkty.php"><i class="fas fa-arrow-left me-1"></i> Zpět na produkty</a></div>
+<div class="row pt-2 mb-4"><div class="col-12"><a class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4 me-2 mb-2" href="eshop-produkty.php"><i class="fas fa-arrow-left me-1"></i> Zpět na produkty</a></div></div>
 <?php if(isset($_GET['saved'])): ?><div class="alert alert-success">Produkt byl úspěšně uložen.</div><?php endif; ?>
 <?php if($errors): ?><div class="alert alert-danger"><ul class="mb-0"><?php foreach($errors as $error): ?><li><?= h($error) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
 <form method="post"><input type="hidden" name="csrf" value="<?= h($csrf) ?>">
@@ -145,12 +129,13 @@ include __DIR__.'/inc/leve-meny.class.php';
 </div></div></section>
 <section class="card mb-4"><header class="card-header"><h2 class="card-title">Jazykové mutace</h2></header><div class="card-body">
 <?php if(!$languages): ?><div class="alert alert-warning">Nejsou aktivní jazyky.</div><?php endif; ?>
-<ul class="nav nav-tabs" role="tablist" id="product-lang-tabs"><?php foreach($languages as $index=>$lang): $lid=(int)$lang['id']; ?><li class="nav-item"><button type="button" class="nav-link<?= $index===0?' active':'' ?>" data-rac-lang-tab="<?= $lid ?>" aria-selected="<?= $index===0?'true':'false' ?>"><?= h($lang['native_name']) ?><?= (int)$lang['is_default']===1?' *':'' ?></button></li><?php endforeach; ?></ul>
+<style>#product-lang-tabs .rac-lang-complete{color:#28a745;font-weight:700;margin-left:6px}#product-lang-tabs [data-rac-complete][hidden]{display:none!important}</style>
+<ul class="nav nav-tabs" role="tablist" id="product-lang-tabs"><?php foreach($languages as $index=>$lang): $lid=(int)$lang['id']; $lt=$translations[$lid]??array(); $complete=trim((string)($lt['title']??''))!=='' && trim((string)($lt['short_description']??''))!=='' && trim((string)($lt['description']??''))!==''; ?><li class="nav-item"><button type="button" class="nav-link<?= $index===0?' active':'' ?>" data-rac-lang-tab="<?= $lid ?>" aria-selected="<?= $index===0?'true':'false' ?>"><?= h($lang['native_name']) ?><span class="rac-lang-complete" data-rac-complete="<?= $lid ?>" title="Název, krátký popis a popis jsou vyplněny" aria-label="Vyplněný překlad" <?= $complete?'':'hidden' ?>>*</span></button></li><?php endforeach; ?></ul>
 <div class="border border-top-0 rounded-bottom p-3 p-lg-4"><?php foreach($languages as $index=>$lang): $lid=(int)$lang['id'];$t=$translations[$lid]??array(); ?><div data-rac-lang-panel="<?= $lid ?>" <?= $index!==0?'hidden':'' ?>>
 <div class="mb-3"><label class="form-label">Název <?= (int)$lang['is_default']===1?'*':'' ?></label><input class="form-control" name="translations[<?= $lid ?>][title]" maxlength="255" value="<?= h($t['title']??'') ?>"></div>
 <div class="mb-3"><label class="form-label">Krátký popis (max. 300 znaků)</label><textarea class="form-control" name="translations[<?= $lid ?>][short_description]" rows="3" maxlength="300"><?= h($t['short_description']??'') ?></textarea></div>
 <div class="mb-3"><label class="form-label">Popis</label><textarea class="form-control" name="translations[<?= $lid ?>][description]" rows="6"><?= h($t['description']??'') ?></textarea></div>
-<div class="row g-3"><div class="col-12 col-lg-6"><label class="form-label">SEO title</label><input class="form-control" maxlength="255" name="translations[<?= $lid ?>][seo_title]" value="<?= h($t['seo_title']??'') ?>"></div><div class="col-12 col-lg-6"><label class="form-label">SEO description</label><textarea class="form-control" rows="2" maxlength="320" name="translations[<?= $lid ?>][seo_description]"><?= h($t['seo_description']??'') ?></textarea></div></div>
+<div class="row g-3"><div class="col-12 col-lg-6"><label class="form-label">SEO title</label><input class="form-control" type="text" maxlength="255" name="translations[<?= $lid ?>][seo_title]" value="<?= h($t['seo_title']??'') ?>"></div><div class="col-12 col-lg-6"><label class="form-label">SEO description</label><input class="form-control" type="text" maxlength="320" name="translations[<?= $lid ?>][seo_description]" value="<?= h($t['seo_description']??'') ?>"></div></div>
 </div><?php endforeach; ?></div></div></section>
 <?php foreach($kinds as $kind=>$kindLabel): $v=$variants[$kind]??array();$enabled=$_SERVER['REQUEST_METHOD']==='POST'?isset($v['enabled']):(!empty($v['id'])&&(int)($v['active']??0)===1); ?>
 <section class="card mb-4"><header class="card-header"><h2 class="card-title"><?= h($kindLabel) ?></h2></header><div class="card-body">
@@ -166,5 +151,5 @@ include __DIR__.'/inc/leve-meny.class.php';
 <div class="card mb-4"><div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-2"><div><strong>Produkt</strong><div class="text-muted small">Po uložení se vrátíte na tuto stránku.</div></div><button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i> Uložit produkt</button></div></div>
 </form></div></div>
 </section>
-<script>(function(){var tabs=document.querySelectorAll('[data-rac-lang-tab]'),panels=document.querySelectorAll('[data-rac-lang-panel]');tabs.forEach(function(tab){tab.addEventListener('click',function(){var id=tab.getAttribute('data-rac-lang-tab');tabs.forEach(function(t){var active=t===tab;t.classList.toggle('active',active);t.setAttribute('aria-selected',active?'true':'false')});panels.forEach(function(p){p.hidden=p.getAttribute('data-rac-lang-panel')!==id})})})})();</script>
+<script>(function(){var tabs=document.querySelectorAll('[data-rac-lang-tab]'),panels=document.querySelectorAll('[data-rac-lang-panel]');function complete(panel){var id=panel.getAttribute('data-rac-lang-panel'),star=document.querySelector('[data-rac-complete="'+id+'"]'),fields=['title','short_description','description'];if(!star)return;star.hidden=!fields.every(function(field){var el=panel.querySelector('[name="translations['+id+']['+field+']"]');return el&&el.value.trim()!=='';});}tabs.forEach(function(tab){tab.addEventListener('click',function(){var id=tab.getAttribute('data-rac-lang-tab');tabs.forEach(function(t){var active=t===tab;t.classList.toggle('active',active);t.setAttribute('aria-selected',active?'true':'false')});panels.forEach(function(p){p.hidden=p.getAttribute('data-rac-lang-panel')!==id})})});panels.forEach(function(panel){complete(panel);panel.querySelectorAll('input,textarea').forEach(function(field){field.addEventListener('input',function(){complete(panel)})})})})();</script>
 <?php include __DIR__.'/inc/footer.class.php'; ?>

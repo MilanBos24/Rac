@@ -41,39 +41,36 @@ if (empty($racUsePortoLayout)) {
           }
           ?>
           <?php
-          // Sklad knih je spolecna polozka napric vsemi Porto strankami.
-          $racWarehouseUrl='/administrace/eshop-sklad.php';
-          foreach($menuGroups as &$racWarehouseGroup){
-              if($racWarehouseGroup[0]==='E-shop'){
-                  $racWarehouseExists=false;
-                  foreach($racWarehouseGroup[1] as $racWarehouseItem){if(($racWarehouseItem[1]??'')===$racWarehouseUrl){$racWarehouseExists=true;break;}}
-                  if(!$racWarehouseExists){
-                      $racWarehouseGroup[1][]=['Sklad knih',$racWarehouseUrl,'icons icon-layers'];
+          // Sklad, objednavky, platby a digitalni pristupy eshopu centralne bez duplicit i na starsich strankach.
+          foreach ($menuGroups as &$racShopGroup) {
+              if (($racShopGroup[0] ?? '') !== 'E-shop') { continue; }
+              foreach ([['Sklad knih', '/administrace/eshop-sklad.php', 'icons icon-layers'],
+                        ['Objednávky', '/administrace/eshop-objednavky.php', 'icons icon-list'],
+                        ['Platby e-shopu', '/administrace/eshop-platby.php', 'el el-credit-card'],
+                        ['Digitální přístupy', '/administrace/eshop-digitalni-pristupy.php', 'icons icon-link']] as $racShopEntry) {
+                  $racFound = false;
+                  foreach ($racShopGroup[1] as $racExisting) {
+                      if (($racExisting[1] ?? '') === $racShopEntry[1]) { $racFound = true; break; }
                   }
+                  if (!$racFound) { $racShopGroup[1][] = $racShopEntry; }
               }
           }
-          unset($racWarehouseGroup);
-          // Kontaktní formulář patří jednotně do sekce Administrace na všech Porto stránkách.
+          unset($racShopGroup);
+          // Zachovat i Kontaktní formulář z aktuálního menu RAC v Administraci.
           $racContactUrl = '/administrace/kontaktni-formular.php';
-          $racContactItem = ['Kontaktní formulář', $racContactUrl, 'icons icon-envelope'];
-          foreach ($menuGroups as &$racContactGroup) {
-              $racContactGroup[1] = array_values(array_filter($racContactGroup[1], static function ($item) use ($racContactUrl) {
-                  return (string)($item[1] ?? '') !== $racContactUrl;
+          foreach ($menuGroups as &$racGroup) {
+              $racGroup[1] = array_values(array_filter($racGroup[1], static function ($i) use ($racContactUrl) {
+                  return ($i[1] ?? '') !== $racContactUrl;
               }));
           }
-          unset($racContactGroup);
-          $racContactAdminFound = false;
-          foreach ($menuGroups as &$racContactGroup) {
-              if ($racContactGroup[0] === 'Administrace') {
-                  $racContactGroup[1][] = $racContactItem;
-                  $racContactAdminFound = true;
+          unset($racGroup);
+          foreach ($menuGroups as &$racGroup) {
+              if ($racGroup[0] === 'Administrace') {
+                  $racGroup[1][] = ['Kontaktní formulář', $racContactUrl, 'icons icon-envelope'];
                   break;
               }
           }
-          unset($racContactGroup);
-          if (!$racContactAdminFound) {
-              $menuGroups[] = ['Administrace', [$racContactItem]];
-          }
+          unset($racGroup);
           // Jednotné pořadí sekcí a přesun Jazyků do Administrace.
           // Funguje také u starších stránek, které mají vlastní definici $menuGroups.
           $racSections = ['Přehled', 'Administrace', 'Obsah webu', 'E-shop', 'Platební brána'];

@@ -1,4 +1,16 @@
-    <script src="/administrace/assets/js/admin.js?v=2026-10-09-02"></script>
+<?php
+/* RAC shared include. Porto HTML is identical to BOS24 when $racUsePortoLayout=true. */
+if (empty($racUsePortoLayout)) {
+    include __DIR__ . '/rac-legacy-footer.class.php';
+    return;
+}
+?>
+<?php
+/** RAC Porto shared footer; 2026-10-12-04. */
+?>
+</section>
 </div>
+</section>
+<?php include __DIR__ . "/scripts-bottom.class.php"; ?>
 </body>
 </html>

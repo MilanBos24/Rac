@@ -1,6 +1,6 @@
 <?php
-// RAC E-shop produkty | Porto/BOS24 | 2026-10-12-22.25 | PHP 7.4
-// Zpracování dotazu a SQL převzato z původní funkční verze.
+// RAC E-shop produkty | Porto/BOS24 | 2026-10-16-20.20 | PHP 7.4+
+// Strankovani server-side, pocet na stranku ve filtru, jen aktivni varianty.
 declare(strict_types=1);
 require_once __DIR__ . '/config/session.php';
 require_once __DIR__ . '/config/db.php';
@@ -11,26 +11,55 @@ require_min_role('admin');
 $search = trim((string)($_GET['q'] ?? ''));
 $status = (string)($_GET['status'] ?? '');
 $allowedStatuses = array('draft', 'active', 'hidden', 'sold_out');
-if (!in_array($status, $allowedStatuses, true)) { $status = ''; }
-$where = array(); $params = array();
-if ($status !== '') { $where[] = 'p.status = :status'; $params[':status'] = $status; }
+if (!in_array($status, $allowedStatuses, true)) $status = '';
+$perPageChoices = array(12, 24, 48, 96);
+$perPage = filter_var($_GET['per_page'] ?? 12, FILTER_VALIDATE_INT);
+if (!in_array($perPage, $perPageChoices, true)) $perPage = 12;
+$page = filter_var($_GET['page'] ?? 1, FILTER_VALIDATE_INT);
+if ($page === false || $page < 1) $page = 1;
+$where = array();
+$params = array();
+if ($status !== '') {
+    $where[] = 'p.status = :status';
+    $params[':status'] = $status;
+}
 if ($search !== '') {
     $where[] = '(p.slug LIKE :search OR t.title LIKE :search2 OR p.author LIKE :search3)';
     $params[':search'] = '%' . $search . '%';
     $params[':search2'] = '%' . $search . '%';
     $params[':search3'] = '%' . $search . '%';
 }
+$fromSql = ' FROM products p
+    LEFT JOIN languages l ON l.is_default = 1
+    LEFT JOIN product_translations t ON t.product_id = p.id AND t.language_id = l.id';
+$whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
+$countStmt = $pdo->prepare('SELECT COUNT(DISTINCT p.id)' . $fromSql . $whereSql);
+$countStmt->execute($params);
+$totalProducts = (int)$countStmt->fetchColumn();
+$pageCount = max(1, (int)ceil($totalProducts / $perPage));
+$page = min($page, $pageCount);
+$offset = ($page - 1) * $perPage;
 $sql = 'SELECT p.id, p.slug, p.author, p.status, p.featured, p.sort_order, p.updated,
         COALESCE(NULLIF(t.title, \'\'), p.slug) AS title,
-        (SELECT COUNT(*) FROM product_variants v WHERE v.product_id = p.id) AS variant_count
-        FROM products p
-        LEFT JOIN languages l ON l.is_default = 1
-        LEFT JOIN product_translations t ON t.product_id = p.id AND t.language_id = l.id';
-if ($where) { $sql .= ' WHERE ' . implode(' AND ', $where); }
-$sql .= ' ORDER BY p.sort_order ASC, p.id DESC LIMIT 300';
-$stmt = $pdo->prepare($sql); $stmt->execute($params);
+        (SELECT COUNT(*) FROM product_variants v WHERE v.product_id = p.id AND v.active = 1) AS variant_count'
+        . $fromSql . $whereSql . ' ORDER BY p.sort_order ASC, p.id DESC LIMIT :row_limit OFFSET :row_offset';
+$stmt = $pdo->prepare($sql);
+foreach ($params as $name => $value) $stmt->bindValue($name, $value, PDO::PARAM_STR);
+$stmt->bindValue(':row_limit', $perPage, PDO::PARAM_INT);
+$stmt->bindValue(':row_offset', $offset, PDO::PARAM_INT);
+$stmt->execute();
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$statuses = array('draft'=>'Koncept', 'active'=>'Aktivní', 'hidden'=>'Skrytý', 'sold_out'=>'Vyprodáno');
+$statuses = array('draft'=>'Koncept','active'=>'Aktivní','hidden'=>'Skrytý','sold_out'=>'Vyprodáno');
+$pageUrl = static function (int $targetPage) use ($search, $status, $perPage): string {
+    return 'eshop-produkty.php?' . http_build_query(array_filter(array(
+        'q' => $search,
+        'status' => $status,
+        'per_page' => $perPage,
+        'page' => $targetPage
+    ), static function ($value, $key) {
+        return !($value === '' || ($key === 'page' && $value === 1));
+    }, ARRAY_FILTER_USE_BOTH));
+};
 
 $pageTitle = 'Eshop – Produkty';
 $racUsePortoLayout = true;
@@ -83,23 +112,33 @@ $roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRo
     </header>
     <div class="row mt-4"><div class="col-12">
         <?php if (isset($_GET['saved'])): ?><div class="alert alert-success">Produkt byl uložen.</div><?php endif; ?>
+        <div class="d-flex justify-content-start mb-3">
+            <a class="btn btn-primary" href="eshop-produkt.php"><i class="fas fa-plus me-1"></i> Vložit produkt</a>
+        </div>
         <section class="card mb-4">
-            <header class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <header class="card-header">
                 <h2 class="card-title mb-0">Katalog knih</h2>
-                <a class="btn btn-primary" href="eshop-produkt.php"><i class="fas fa-plus me-1"></i> Vložit nový produkt</a>
             </header>
             <div class="card-body">
                 <form method="get" action="eshop-produkty.php" class="row g-3 align-items-end mb-4">
-                    <div class="col-12 col-md-5">
+                    <div class="col-12 col-md-4">
                         <label for="product_q" class="form-label">Vyhledat</label>
                         <input id="product_q" class="form-control" type="search" name="q" value="<?= h($search) ?>" placeholder="Název, autor, slug">
                     </div>
-                    <div class="col-12 col-md-3">
+                    <div class="col-12 col-md-2">
                         <label for="product_status" class="form-label">Stav</label>
                         <select id="product_status" class="form-select" name="status">
                             <option value="">Všechny</option>
                             <?php foreach ($statuses as $key => $label): ?>
                                 <option value="<?= h($key) ?>"<?= $status === $key ? ' selected' : '' ?>><?= h($label) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <label for="product_per_page" class="form-label">Zobrazit knih</label>
+                        <select id="product_per_page" class="form-select" name="per_page">
+                            <?php foreach ($perPageChoices as $choice): ?>
+                                <option value="<?= $choice ?>"<?= $perPage === $choice ? ' selected' : '' ?>><?= $choice ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -127,6 +166,32 @@ $roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRo
                         <?php if (!$products): ?><tr><td colspan="6" class="text-center py-4 text-muted">Žádné produkty nenalezeny.</td></tr><?php endif; ?>
                         </tbody>
                     </table>
+                </div>
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3">
+                    <div class="text-muted small">
+                        <?php if ($totalProducts > 0): ?>Zobrazeno <?= $offset + 1 ?>–<?= min($offset + $perPage, $totalProducts) ?> z <?= $totalProducts ?> knih<?php else: ?>0 knih<?php endif; ?>
+                    </div>
+                    <?php if ($pageCount > 1): ?>
+                    <nav aria-label="Stránkování produktů">
+                        <ul class="pagination mb-0">
+                            <li class="page-item<?= $page <= 1 ? ' disabled' : '' ?>"><a class="page-link" href="<?= h($pageUrl(max(1, $page - 1))) ?>" aria-label="Předchozí stránka">&laquo;</a></li>
+                            <?php
+                            $pages = array(1, $pageCount);
+                            for ($i = max(1, $page - 2); $i <= min($pageCount, $page + 2); $i++) $pages[] = $i;
+                            $pages = array_values(array_unique($pages));
+                            sort($pages, SORT_NUMERIC);
+                            $previous = 0;
+                            foreach ($pages as $number):
+                                if ($previous > 0 && $number > $previous + 1):
+                            ?>
+                            <li class="page-item disabled" aria-hidden="true"><span class="page-link">…</span></li>
+                            <?php endif; ?>
+                            <li class="page-item<?= $number === $page ? ' active' : '' ?>"><a class="page-link" href="<?= h($pageUrl($number)) ?>"<?= $number === $page ? ' aria-current="page"' : '' ?>><?= $number ?></a></li>
+                            <?php $previous = $number; endforeach; ?>
+                            <li class="page-item<?= $page >= $pageCount ? ' disabled' : '' ?>"><a class="page-link" href="<?= h($pageUrl(min($pageCount, $page + 1))) ?>" aria-label="Další stránka">&raquo;</a></li>
+                        </ul>
+                    </nav>
+                    <?php endif; ?>
                 </div>
             </div>
         </section>

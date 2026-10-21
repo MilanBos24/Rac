@@ -9,12 +9,15 @@ require_min_role('admin');
 $currentUser = current_user_row();
 $currentUserId = (int)$currentUser['id'];
 $isSuperadmin = strtolower((string)$currentUser['role']) === 'superadmin';
+// Role RBAC z databáze; systémový superadmin je oddělen od vlastních rolí.
+$racRoles = $pdo->query("SELECT role_key,role_name FROM admin_roles WHERE role_key <> 'superadmin' ORDER BY is_system DESC,role_name")->fetchAll(PDO::FETCH_ASSOC);
+$racRoleKeys = array_column($racRoles, 'role_key');
 $errors = array(); $ok = null;
 $csrfUpdate = csrf_token('csrf_admin_update');
 $csrfPassword = csrf_token('csrf_admin_password');
 $csrfDelete = csrf_token('csrf_admin_delete');
 function load_admin(PDO $pdo, int $id): ?array {
-    $stmt = $pdo->prepare("SELECT id, username, jmeno, prijmeni, email, foto, role, is_active, created, last_login FROM users WHERE id = :id AND role IN ('admin','superadmin') LIMIT 1");
+    $stmt = $pdo->prepare("SELECT u.id, u.username, u.jmeno, u.prijmeni, u.email, u.foto, u.role, u.is_active, u.created, u.last_login, COALESCE(ur.role_key,'admin') AS custom_role FROM users u LEFT JOIN admin_user_roles ur ON ur.user_id=u.id WHERE u.id = :id AND u.role IN ('admin','superadmin') LIMIT 1");
     $stmt->execute(array(':id'=>$id));
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     return $row ?: null;
@@ -35,12 +38,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $prijmeni=trim((string)($_POST['prijmeni']??''));
         $email=trim((string)($_POST['email']??''));
         $role=trim((string)($_POST['role']??$target['role']));
+        $customRole=trim((string)($_POST['custom_role']??$target['custom_role']));
         $isActive=isset($_POST['is_active'])?1:0;
         if ($username==='' || mb_strlen($username)>100) $errors[]='Zadejte uživatelské jméno (max. 100 znaků).';
         if ($email==='' || !filter_var($email,FILTER_VALIDATE_EMAIL) || strlen($email)>191) $errors[]='Zadejte platný e-mail.';
         if (!in_array($role,array('admin','superadmin'),true)) $errors[]='Neplatná role.';
         if (!$isSuperadmin && $role==='superadmin') $errors[]='Administrátor nemůže přidělit roli superadmin.';
-        if ($targetId === $currentUserId) { $role=(string)$target['role']; $isActive=1; }
+        if (!$isSuperadmin) { $role=(string)$target['role']; $customRole=(string)$target['custom_role']; }
+        if ($role==='admin' && !in_array($customRole,$racRoleKeys,true)) $errors[]='Neplatná přístupová role.';
+        if ($targetId === $currentUserId) { $role=(string)$target['role']; $customRole=(string)$target['custom_role']; $isActive=1; }
         if ($target['role']==='superadmin' && (int)$target['is_active']===1 && ($role!=='superadmin'||$isActive!==1) && active_superadmin_count($pdo)<=1) $errors[]='Nelze deaktivovat nebo změnit roli poslednímu aktivnímu superadminovi.';
         if (!$errors) {
             $stmt=$pdo->prepare('SELECT id FROM users WHERE id != :id AND (email=:email OR username=:username) LIMIT 1');
@@ -51,11 +57,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$errors && isset($_FILES['foto']) && is_array($_FILES['foto'])) $newPhoto=upload_user_photo($_FILES['foto'],$errors);
         if (!$errors) {
             try {
+                $pdo->beginTransaction();
                 $stmt=$pdo->prepare('UPDATE users SET username=:username,jmeno=:jmeno,prijmeni=:prijmeni,email=:email,role=:role,is_active=:is_active,foto=:foto WHERE id=:id LIMIT 1');
                 $stmt->execute(array(':username'=>$username,':jmeno'=>$jmeno!==''?$jmeno:null,':prijmeni'=>$prijmeni!==''?$prijmeni:null,':email'=>$email,':role'=>$role,':is_active'=>$isActive,':foto'=>$newPhoto!==null?$newPhoto:$target['foto'],':id'=>$targetId));
+                if ($role==='admin') {
+                    $st=$pdo->prepare('INSERT INTO admin_user_roles(user_id,role_key) VALUES (?,?) ON DUPLICATE KEY UPDATE role_key=VALUES(role_key)');
+                    $st->execute(array($targetId,$customRole));
+                } else {
+                    $st=$pdo->prepare('DELETE FROM admin_user_roles WHERE user_id=?');
+                    $st->execute(array($targetId));
+                }
+                $pdo->commit();
                 if($newPhoto!==null && !empty($target['foto'])) delete_user_photo((string)$target['foto']);
                 $ok='Administrátor byl upraven.';
-            } catch (Throwable $e) { if($newPhoto!==null) delete_user_photo($newPhoto); $errors[]='Úpravu účtu se nepodařilo uložit.'; }
+            } catch (Throwable $e) { if($pdo->inTransaction())$pdo->rollBack(); error_log('RAC user RBAC: '.$e->getMessage()); if($newPhoto!==null) delete_user_photo($newPhoto); $errors[]='Úpravu účtu se nepodařilo uložit.'; }
         } elseif ($newPhoto!==null) delete_user_photo($newPhoto);
     } elseif ($formType === 'update_password') {
         if (!csrf_valid('csrf_admin_password',(string)($_POST['csrf']??''))) $errors[]='Neplatný bezpečnostní token.';
@@ -78,11 +93,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 $search=trim((string)($_GET['q']??''));
 $roleFilter=trim((string)($_GET['role']??''));
-$sql="SELECT id,username,jmeno,prijmeni,email,foto,role,is_active,created,last_login FROM users WHERE role IN ('admin','superadmin')";
+$sql="SELECT u.id,u.username,u.jmeno,u.prijmeni,u.email,u.foto,u.role,u.is_active,u.created,u.last_login,COALESCE(ur.role_key,'admin') AS custom_role,COALESCE(ar.role_name,'Administrátor e-shopu') AS custom_role_name FROM users u LEFT JOIN admin_user_roles ur ON ur.user_id=u.id LEFT JOIN admin_roles ar ON ar.role_key=ur.role_key WHERE u.role IN ('admin','superadmin')";
 $params=array();
-if($search!=='') { $sql.=' AND (username LIKE :q1 OR jmeno LIKE :q2 OR prijmeni LIKE :q3 OR email LIKE :q4)'; $like='%'.$search.'%'; foreach(array(':q1',':q2',':q3',':q4') as $key)$params[$key]=$like; }
-if(in_array($roleFilter,array('admin','superadmin'),true)) {$sql.=' AND role=:role';$params[':role']=$roleFilter;}
-$sql.=' ORDER BY CASE WHEN role = "superadmin" THEN 0 ELSE 1 END, username ASC';
+if($search!=='') { $sql.=' AND (u.username LIKE :q1 OR u.jmeno LIKE :q2 OR u.prijmeni LIKE :q3 OR u.email LIKE :q4)'; $like='%'.$search.'%'; foreach(array(':q1',':q2',':q3',':q4') as $key)$params[$key]=$like; }
+if(in_array($roleFilter,array('admin','superadmin'),true)) {$sql.=' AND u.role=:role';$params[':role']=$roleFilter;}
+$sql.=' ORDER BY CASE WHEN u.role = "superadmin" THEN 0 ELSE 1 END, u.username ASC';
 $stmt=$pdo->prepare($sql);$stmt->execute($params);$admins=$stmt->fetchAll(PDO::FETCH_ASSOC);
 $pageTitle='Administrátoři';
 
@@ -144,7 +159,7 @@ $roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRo
 <div class="col-12 col-xl-6"><section class="card h-100"><header class="card-header"><h2 class="card-title"><?= h($admin['username']) ?><?= $isSelf?' (vy)':'' ?></h2></header><div class="card-body">
 <div class="d-flex align-items-center gap-3 mb-3">
 <?php if(!empty($admin['foto'])): ?><img src="<?= h($admin['foto']) ?>" alt="" width="56" height="56" class="rounded-circle" style="object-fit:cover"><?php else: ?><span class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center" style="width:56px;height:56px"><i class="bx bx-user" style="font-size:30px"></i></span><?php endif; ?>
-<div><div class="fw-semibold"><?= h($fullName!==''?$fullName:$admin['email']) ?></div><span class="badge bg-primary"><?= h(role_label((string)$admin['role'])) ?></span> <span class="badge <?= (int)$admin['is_active']===1?'bg-success':'bg-secondary' ?>"><?= (int)$admin['is_active']===1?'Aktivní':'Neaktivní' ?></span></div>
+<div><div class="fw-semibold"><?= h($fullName!==''?$fullName:$admin['email']) ?></div><span class="badge bg-primary"><?= h($admin['role']==='superadmin'?'Superadmin':$admin['custom_role_name']) ?></span> <span class="badge <?= (int)$admin['is_active']===1?'bg-success':'bg-secondary' ?>"><?= (int)$admin['is_active']===1?'Aktivní':'Neaktivní' ?></span></div>
 </div><p class="mb-1"><strong>E-mail:</strong> <?= h($admin['email']) ?></p><p class="mb-1"><strong>Vytvořen:</strong> <?= h($admin['created']) ?></p><p class="mb-3"><strong>Poslední přihlášení:</strong> <?= h($admin['last_login']?:'zatím nikdy') ?></p>
 <?php if($mayManage): ?>
 <details class="mb-3 border rounded p-3"><summary class="fw-semibold">Upravit účet</summary>
@@ -156,6 +171,7 @@ $roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRo
 <div class="col-12 col-md-6"><label class="form-label">Jméno</label><input class="form-control" name="jmeno" value="<?= h($admin['jmeno']) ?>"></div>
 <div class="col-12 col-md-6"><label class="form-label">Příjmení</label><input class="form-control" name="prijmeni" value="<?= h($admin['prijmeni']) ?>"></div>
 <div class="col-12 col-md-6"><label class="form-label">Role</label><select class="form-select" name="role" <?= $isSelf?'disabled':'' ?>><option value="admin" <?= $admin['role']==='admin'?'selected':'' ?>>Administrátor</option><?php if($isSuperadmin): ?><option value="superadmin" <?= $admin['role']==='superadmin'?'selected':'' ?>>Superadmin</option><?php endif; ?></select><?php if($isSelf): ?><input type="hidden" name="role" value="<?= h($admin['role']) ?>"><?php endif; ?></div>
+<div class="col-12 col-md-6"><label class="form-label">Přístupová role</label><select class="form-select" name="custom_role" <?= (!$isSuperadmin||$isSelf||$admin['role']==='superadmin')?'disabled':'' ?>><?php foreach($racRoles as $rr): ?><option value="<?= h($rr['role_key']) ?>" <?= $admin['custom_role']===$rr['role_key']?'selected':'' ?>><?= h($rr['role_name']) ?></option><?php endforeach; ?></select><small class="text-muted">Role se nastavuje pouze u účtů Admin a pouze superadminem.</small></div>
 <div class="col-12 col-md-6"><label class="form-label">Nová fotografie</label><input class="form-control" type="file" name="foto" accept="image/jpeg,image/png,image/gif,image/webp"></div>
 <div class="col-12"><label class="form-check"><input class="form-check-input" type="checkbox" name="is_active" value="1" <?= (int)$admin['is_active']===1?'checked':'' ?> <?= $isSelf?'disabled':'' ?>><span class="form-check-label"> Aktivní účet</span></label><?php if($isSelf): ?><input type="hidden" name="is_active" value="1"><?php endif; ?></div>
 </div><button class="btn btn-primary" type="submit">Uložit změny</button></form></details>

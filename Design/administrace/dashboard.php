@@ -8,7 +8,16 @@ require_once __DIR__ . '/config/auth.php';
 require_once __DIR__ . '/config/auth_roles.php';
 
 require_login();
+// RAC RBAC: dashboard pouziva require_login(), nikoliv require_min_role().
+rac_admin_guard_current_page();
 
+// Fáze 5 – viditelnost prvků podle oprávnění, ne pouze dle role.
+$racViewer = current_user_row();
+$racMayUsers = $racViewer && rac_can($pdo, $racViewer, 'users.manage');
+$racMayProductsView = $racViewer && rac_can($pdo, $racViewer, 'products.view');
+$racMayProductsEdit = $racViewer && rac_can($pdo, $racViewer, 'products.edit');
+$racMayStock = $racViewer && rac_can($pdo, $racViewer, 'stock.view');
+$racMayShipping = $racViewer && rac_can($pdo, $racViewer, 'shipping.manage');
 // Dashboard neuvadi ani nezapocitava superadminy do ukazatelu pro administratory.
 $totalAdmins = (int)$pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
 $totalBooks = (int)$pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
@@ -72,15 +81,16 @@ include __DIR__ . '/inc/leve-meny.class.php';
     <!-- Akční navigace podle fakturace/fakturace_dashboard.php. -->
     <div class="row justify-content-center justify-content-sm-between pt-2">
         <div class="col-sm-auto text-center text-sm-start mb-4 mb-sm-0 mt-2 mt-sm-0 d-flex flex-wrap justify-content-center justify-content-sm-start gap-2">
-            <a href="/administrace/sprava-admin.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">+ Přidat administrátora</a>
-            <a href="/administrace/eshop-produkt.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">+ Přidat knihu</a>
-            <a href="/administrace/eshop-sklad.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">Sklad knih</a>
-            <a href="/administrace/eshop-doprava.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">Doprava</a>
+            <?php if ($racMayUsers): ?><a href="/administrace/sprava-admin.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">+ Přidat administrátora</a><?php endif; ?>
+            <?php if ($racMayProductsEdit): ?><a href="/administrace/eshop-produkt.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">+ Přidat knihu</a><?php endif; ?>
+            <?php if ($racMayStock): ?><a href="/administrace/eshop-sklad.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">Sklad knih</a><?php endif; ?>
+            <?php if ($racMayShipping): ?><a href="/administrace/eshop-doprava.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">Doprava</a><?php endif; ?>
         </div>
     </div>
 
     <!-- Shodný widget-summary a barevné levé orámování jako ve fakturačním dashboardu. -->
     <div class="row mb-4">
+        <?php if ($racMayUsers): ?>
         <div class="col-lg-4 col-md-6 mb-3">
             <section class="card card-featured-left card-featured-primary h-100">
                 <div class="card-body">
@@ -96,6 +106,8 @@ include __DIR__ . '/inc/leve-meny.class.php';
                 </div>
             </section>
         </div>
+        <?php endif; ?>
+        <?php if ($racMayProductsView): ?>
         <div class="col-lg-4 col-md-6 mb-3">
             <section class="card card-featured-left card-featured-warning h-100">
                 <div class="card-body">
@@ -111,6 +123,8 @@ include __DIR__ . '/inc/leve-meny.class.php';
                 </div>
             </section>
         </div>
+        <?php endif; ?>
+        <?php if ($racMayUsers): ?>
         <div class="col-lg-4 col-md-6 mb-3">
             <section class="card card-featured-left card-featured-success h-100">
                 <div class="card-body">
@@ -126,6 +140,7 @@ include __DIR__ . '/inc/leve-meny.class.php';
                 </div>
             </section>
         </div>
+        <?php endif; ?>
     </div>
 </section>
 <?php include __DIR__ . '/inc/footer.class.php'; ?>

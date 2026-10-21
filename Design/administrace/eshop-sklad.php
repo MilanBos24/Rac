@@ -8,10 +8,15 @@ require_once __DIR__.'/config/auth.php';
 require_once __DIR__.'/config/auth_roles.php';
 require_min_role('admin');
 $viewer=current_user_row();
+// RAC RBAC 2026-10-20 / Faze 5B: oddeleni cteni, skladovych operaci a editace knih.
+$racCanStockEdit = rac_can($pdo, $viewer, 'stock.edit');
+$racCanProductsView = rac_can($pdo, $viewer, 'products.view');
+$racCanProductsEdit = rac_can($pdo, $viewer, 'products.edit');
 $errors=array();$ok=null;
 $csrf=csrf_token('csrf_eshop_sklad');
 if(isset($_SESSION['sklad_flash_ok'])){$ok=(string)$_SESSION['sklad_flash_ok'];unset($_SESSION['sklad_flash_ok']);}
 if($_SERVER['REQUEST_METHOD']==='POST'){
+ if (!$racCanStockEdit) { http_response_code(403); exit('Nemáte oprávnění upravovat skladové zásoby.'); }
  if(!csrf_valid('csrf_eshop_sklad',(string)($_POST['csrf']??''))){$errors[]='Neplatný bezpečnostní token.';}
  $variantId=filter_var($_POST['variant_id']??null,FILTER_VALIDATE_INT,array('options'=>array('min_range'=>1)));
  $action=(string)($_POST['action']??'');
@@ -85,8 +90,8 @@ include __DIR__.'/inc/header.class.php';include __DIR__.'/inc/leve-meny.class.ph
 <section role="main" class="content-body content-body-modern mt-0">
 <header class="page-header"><h2>Sklad knih</h2></header>
 <div class="row justify-content-center justify-content-sm-between pt-2 mb-3"><div class="col-sm-auto text-center mb-2">
-<a href="eshop-produkt.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">+ Přidat knihu</a>
-<a href="eshop-produkty.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">Produkty</a></div></div>
+<?php if($racCanProductsEdit): ?><a href="eshop-produkt.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">+ Přidat knihu</a><?php endif; ?>
+<?php if($racCanProductsView): ?><a href="eshop-produkty.php" class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4">Produkty</a><?php endif; ?></div></div>
 <?php if($ok): ?><div class="alert alert-success"><?= $e($ok) ?></div><?php endif; ?>
 <?php if($errors): ?><div class="alert alert-danger"><ul class="mb-0"><?php foreach($errors as $err): ?><li><?= $e($err) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
 <?php if(!$historyAvailable): ?><div class="alert alert-warning">Historie pohybů není dostupná. Nejdřív spusťte SQL migraci <code>database/010_eshop_stock_movements.sql</code>. Bez ní se příjem a výdej neuloží.</div><?php endif; ?>
@@ -105,15 +110,15 @@ include __DIR__.'/inc/header.class.php';include __DIR__.'/inc/leve-meny.class.ph
 <?php if(!$books): ?><div class="alert alert-info">Žádné odpovídající tištěné knihy.</div><?php endif; ?>
 <?php foreach($books as $book): $qty=(int)($book['stock_quantity']??0);$min=(int)($book['minimum_stock']??0); ?>
 <div class="card mb-3"><div class="card-body"><div class="row align-items-center gy-3">
-<div class="col-lg-4"><strong><?= $e($book['title']) ?></strong><div class="text-muted small"><?= $e($book['sku']??$book['slug']) ?></div><a href="eshop-produkt.php?id=<?= (int)$book['product_id'] ?>">Upravit produkt</a></div>
+<div class="col-lg-4"><strong><?= $e($book['title']) ?></strong><div class="text-muted small"><?= $e($book['sku']??$book['slug']) ?></div><?php if($racCanProductsEdit): ?><a href="eshop-produkt.php?id=<?= (int)$book['product_id'] ?>">Upravit produkt</a><?php endif; ?></div>
 <div class="col-lg-2 col-md-4"><span class="text-muted">Skladem</span><div class="fs-5 fw-bold"><?= $qty ?> ks</div></div>
 <div class="col-lg-2 col-md-4"><span class="text-muted">Minimum</span><div><?= $min ?> ks</div><?php if($qty<=0): ?><span class="badge bg-danger">Vyprodáno</span><?php elseif($qty<=$min): ?><span class="badge bg-warning text-dark">Nízké zásoby</span><?php else: ?><span class="badge bg-success">Dostupné</span><?php endif; ?></div>
-<div class="col-lg-4 col-md-12"><form method="post" class="row g-2 align-items-end"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="variant_id" value="<?= (int)$book['variant_id'] ?>">
+<?php if($racCanStockEdit): ?><div class="col-lg-4 col-md-12"><form method="post" class="row g-2 align-items-end"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="variant_id" value="<?= (int)$book['variant_id'] ?>">
 <div class="col-5"><label class="form-label small">Pohyb</label><select name="action" class="form-control"><option value="in">Příjem</option><option value="out">Výdej</option></select></div>
 <div class="col-4"><label class="form-label small">Kusů</label><input type="number" class="form-control" name="quantity" min="1" max="1000000" required></div>
 <div class="col-3"><button type="submit" class="btn btn-primary w-100">Uložit</button></div>
 <div class="col-12"><input type="text" class="form-control" maxlength="500" name="note" placeholder="Poznámka k pohybu (nepovinné)"></div>
-</form></div></div></div></div>
+</form></div><?php endif; ?></div></div></div>
 <?php endforeach; ?></div></section></div>
 <div class="tab-pane fade" id="sklad-pohyby"><section class="card"><header class="card-header"><h2 class="card-title">Historie skladových pohybů</h2></header><div class="card-body"><div class="table-responsive"><table class="table table-striped"><thead><tr><th>Datum</th><th>Kniha</th><th>Pohyb</th><th>Změna</th><th>Stav po</th><th>Poznámka</th></tr></thead><tbody>
 <?php foreach($history as $move): ?><tr><td><?= $e($move['created_at']) ?></td><td><?= $e($move['title']??('Varianta #'.$move['variant_id'])) ?></td><td><?= $e($move['source']) ?></td><td><?= (int)$move['change_qty']>0?'+':'' ?><?= (int)$move['change_qty'] ?></td><td><?= (int)$move['balance_after'] ?></td><td><?= $e($move['note']??'') ?></td></tr><?php endforeach; ?>

@@ -1,12 +1,15 @@
 <?php
-// RAC E-shop produkty | Porto/BOS24 | 2026-10-16-20.20 | PHP 7.4+
-// Strankovani server-side, pocet na stranku ve filtru, jen aktivni varianty.
+// RAC E-shop produkty | Porto/BOS24 | 2026-10-20-11.00 (RBAC 5B) | PHP 7.4
+// Zpracování dotazu a SQL převzato z původní funkční verze.
 declare(strict_types=1);
 require_once __DIR__ . '/config/session.php';
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/config/auth.php';
 require_once __DIR__ . '/config/auth_roles.php';
 require_min_role('admin');
+
+$viewer = current_user_row();
+$racCanEditProducts = $viewer !== null && rac_can($pdo, $viewer, 'products.edit');
 
 $search = trim((string)($_GET['q'] ?? ''));
 $status = (string)($_GET['status'] ?? '');
@@ -112,12 +115,12 @@ $roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRo
     </header>
     <div class="row mt-4"><div class="col-12">
         <?php if (isset($_GET['saved'])): ?><div class="alert alert-success">Produkt byl uložen.</div><?php endif; ?>
-        <div class="d-flex justify-content-start mb-3">
-            <a class="btn btn-primary" href="eshop-produkt.php"><i class="fas fa-plus me-1"></i> Vložit produkt</a>
-        </div>
         <section class="card mb-4">
-            <header class="card-header">
+            <header class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <h2 class="card-title mb-0">Katalog knih</h2>
+                <?php if ($racCanEditProducts): ?>
+                <a class="btn btn-primary" href="eshop-produkt.php"><i class="fas fa-plus me-1"></i> Vložit produkt</a>
+                <?php endif; ?>
             </header>
             <div class="card-body">
                 <form method="get" action="eshop-produkty.php" class="row g-3 align-items-end mb-4">
@@ -149,7 +152,7 @@ $roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRo
                 </form>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead><tr><th>Název</th><th>Autor</th><th>Stav</th><th class="text-center">Varianty</th><th class="text-center">Pořadí</th><th class="text-end">Akce</th></tr></thead>
+                        <thead><tr><th>Název</th><th>Autor</th><th>Stav</th><th class="text-center">Varianty</th><th class="text-center">Pořadí</th><?php if ($racCanEditProducts): ?><th class="text-end">Akce</th><?php endif; ?></tr></thead>
                         <tbody>
                         <?php foreach ($products as $product): ?>
                             <tr>
@@ -160,10 +163,10 @@ $roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRo
                                 ?><span class="badge bg-<?= $badge ?>"><?= h($statuses[$product['status']] ?? $product['status']) ?></span></td>
                                 <td class="text-center"><?= (int)$product['variant_count'] ?></td>
                                 <td class="text-center"><?= (int)$product['sort_order'] ?></td>
-                                <td class="text-end"><a class="btn btn-default btn-sm" href="eshop-produkt.php?id=<?= (int)$product['id'] ?>"><i class="fas fa-edit me-1"></i> Upravit</a></td>
+                                <?php if ($racCanEditProducts): ?><td class="text-end"><a class="btn btn-default btn-sm" href="eshop-produkt.php?id=<?= (int)$product['id'] ?>"><i class="fas fa-edit me-1"></i> Upravit</a></td><?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
-                        <?php if (!$products): ?><tr><td colspan="6" class="text-center py-4 text-muted">Žádné produkty nenalezeny.</td></tr><?php endif; ?>
+                        <?php if (!$products): ?><tr><td colspan="<?= $racCanEditProducts ? 6 : 5 ?>" class="text-center py-4 text-muted">Žádné produkty nenalezeny.</td></tr><?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -172,25 +175,21 @@ $roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRo
                         <?php if ($totalProducts > 0): ?>Zobrazeno <?= $offset + 1 ?>–<?= min($offset + $perPage, $totalProducts) ?> z <?= $totalProducts ?> knih<?php else: ?>0 knih<?php endif; ?>
                     </div>
                     <?php if ($pageCount > 1): ?>
-                    <nav aria-label="Stránkování produktů">
-                        <ul class="pagination mb-0">
-                            <li class="page-item<?= $page <= 1 ? ' disabled' : '' ?>"><a class="page-link" href="<?= h($pageUrl(max(1, $page - 1))) ?>" aria-label="Předchozí stránka">&laquo;</a></li>
-                            <?php
-                            $pages = array(1, $pageCount);
-                            for ($i = max(1, $page - 2); $i <= min($pageCount, $page + 2); $i++) $pages[] = $i;
-                            $pages = array_values(array_unique($pages));
-                            sort($pages, SORT_NUMERIC);
-                            $previous = 0;
-                            foreach ($pages as $number):
-                                if ($previous > 0 && $number > $previous + 1):
-                            ?>
-                            <li class="page-item disabled" aria-hidden="true"><span class="page-link">…</span></li>
-                            <?php endif; ?>
-                            <li class="page-item<?= $number === $page ? ' active' : '' ?>"><a class="page-link" href="<?= h($pageUrl($number)) ?>"<?= $number === $page ? ' aria-current="page"' : '' ?>><?= $number ?></a></li>
-                            <?php $previous = $number; endforeach; ?>
-                            <li class="page-item<?= $page >= $pageCount ? ' disabled' : '' ?>"><a class="page-link" href="<?= h($pageUrl(min($pageCount, $page + 1))) ?>" aria-label="Další stránka">&raquo;</a></li>
-                        </ul>
-                    </nav>
+                    <nav aria-label="Stránkování produktů"><ul class="pagination mb-0">
+                        <li class="page-item<?= $page <= 1 ? ' disabled' : '' ?>"><a class="page-link" href="<?= $e($pageUrl(max(1, $page - 1))) ?>" aria-label="Předchozí stránka">&laquo;</a></li>
+                        <?php
+                        $pages = array(1, $pageCount);
+                        for ($i = max(1, $page - 2); $i <= min($pageCount, $page + 2); $i++) $pages[] = $i;
+                        $pages = array_values(array_unique($pages));
+                        sort($pages, SORT_NUMERIC);
+                        $previous = 0;
+                        foreach ($pages as $number):
+                            if ($previous > 0 && $number > $previous + 1):
+                        ?><li class="page-item disabled" aria-hidden="true"><span class="page-link">…</span></li><?php endif; ?>
+                        <li class="page-item<?= $number === $page ? ' active' : '' ?>"><a class="page-link" href="<?= $e($pageUrl($number)) ?>"<?= $number === $page ? ' aria-current="page"' : '' ?>><?= $number ?></a></li>
+                        <?php $previous = $number; endforeach; ?>
+                        <li class="page-item<?= $page >= $pageCount ? ' disabled' : '' ?>"><a class="page-link" href="<?= $e($pageUrl(min($pageCount, $page + 1))) ?>" aria-label="Další stránka">&raquo;</a></li>
+                    </ul></nav>
                     <?php endif; ?>
                 </div>
             </div>

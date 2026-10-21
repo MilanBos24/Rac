@@ -1,5 +1,5 @@
 <?php
-// RAC digitalní distribuce - administrace / PHP 7.4+
+// RAC digitalní distribuce - administrace / PHP 7.4+ | oprávnění 5E 2026-10-20
 declare(strict_types=1);
 require_once __DIR__.'/config/session.php';
 require_once __DIR__.'/config/db.php';
@@ -8,10 +8,32 @@ require_once __DIR__.'/config/auth_roles.php';
 require_once __DIR__.'/inc/rac-digital.php';
 require_min_role('admin');
 $viewer=current_user_row();
+$racCanManageDigital = rac_can($pdo, $viewer, 'digital.manage');
+$racCanViewOrders = rac_can($pdo, $viewer, 'orders.view');
 $e=static function($v):string{return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');};
+$racDigitalOrderStatus = static function (string $status): string {
+    $labels = [
+        'awaiting_payment' => 'Čeká na platbu',
+        'paid' => 'Zaplaceno',
+        'pending' => 'Čeká',
+        'failed' => 'Neúspěšná platba',
+        'expired' => 'Platnost vypršela',
+        'cancelled' => 'Zrušeno',
+        'canceled' => 'Zrušeno',
+        'refunded' => 'Vráceno',
+        'processing' => 'Zpracovává se',
+        'fulfilled' => 'Vyřízeno',
+    ];
+    return $labels[$status] ?? $status;
+};
 $orderId=filter_var($_GET['id']??null,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]]);
 $notice='';$error='';$grants=[];$order=null;$recentOrders=[];$diagnostics=[];
 $csrf=csrf_token('rac_digital_admin');
+// Oprávnění ověřujeme i na serveru, nikoliv pouze skrytím tlačítek.
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !$racCanManageDigital) {
+    http_response_code(403);
+    exit('Přístup odepřen: nemáte oprávnění spravovat digitální přístupy.');
+}
 try {
  if(!$orderId){
   // Stránka může být otevřena z navigace bez parametru id. Nabídneme bezpečný výběr objednávky.
@@ -82,29 +104,29 @@ include __DIR__.'/inc/header.class.php';include __DIR__.'/inc/leve-meny.class.ph
 ?>
 <section role="main" class="content-body content-body-modern mt-0">
 <header class="page-header"><h2>Digitální přístupy objednávky</h2></header>
-<div class="row pt-2 mb-4"><div class="col-12"><a class="btn btn-primary" href="<?= $orderId ? 'eshop-objednavka.php?id='.(int)$orderId : 'eshop-objednavky.php' ?>">← <?= $orderId ? 'Detail objednávky' : 'Přehled objednávek' ?></a></div></div>
+<?php if($racCanViewOrders): ?><div class="row pt-2 mb-4"><div class="col-12"><a class="btn btn-primary" href="<?= $orderId ? 'eshop-objednavka.php?id='.(int)$orderId : 'eshop-objednavky.php' ?>">← <?= $orderId ? 'Detail objednávky' : 'Přehled objednávek' ?></a></div></div><?php endif; ?>
 <?php if($notice!==''): ?><div class="alert alert-success"><?= $e($notice) ?></div><?php endif; ?>
 <?php if($error!==''): ?><div class="alert alert-warning"><?= $e($error) ?></div><?php endif; ?>
 <?php if(!$orderId && !$error): ?>
 <section class="card mb-4"><header class="card-header"><h2 class="card-title">Vyberte objednávku</h2></header><div class="card-body">
 <p class="text-muted">Digitální přístupy se spravují pro konkrétní objednávku. Pro ověření testovacího nákupu vyberte zaplacenou objednávku níže.</p>
 <div class="table-responsive"><table class="table table-hover"><thead><tr><th>Objednávka</th><th>Zákazník</th><th>Stav</th><th>Akce</th></tr></thead><tbody>
-<?php foreach($recentOrders as $r): ?><tr><td><?= $e($r['order_number']) ?></td><td><?= $e($r['email']) ?></td><td><?= (int)$r['paid_count']>0 ? 'Zaplaceno (Stripe)' : $e($r['status']) ?></td><td><a class="btn btn-primary btn-sm" href="eshop-digitalni-pristupy.php?id=<?= (int)$r['id'] ?>">Digitální přístupy</a></td></tr><?php endforeach; ?>
+<?php foreach($recentOrders as $r): ?><tr><td><?= $e($r['order_number']) ?></td><td><?= $e($r['email']) ?></td><td><?= (int)$r['paid_count']>0 ? 'Zaplaceno (Stripe)' : $e($racDigitalOrderStatus((string)$r['status'])) ?></td><td><a class="btn btn-primary btn-sm" href="eshop-digitalni-pristupy.php?id=<?= (int)$r['id'] ?>">Digitální přístupy</a></td></tr><?php endforeach; ?>
 <?php if(!$recentOrders): ?><tr><td colspan="4">Zatím nejsou uložené objednávky.</td></tr><?php endif; ?>
 </tbody></table></div></div></section>
 <?php endif; ?>
 <?php if($order): ?>
 <section class="card mb-4"><header class="card-header"><h2 class="card-title">Objednávka <?= $e($order['order_number']) ?></h2></header><div class="card-body">
 <p>Zákazník: <?= $e($order['email']) ?>. Platba: <?= racDigitalPaid($pdo,(int)$orderId)?'ověřena':'nepotvrzena' ?>.</p>
-<div class="d-flex flex-wrap gap-2">
+<?php if($racCanManageDigital): ?><div class="d-flex flex-wrap gap-2">
 <form method="post"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="order_id" value="<?= (int)$orderId ?>"><input type="hidden" name="action" value="grant"><button class="btn btn-primary" type="submit">Vytvořit chybějící odkazy</button></form>
 <form method="post"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="order_id" value="<?= (int)$orderId ?>"><input type="hidden" name="action" value="resend"><button class="btn btn-primary" type="submit">Znovu odeslat e-mail</button></form>
 </div>
-<p class="text-muted small mt-3">Odkazy se tvoří pouze pro ověřeně zaplacenou objednávku. E-mail se odešle pouze při výslovně povolené konfiguraci. Testovací platby mohou mít skutečný zákaznický e-mail – testujte s vlastní adresou.</p>
+<p class="text-muted small mt-3">Odkazy se tvoří pouze pro ověřeně zaplacenou objednávku. E-mail se odešle pouze při výslovně povolené konfiguraci. Testovací platby mohou mít skutečný zákaznický e-mail – testujte s vlastní adresou.</p><?php endif; ?>
 </div></section>
-<?php if($diagnostics): ?><section class="card mb-4"><header class="card-header"><h2 class="card-title">Kontrola automatického vyřízení</h2></header><div class="card-body"><p class="text-muted">Tato kontrola pomáhá určit, proč je zaplacená objednávka stále nová. Neukazuje žádné tajné klíče.</p><div class="table-responsive"><table class="table table-sm"><tbody><?php foreach($diagnostics as $d): ?><tr><th><?= $e($d[0]) ?></th><td><?= $e($d[1]) ?></td></tr><?php endforeach; ?></tbody></table></div><p class="small text-muted">Pokud jsou všechny podmínky splněné, použijte „Vytvořit chybějící odkazy“. Chyba se zobrazí v horní části stránky.</p></div></section><?php endif; ?>
+<?php if($diagnostics): ?><section class="card mb-4"><header class="card-header"><h2 class="card-title">Kontrola automatického vyřízení</h2></header><div class="card-body"><p class="text-muted">Tato kontrola pomáhá určit, proč je zaplacená objednávka stále nová. Neukazuje žádné tajné klíče.</p><div class="table-responsive"><table class="table table-sm"><tbody><?php foreach($diagnostics as $d): ?><tr><th><?= $e($d[0]) ?></th><td><?= $e($d[1]) ?></td></tr><?php endforeach; ?></tbody></table></div><p class="small text-muted">Pokud jsou všechny podmínky splněné, může uživatel s oprávněním ke správě vytvořit chybějící odkazy. Chyba se zobrazí v horní části stránky.</p></div></section><?php endif; ?>
 <section class="card mb-4"><header class="card-header"><h2 class="card-title">Vydané odkazy</h2></header><div class="card-body"><div class="table-responsive"><table class="table"><thead><tr><th>Soubor</th><th>Platnost</th><th>Stažení</th><th>Stav</th><th>Akce</th></tr></thead><tbody>
-<?php foreach($grants as $g): ?><tr><td><?= $e($g['original_filename']) ?></td><td><?= $e($g['expires_at']) ?></td><td><?= (int)$g['download_count'] ?></td><td><?= $g['revoked_at']===null?'Platný (do expirace)':'Zneplatněn' ?></td><td><?php if($g['revoked_at']===null): ?><form method="post" onsubmit="return confirm('Zneplatnit odkaz?');"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="order_id" value="<?= (int)$orderId ?>"><input type="hidden" name="action" value="revoke"><input type="hidden" name="access_id" value="<?= (int)$g['id'] ?>"><button class="btn btn-danger btn-sm">Zneplatnit</button></form><?php endif; ?></td></tr><?php endforeach; ?>
+<?php foreach($grants as $g): ?><tr><td><?= $e($g['original_filename']) ?></td><td><?= $e($g['expires_at']) ?></td><td><?= (int)$g['download_count'] ?></td><td><?= $g['revoked_at']===null?'Platný (do expirace)':'Zneplatněn' ?></td><td><?php if($racCanManageDigital && $g['revoked_at']===null): ?><form method="post" onsubmit="return confirm('Zneplatnit odkaz?');"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="order_id" value="<?= (int)$orderId ?>"><input type="hidden" name="action" value="revoke"><input type="hidden" name="access_id" value="<?= (int)$g['id'] ?>"><button class="btn btn-danger btn-sm">Zneplatnit</button></form><?php endif; ?></td></tr><?php endforeach; ?>
 <?php if(!$grants): ?><tr><td colspan="5">Zatím nejsou vygenerované žádné odkazy.</td></tr><?php endif; ?></tbody></table></div></div></section>
 <?php endif; ?>
 </section><?php include __DIR__.'/inc/footer.class.php'; ?>

@@ -8,6 +8,42 @@ if (empty($racUsePortoLayout)) {
 <?php
 /** RAC Porto shared left navigation; 2026-10-12-04. */
 ?>
+<?php
+// RAC RBAC – viditelnost navigace odpovida serverove kontrole faze 2.
+require_once __DIR__ . '/../config/permissions.php';
+$racMenuUser = current_user_row();
+$racIsSuper = $racMenuUser && strtolower((string)($racMenuUser['role'] ?? '')) === 'superadmin';
+$racMenuAllowed = static function (string $permission) use ($pdo, $racMenuUser, $racIsSuper): bool {
+    return $racIsSuper || ($racMenuUser !== null && rac_can($pdo, $racMenuUser, $permission));
+};
+// Shodne se seznamem v auth_roles.php (faze 2).
+$racMenuPermissions = [
+ '/administrace/dashboard.php'=>'dashboard.view',
+ '/administrace/eshop-produkty.php'=>'products.view',
+ '/administrace/eshop-produkt.php'=>'products.view',
+ '/administrace/eshop-fotografie.php'=>'products.view',
+ '/administrace/eshop-soubory.php'=>'products.view',
+ '/administrace/eshop-sklad.php'=>'stock.view',
+ '/administrace/eshop-objednavky.php'=>'orders.view',
+ '/administrace/eshop-objednavka.php'=>'orders.view',
+ '/administrace/eshop-platby.php'=>'payments.view',
+ '/administrace/eshop-digitalni-pristupy.php'=>'digital.view',
+ '/administrace/eshop-doprava.php'=>'shipping.manage',
+ '/administrace/obsah-uvod.php'=>'content.manage',
+ '/administrace/obsah-autor.php'=>'content.manage',
+ '/administrace/obsah-kontakt.php'=>'content.manage',
+ '/administrace/jazyky.php'=>'languages.manage',
+ '/administrace/kontaktni-formular.php'=>'contact.manage',
+ '/administrace/sprava-admin.php'=>'users.manage',
+ '/administrace/sprava-admin-zobrazit.php'=>'users.manage',
+ '/administrace/billing/admin.php'=>'billing.manage',
+ '/administrace/billing/admin-platby.php'=>'billing.manage',
+ '/administrace/billing/admin-webhooky.php'=>'billing.manage',
+ '/administrace/billing/admin-diagnostika.php'=>'billing.manage',
+ '/administrace/nastaveni-role.php'=>'system.roles',
+ '/administrace/nastaveni-sql.php'=>'system.roles',
+];
+?>
 <aside id="sidebar-left" class="sidebar-left">
   <div class="sidebar-header">
     <div class="sidebar-title">Navigace</div>
@@ -98,6 +134,18 @@ if (empty($racUsePortoLayout)) {
           } else {
               $menuGroups[$racAdminIndex][1][] = $racLanguagesItem;
           }
+          // RAC servis 2026-10-20: starší Billing stránky přesunuty mimo Platební bránu.
+          $racBillingRetired = [
+              '/administrace/billing/admin-platby.php',
+              '/administrace/billing/admin-webhooky.php',
+              '/administrace/billing/admin-diagnostika.php',
+          ];
+          foreach ($menuGroups as &$racBillingGroup) {
+              $racBillingGroup[1] = array_values(array_filter($racBillingGroup[1], static function ($racItem) use ($racBillingRetired) {
+                  return !in_array((string)($racItem[1] ?? ''), $racBillingRetired, true);
+              }));
+          }
+          unset($racBillingGroup);
           // Přejmenovat Billing a skrýt pouze billingové Produkty a Předplatné.
           // Položku E-shop / Produkty zachovat.
           foreach ($menuGroups as &$racGroup) {
@@ -123,7 +171,33 @@ if (empty($racUsePortoLayout)) {
               return $ia <=> $ib;
           });
           ?>
-          <?php foreach ($menuGroups as $group): ?>
+          <?php
+          // Nastaveni systemu neni soucasti bezne administrace.
+          if ($racIsSuper) {
+              $menuGroups[] = ['Nastavení systému', [
+                  ['Role a oprávnění', '/administrace/nastaveni-role.php', 'icons icon-lock'],
+                  ['SQL', '/administrace/nastaveni-sql.php', 'icons icon-layers'],
+                  ['Webhooky', '/administrace/billing/admin-webhooky.php', 'icons icon-shuffle'],
+                  ['Diagnostika', '/administrace/billing/admin-diagnostika.php', 'icons icon-wrench'],
+              ]];
+          }
+          // Skrývat nedostupné URL; neznámé položky neukazovat běžným rolím.
+          $racVisibleGroups = [];
+          foreach ($menuGroups as $racVisibleGroup) {
+              $racVisibleItems = [];
+              foreach (($racVisibleGroup[1] ?? []) as $racVisibleItem) {
+                  $racUrl = (string)($racVisibleItem[1] ?? '');
+                  $racPerm = $racMenuPermissions[$racUrl] ?? null;
+                  if ($racIsSuper || ($racPerm !== null && $racMenuAllowed($racPerm))) {
+                      $racVisibleItems[] = $racVisibleItem;
+                  }
+              }
+              if ($racVisibleItems) {
+                  $racVisibleGroups[] = [$racVisibleGroup[0], $racVisibleItems];
+              }
+          }
+          ?>
+          <?php foreach ($racVisibleGroups as $group): ?>
             <li style="font-size: 12px; font-size: 0.75rem; padding: 12px 25px; text-overflow: ellipsis; text-transform: uppercase; color: #CFA9D8;"><?= $e($group[0]) ?></li>
             <?php foreach ($group[1] as $item): ?>
               <?php $active = $currentPath === $item[1]; ?>

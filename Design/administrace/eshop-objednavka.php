@@ -1,5 +1,5 @@
 <?php
-// RAC administrace objednávek, PHP 7.4+, verze 2026-10-15
+// RAC administrace objednávek, PHP 7.4+, verze 2026-10-20-5D
 // Read-only: stav platby upravuje pouze ověřený Stripe webhook.
 declare(strict_types=1);
 require_once __DIR__.'/config/session.php';
@@ -8,6 +8,8 @@ require_once __DIR__.'/config/auth.php';
 require_once __DIR__.'/config/auth_roles.php';
 require_min_role('admin');
 $viewer=current_user_row();
+$racCanFulfill = rac_can($pdo, $viewer, 'orders.fulfill');
+$racCanDeleteTest = rac_can($pdo, $viewer, 'orders.delete_test');
 $e=static function($v):string{return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');};
 function rac_orders_table(PDO $pdo,string $name):bool {
     $s=$pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?');
@@ -60,6 +62,7 @@ unset($_SESSION['rac_fulfillment_ok']);
 $fulfillmentCsrf = csrf_token('csrf_rac_fulfillment');
 $fulfillmentStates = ['new'=>'Nová', 'processing'=>'Připravuje se', 'shipped'=>'Odeslána', 'completed'=>'Dokončena', 'cancelled'=>'Zrušena'];
 if(($_SERVER['REQUEST_METHOD']??'GET')==='POST' && ($_POST['action']??'')==='save_fulfillment'){
+ if(!$racCanFulfill){http_response_code(403);exit('Přístup odepřen: chybí oprávnění orders.fulfill.');}
  if(!$fulfillmentReady){$error='Nejprve spusťte SQL migraci 014_eshop_order_fulfillment.sql.';}
  elseif(!$id || !$order){$error='Objednávka nebyla nalezena.';}
  elseif(!csrf_valid('csrf_rac_fulfillment',(string)($_POST['csrf']??''))){$error='Neplatný bezpečnostní token.';}
@@ -91,6 +94,7 @@ if($fulfillmentReady && $id && $order){
 }
 // Trvalé odstranění pouze testovacích objednávek – žádná změna stavu platby ani skladových zásob.
 if(($_SERVER['REQUEST_METHOD']??'GET')==='POST' && ($_POST['action']??'')==='delete_test_order'){
+ if(!$racCanDeleteTest){http_response_code(403);exit('Přístup odepřen: chybí oprávnění orders.delete_test.');}
  if(!csrf_valid('csrf_eshop_order_delete',(string)($_POST['csrf']??''))){$error='Neplatný bezpečnostní token.';}
  elseif(!$id||!$isTestOrder){$error='Smazat lze pouze objednávku s výhradně testovacími platbami Stripe.';}
  elseif((int)($_POST['order_id']??0)!==(int)$id){$error='Neplatná objednávka.';}
@@ -141,7 +145,7 @@ $fieldNames=['order_number'=>'Číslo objednávky','status'=>'Stav','email'=>'E-
 <?php if($fulfillmentOk!==''): ?><div class="alert alert-success"><?= $e($fulfillmentOk) ?></div><?php endif; ?>
 <?php if($order): ?>
 <section class="card mb-4"><header class="card-header"><h2 class="card-title">Vyřízení a expedice</h2></header><div class="card-body">
-<?php if(!$fulfillmentReady): ?><div class="alert alert-warning">Evidence vyřízení zatím není nainstalována. Spusťte SQL migraci <code>014_eshop_order_fulfillment.sql</code>.</div><?php else: ?>
+<?php if(!$fulfillmentReady): ?><div class="alert alert-warning">Evidence vyřízení zatím není nainstalována. Spusťte SQL migraci <code>014_eshop_order_fulfillment.sql</code>.</div><?php elseif($racCanFulfill): ?>
 <form method="post" autocomplete="off"><input type="hidden" name="action" value="save_fulfillment"><input type="hidden" name="csrf" value="<?= $e($fulfillmentCsrf) ?>"><input type="hidden" name="order_id" value="<?= (int)$id ?>">
 <div class="row form-group pb-3"><div class="col-lg-4 mb-3"><label class="form-label" for="fulfillment_status">Stav vyřízení</label><select class="form-control" name="fulfillment_status" id="fulfillment_status"><?php foreach($fulfillmentStates as $key=>$label): ?><option value="<?= $e($key) ?>" <?= ($fulfillment['fulfillment_status']??'new')===$key?'selected':'' ?>><?= $e($label) ?></option><?php endforeach; ?></select></div>
 <div class="col-lg-4 mb-3"><label class="form-label" for="carrier">Dopravce</label><input id="carrier" name="carrier" maxlength="120" class="form-control" value="<?= $e($fulfillment['carrier']??'') ?>" placeholder="Např. Zásilkovna"></div>
@@ -149,9 +153,12 @@ $fieldNames=['order_number'=>'Číslo objednávky','status'=>'Stav','email'=>'E-
 <div class="row"><div class="col-12 mb-3"><label class="form-label" for="admin_note">Interní poznámka</label><textarea id="admin_note" name="admin_note" class="form-control" maxlength="2000" rows="3"><?= $e($fulfillment['admin_note']??'') ?></textarea></div></div>
 <div class="text-end"><button type="submit" class="btn btn-primary">Uložit vyřízení</button></div>
 </form><p class="text-muted small mt-3 mb-0">Změna vyřízení neoznačuje platbu jako zaplacenou, neodesílá e-maily ani nemění skladové zásoby. Tyto procesy napojíme po otestování objednávek.</p>
+<?php else: ?>
+<div class="row g-3"><div class="col-md-4"><strong>Stav vyřízení:</strong> <?= $e($fulfillmentStates[$fulfillment['fulfillment_status']??'new']??'Nová') ?></div><div class="col-md-4"><strong>Dopravce:</strong> <?= $e($fulfillment['carrier']??'—') ?></div><div class="col-md-4"><strong>Sledovací číslo:</strong> <?= $e($fulfillment['tracking_number']??'—') ?></div></div>
+<?php if(!empty($fulfillment['admin_note'])): ?><div class="mt-3"><strong>Interní poznámka:</strong> <?= nl2br($e($fulfillment['admin_note'])) ?></div><?php endif; ?>
 <?php endif; ?></div></section>
 
-<?php if($isTestOrder): ?>
+<?php if($isTestOrder && $racCanDeleteTest): ?>
 <section class="card mb-4" id="smazat-test"><header class="card-header"><h2 class="card-title">Testovací objednávka</h2></header><div class="card-body"><p class="text-muted">Tuto objednávku lze trvale odstranit včetně jejích testovacích platebních záznamů a položek. Záznamy ve Stripe zůstanou zachované. Skladové zásoby se touto operací nepřepočítají.</p>
 <form method="post" onsubmit="return confirm('Opravdu trvale smazat testovací objednávku a její platební záznamy? Tato operace je nevratná.');"><input type="hidden" name="action" value="delete_test_order"><input type="hidden" name="order_id" value="<?= (int)$id ?>"><input type="hidden" name="csrf" value="<?= $e($deleteCsrf) ?>"><button class="btn btn-danger" type="submit">Smazat testovací objednávku</button></form></div></section>
 <?php endif; ?>

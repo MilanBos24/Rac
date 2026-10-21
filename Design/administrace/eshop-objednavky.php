@@ -1,5 +1,5 @@
 <?php
-// RAC administrace objednávek, PHP 7.4+, verze 2026-10-16-20.25
+// RAC administrace objednávek, PHP 7.4+, verze 2026-10-20-10.30 | RBAC 5D
 // Read-only: stav platby upravuje pouze ověřený Stripe webhook.
 declare(strict_types=1);
 require_once __DIR__.'/config/session.php';
@@ -8,6 +8,10 @@ require_once __DIR__.'/config/auth.php';
 require_once __DIR__.'/config/auth_roles.php';
 require_min_role('admin');
 $viewer=current_user_row();
+// Faze 5D: prava k navigacnim tlacitkum a testovacimu mazani.
+$racCanProducts = rac_can($pdo, $viewer, 'products.view');
+$racCanStock = rac_can($pdo, $viewer, 'stock.view');
+$racCanDeleteTest = rac_can($pdo, $viewer, 'orders.delete_test');
 $e=static function($v):string{return htmlspecialchars((string)$v,ENT_QUOTES,'UTF-8');};
 function rac_orders_table(PDO $pdo,string $name):bool {
     $s=$pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?');
@@ -126,7 +130,12 @@ try {
 <section role="main" class="content-body content-body-modern mt-0">
 <header class="page-header"><h2><?= $e($pageTitle) ?></h2></header>
 
-<div class="row justify-content-center justify-content-sm-between pt-2 mb-4"><div class="col-sm-auto mb-2"><a class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4" href="eshop-produkty.php">Produkty</a> <a class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4" href="eshop-sklad.php">Sklad knih</a></div></div>
+<?php if ($racCanProducts || $racCanStock): ?>
+<div class="row justify-content-center justify-content-sm-between pt-2 mb-4"><div class="col-sm-auto mb-2">
+<?php if ($racCanProducts): ?><a class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4" href="eshop-produkty.php">Produkty</a><?php endif; ?>
+<?php if ($racCanStock): ?> <a class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4" href="eshop-sklad.php">Sklad knih</a><?php endif; ?>
+</div></div>
+<?php endif; ?>
 <?php if($deletedMessage!==''): ?><div class="alert alert-success"><?= $e($deletedMessage) ?></div><?php endif; ?>
 <?php if($error): ?><div class="alert alert-warning"><?= $e($error) ?></div><?php endif; ?>
 <div class="row mb-4">
@@ -145,7 +154,7 @@ try {
   <?php endforeach; ?>
 <?php else: ?><div class="text-muted small">Položky objednávky nejsou dostupné.</div><?php endif; ?>
 <div class="small text-muted mt-1"><?= $e($o['order_number']) ?></div>
-</td><td><?= $e($o['email']) ?></td><td class="text-nowrap"><?= $e(rac_orders_money($o['total'],$o['currency'])) ?></td><td><span class="badge <?= $o['status']==='paid'?'bg-success':($o['status']==='awaiting_payment'?'bg-warning text-dark':'bg-secondary') ?>"><?= $e(rac_orders_label((string)$o['status'])) ?></span></td><td><span class="badge bg-info text-dark"><?= $e(['new'=>'Nová','processing'=>'Připravuje se','shipped'=>'Odeslána','completed'=>'Dokončena','cancelled'=>'Zrušena'][$fulfillmentByOrder[(int)$o['id']]??'new']??'Nová') ?></span></td><td class="text-nowrap"><?= $e($o['created_at']??$o['created']??'—') ?></td><td><a class="btn btn-default btn-sm mb-1 mt-1 me-1" href="eshop-objednavka.php?id=<?= (int)$o['id'] ?>" title="Zobrazit detail" aria-label="Zobrazit detail"><i class="fas fa-search"></i></a><?php if(isset($testOrderIds[(int)$o['id']])): ?> <a class="btn btn-default btn-sm mb-1 mt-1 me-1" href="eshop-objednavka.php?id=<?= (int)$o['id'] ?>#smazat-test" title="Smazat testovací objednávku" aria-label="Smazat testovací objednávku"><i class="fas fa-trash-alt text-danger"></i></a><?php endif; ?></td></tr>
+</td><td><?= $e($o['email']) ?></td><td class="text-nowrap"><?= $e(rac_orders_money($o['total'],$o['currency'])) ?></td><td><span class="badge <?= $o['status']==='paid'?'bg-success':($o['status']==='awaiting_payment'?'bg-warning text-dark':'bg-secondary') ?>"><?= $e(rac_orders_label((string)$o['status'])) ?></span></td><td><span class="badge bg-info text-dark"><?= $e(['new'=>'Nová','processing'=>'Připravuje se','shipped'=>'Odeslána','completed'=>'Dokončena','cancelled'=>'Zrušena'][$fulfillmentByOrder[(int)$o['id']]??'new']??'Nová') ?></span></td><td class="text-nowrap"><?= $e($o['created_at']??$o['created']??'—') ?></td><td><a class="btn btn-default btn-sm mb-1 mt-1 me-1" href="eshop-objednavka.php?id=<?= (int)$o['id'] ?>" title="Zobrazit detail" aria-label="Zobrazit detail"><i class="fas fa-search"></i></a><?php if($racCanDeleteTest && isset($testOrderIds[(int)$o['id']])): ?> <a class="btn btn-default btn-sm mb-1 mt-1 me-1" href="eshop-objednavka.php?id=<?= (int)$o['id'] ?>#smazat-test" title="Smazat testovací objednávku" aria-label="Smazat testovací objednávku"><i class="fas fa-trash-alt text-danger"></i></a><?php endif; ?></td></tr>
 <?php endforeach; ?>
 <?php if(!$orders): ?><tr><td colspan="7" class="text-muted">Žádné objednávky k zobrazení.</td></tr><?php endif; ?>
 </tbody></table></div>

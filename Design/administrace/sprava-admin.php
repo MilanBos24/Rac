@@ -8,12 +8,15 @@ require_once __DIR__ . '/config/auth_roles.php';
 require_min_role('admin');
 $currentUser = current_user_row();
 $isSuperadmin = $currentUser && strtolower((string)$currentUser['role']) === 'superadmin';
+// Role RBAC z databáze; systémový superadmin je oddělen od vlastních rolí.
+$racRoles = $pdo->query("SELECT role_key,role_name FROM admin_roles WHERE role_key <> 'superadmin' ORDER BY is_system DESC,role_name")->fetchAll(PDO::FETCH_ASSOC);
+$racRoleKeys = array_column($racRoles, 'role_key');
 $errors = array();
 $ok = null;
-$in = array('email'=>'', 'username'=>'', 'jmeno'=>'', 'prijmeni'=>'', 'role'=>'admin');
+$in = array('email'=>'', 'username'=>'', 'jmeno'=>'', 'prijmeni'=>'', 'role'=>'admin', 'custom_role'=>'admin');
 $csrf = csrf_token('csrf_admin_add');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    foreach (array('email','username','jmeno','prijmeni','role') as $name) {
+    foreach (array('email','username','jmeno','prijmeni','role','custom_role') as $name) {
         $in[$name] = trim(isset($_POST[$name]) ? (string)$_POST[$name] : '');
     }
     $password = isset($_POST['password']) ? (string)$_POST['password'] : '';
@@ -24,6 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($in['username'] === '' || mb_strlen($in['username']) > 100) $errors[] = 'Zadejte uživatelské jméno (max. 100 znaků).';
     if (!in_array($in['role'], array('admin','superadmin'), true)) $errors[] = 'Neplatná role.';
     if ($in['role'] === 'superadmin' && !$isSuperadmin) $errors[] = 'Pouze superadmin může vytvořit dalšího superadmina.';
+    if (!$isSuperadmin) { $in['role']='admin'; $in['custom_role']='admin'; }
+    if ($in['role']==='admin' && !in_array($in['custom_role'],$racRoleKeys,true)) $errors[]='Neplatná přístupová role.';
     if (strlen($password) < 10) $errors[] = 'Heslo musí mít alespoň 10 znaků.';
     if ($password !== $password2) $errors[] = 'Hesla se neshodují.';
     if (!$errors) {
@@ -39,17 +44,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (!$errors) {
         try {
+            $pdo->beginTransaction();
             $stmt=$pdo->prepare('INSERT INTO users (username, jmeno, prijmeni, email, foto, heslo_hash, role, is_active, created) VALUES (:username,:jmeno,:prijmeni,:email,:foto,:heslo_hash,:role,1,NOW())');
             $stmt->execute(array(
                 ':username'=>$in['username'], ':jmeno'=>$in['jmeno']!==''?$in['jmeno']:null,
                 ':prijmeni'=>$in['prijmeni']!==''?$in['prijmeni']:null, ':email'=>$in['email'],
                 ':foto'=>$photo, ':heslo_hash'=>password_hash($password,PASSWORD_DEFAULT), ':role'=>$in['role']
             ));
+            if ($in['role']==='admin') {
+                $newUserId=(int)$pdo->lastInsertId();
+                $st=$pdo->prepare('INSERT INTO admin_user_roles(user_id,role_key) VALUES (?,?)');
+                $st->execute(array($newUserId,$in['custom_role']));
+            }
+            $pdo->commit();
             $ok='Administrátor byl úspěšně vytvořen.';
-            $in=array('email'=>'','username'=>'','jmeno'=>'','prijmeni'=>'','role'=>'admin');
+            $in=array('email'=>'','username'=>'','jmeno'=>'','prijmeni'=>'','role'=>'admin','custom_role'=>'admin');
             unset($_SESSION['csrf_admin_add']);
             $csrf=csrf_token('csrf_admin_add');
         } catch (Throwable $ex) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            error_log('RAC admin create RBAC: '.$ex->getMessage());
             if ($photo !== null) delete_user_photo($photo);
             $errors[]='Administrátora se nepodařilo vytvořit.';
         }
@@ -113,6 +127,7 @@ $roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRo
 <div class="col-12 col-md-6 col-xl-4"><label class="form-label" for="rac_admin_email">Email</label><input class="form-control" id="rac_admin_email" type="email" name="email" required maxlength="191" value="<?= h($in['email']) ?>"></div>
 <div class="col-12 col-md-6 col-xl-4"><label class="form-label" for="rac_admin_username">Uživatelské jméno</label><input class="form-control" id="rac_admin_username" type="text" name="username" required maxlength="100" value="<?= h($in['username']) ?>"></div>
 <div class="col-12 col-md-6 col-xl-4"><label class="form-label" for="rac_admin_role">Role</label><select class="form-select" id="rac_admin_role" name="role" required><option value="admin" <?= $in['role']==='admin'?'selected':'' ?>>Administrátor</option><?php if ($isSuperadmin): ?><option value="superadmin" <?= $in['role']==='superadmin'?'selected':'' ?>>Superadmin</option><?php endif; ?></select></div>
+<div class="col-12 col-md-6 col-xl-4"><label class="form-label" for="rac_admin_custom_role">Přístupová role</label><select class="form-select" id="rac_admin_custom_role" name="custom_role" <?= !$isSuperadmin?'disabled':'' ?>><?php foreach($racRoles as $rr): ?><option value="<?= h($rr['role_key']) ?>" <?= $in['custom_role']===$rr['role_key']?'selected':'' ?>><?= h($rr['role_name']) ?></option><?php endforeach; ?></select><small class="form-text text-muted">Platí pouze pro Admin. Superadmin má vždy všechna práva.</small></div>
 <div class="col-12 col-md-6 col-xl-4"><label class="form-label" for="rac_admin_jmeno">Jméno</label><input class="form-control" id="rac_admin_jmeno" type="text" name="jmeno" value="<?= h($in['jmeno']) ?>"></div>
 <div class="col-12 col-md-6 col-xl-4"><label class="form-label" for="rac_admin_prijmeni">Příjmení</label><input class="form-control" id="rac_admin_prijmeni" type="text" name="prijmeni" value="<?= h($in['prijmeni']) ?>"></div>
 <div class="col-12 col-md-6 col-xl-4"><label class="form-label" for="rac_admin_foto">Profilová fotografie</label><input class="form-control" id="rac_admin_foto" type="file" name="foto" accept="image/jpeg,image/png,image/gif,image/webp"><small class="form-text text-muted">JPG, PNG, GIF nebo WEBP; max. 3 MB</small></div>

@@ -8,6 +8,15 @@ if (empty($racUsePortoLayout)) {
 <?php
 /** RAC Porto header – 2026-10-20-09-12. Top navigation + yellow active/hover styles. */
 ?>
+<?php
+// RAC RBAC navigace, 2026-10-20-faze3. Fail closed pro neznama prava.
+require_once __DIR__ . '/../config/permissions.php';
+$racMenuUser = current_user_row();
+$racIsSuper = $racMenuUser && strtolower((string)($racMenuUser['role'] ?? '')) === 'superadmin';
+$racMenuAllowed = static function (string $permission) use ($pdo, $racMenuUser, $racIsSuper): bool {
+    return $racIsSuper || ($racMenuUser !== null && rac_can($pdo, $racMenuUser, $permission));
+};
+?>
 <!doctype html>
 <html class="fixed header-dark" lang="cs">
 <head>
@@ -67,6 +76,15 @@ if (empty($racUsePortoLayout)) {
           ?>
           <ul class="nav nav-pills" id="mainNav">
             <?php foreach ($racTopItems as $racTopItem): ?>
+              <?php
+                $racTopPermission = [
+                  '/administrace/dashboard.php'=>'dashboard.view',
+                  '/administrace/eshop-produkty.php'=>'products.view',
+                  '/administrace/eshop-sklad.php'=>'stock.view',
+                  '/administrace/eshop-objednavky.php'=>'orders.view',
+                ][$racTopItem[1]] ?? null;
+                if ($racTopPermission === null || !$racMenuAllowed($racTopPermission)) continue;
+              ?>
               <?php $racNavActive = in_array($racNavFile, $racTopItem[3], true); ?>
               <li><a class="nav-link<?= $racNavActive ? ' active' : '' ?>" href="<?= $e($racTopItem[1]) ?>"<?= $racNavActive ? ' aria-current="page"' : '' ?>>
                 <i class="<?= $e($racTopItem[2]) ?>" aria-hidden="true"></i><span><?= $e($racTopItem[0]) ?></span>

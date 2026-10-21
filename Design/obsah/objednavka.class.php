@@ -31,6 +31,11 @@ $subtotal=0;foreach($racCheckoutLines as $l)$subtotal+=$l['total'];
 .checkout-page .rac-shipping-option span{flex:1}
 .checkout-page .rac-shipping-option:has(input:checked){outline:1px solid var(--ogency-base)}
 @media(max-width:991px){.checkout-page .checkout-page__shipping-address{margin-top:35px}}
+
+.checkout-page .rac-digital-consent {padding:17px 20px;background:var(--ogency-black2);border:1px solid rgba(255,255,255,.22);margin:22px 0;color:#fff}
+.checkout-page .rac-digital-consent label {display:flex;align-items:flex-start;gap:13px;color:#fff;line-height:1.6;cursor:pointer}
+.checkout-page .rac-digital-consent input[type="checkbox"] {appearance:auto;-webkit-appearance:checkbox;width:20px;height:20px;flex:0 0 20px;margin-top:4px;accent-color:var(--ogency-base)}
+.checkout-page .rac-digital-consent strong {color:var(--ogency-base);display:block;margin-bottom:8px}
 </style>
 <section class="checkout-page"><div class="container">
 <?php foreach($racCheckoutErrors as $error): ?><p class="alert alert-danger"><?= $esc($error) ?></p><?php endforeach; ?>
@@ -76,14 +81,19 @@ $subtotal=0;foreach($racCheckoutLines as $l)$subtotal+=$l['total'];
 <div class="checkout-page__your-order">
 <h2 class="checkout-page__your-order__title"><?= $esc(__('checkout.your_order')) ?></h2>
 <table class="checkout-page__order-table"><colgroup><col style="width:58%"><col style="width:42%"></colgroup><thead class="order_table_head"><tr><th><?= $esc(__('checkout.product')) ?></th><th class="right"><?= $esc(__('cart.price')) ?></th></tr></thead><tbody>
-<?php foreach($racCheckoutLines as $l): ?><tr><td class="pro__title"><span class="rac-order-book"><?= $esc($l['product']['title']) ?></span><span class="rac-order-book-meta"> (<?= $esc(__('product.kind.' . $l['variant']['kind'])) ?>) × <?= (int)$l['quantity'] ?></span></td><td class="pro__price"><?= $esc(racShopMoney((string)$l['total'],$racCheckoutCurrency)) ?></td></tr><?php endforeach; ?>
+<?php foreach($racCheckoutLines as $l): ?><tr><td class="pro__title"><span class="rac-order-book"><?= $esc($l['product']['title']) ?></span><span class="rac-order-book-meta"> (<?= $esc(__('product.kind.' . $l['variant']['kind'])) ?> – <?= $esc(racEditionLanguage($l['variant']['language_code'] ?? null)) ?>) × <?= (int)$l['quantity'] ?></span></td><td class="pro__price"><?= $esc(racShopMoney((string)$l['total'],$racCheckoutCurrency)) ?></td></tr><?php endforeach; ?>
 <tr><td class="pro__title"><?= $esc(__('cart.subtotal')) ?></td><td class="pro__price"><?= $esc(racShopMoney((string)$subtotal,$racCheckoutCurrency)) ?></td></tr>
 <tr><td class="pro__title"><?= $esc(__('cart.shipping')) ?></td><td class="pro__price" id="rac-shipping-total"><?= $racCheckoutPhysical?$esc(__('checkout.as_selected')):$esc(__('checkout.free')) ?></td></tr>
 <tr><td class="pro__title"><strong><?= $esc(__('cart.total')) ?></strong></td><td class="pro__price"><strong id="rac-price-total"><?= $esc(racShopMoney((string)$subtotal,$racCheckoutCurrency)) ?></strong></td></tr>
 </tbody></table>
 <div class="checkout-page__payment">
 <div class="checkout-page__payment__item checkout-page__payment__item--active"><h3 class="checkout-page__payment__title"><?= $esc(__('checkout.payment')) ?></h3><div class="checkout-page__payment__content" style="display:block"><?= $esc(__('checkout.payment_future')) ?></div></div>
-</div><div class="rac-checkout-actions"><a href="<?= $esc(racUrl('kosik.php')) ?>" class="ogency-btn"><?= $esc(__('checkout.back_to_cart')) ?></a><button type="submit" class="ogency-btn"><?= $esc(__('checkout.to_payment')) ?></button></div></div></div>
+</div><?php if(!empty($racCheckoutDigital)): ?>
+<div class="rac-digital-consent" id="rac-digital-consent-box">
+<strong><?= $esc(racCheckoutDigitalConsentHeading((string)$currentLanguage)) ?></strong>
+<label for="rac-digital-consent"><input type="checkbox" name="digital_immediate_consent" id="rac-digital-consent" value="1" required <?= (string)($_POST['digital_immediate_consent']??'')==='1'?'checked':'' ?>>
+<span><?= $esc(racCheckoutDigitalConsentText((string)$currentLanguage)) ?></span></label>
+</div><?php endif; ?><div class="rac-checkout-actions"><a href="<?= $esc(racUrl('kosik.php')) ?>" class="ogency-btn"><?= $esc(__('checkout.back_to_cart')) ?></a><button type="submit" class="ogency-btn"><?= $esc(__('checkout.to_payment')) ?></button></div></div></div>
 </div>
 </form>
 <script>(function(){var same=document.getElementById('rac-billing-same'),fields=document.getElementById('rac-billing-fields'),country=document.getElementById('shipping_country'),radios=document.querySelectorAll('input[name="shipping_method_id"]'),pickup=document.getElementById('rac-pickup-area'),pickupInput=pickup&&pickup.querySelector('input'),total=document.getElementById('rac-price-total');function update(){if(same&&fields){fields.hidden=same.checked;fields.querySelectorAll('input').forEach(function(el){el.required=!same.checked;});}var selected=document.querySelector('input[name="shipping_method_id"]:checked');if(pickup){pickup.hidden=!(selected&&selected.dataset.type==='pickup_point');if(pickupInput)pickupInput.required=!pickup.hidden;}if(total){var amount=<?= json_encode((float)$subtotal) ?>+(selected?parseFloat(selected.dataset.price)||0:0);total.textContent=amount.toLocaleString(<?= json_encode(['cs'=>'cs-CZ','sk'=>'sk-SK','en'=>'en-US','de'=>'de-DE','fr'=>'fr-FR','pl'=>'pl-PL'][$currentLanguage] ?? 'cs-CZ') ?>,{minimumFractionDigits:2,maximumFractionDigits:2})+' <?= $esc($racCheckoutCurrency) ?>';var shippingTotal=document.getElementById('rac-shipping-total');if(shippingTotal){shippingTotal.textContent=selected?(parseFloat(selected.dataset.price)||0).toLocaleString(<?= json_encode(['cs'=>'cs-CZ','sk'=>'sk-SK','en'=>'en-US','de'=>'de-DE','fr'=>'fr-FR','pl'=>'pl-PL'][$currentLanguage] ?? 'cs-CZ') ?>,{minimumFractionDigits:2,maximumFractionDigits:2})+' <?= $esc($racCheckoutCurrency) ?>' : <?= json_encode(__('checkout.as_selected'),JSON_UNESCAPED_UNICODE) ?>;}}}var companyToggle=document.getElementById('rac-company-details-enabled'),companyFields=document.getElementById('rac-company-fields');if(companyToggle&&companyFields){companyToggle.addEventListener('change',function(){companyFields.hidden=!companyToggle.checked;});}if(same)same.addEventListener('change',update);radios.forEach(function(el){el.addEventListener('change',update);});if(country)country.addEventListener('change',function(){var url=new URL(window.location.href);url.searchParams.set('country',country.value);window.location.href=url.toString();});update();})();</script>

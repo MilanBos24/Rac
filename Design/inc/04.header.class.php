@@ -32,7 +32,7 @@ function racLanguageFlagMarkup(string $languageCode): string
     <div class="custom-cursor__cursor-two"></div>
 
     <div class="preloader">
-        <div class="preloader__image" style="background-image: url(assets/images/loader-sr.png);"></div>
+        <div class="preloader__image" style="background-image: url(assets/images/loader-pk.png);"></div>
     </div>
     <!-- /.preloader -->
     <div class="page-wrapper">
@@ -41,7 +41,7 @@ function racLanguageFlagMarkup(string $languageCode): string
                 <div class="container-fluid">
                     <div class="main-menu__logo">
                         <a href="<?= htmlspecialchars(racUrl('index.php'), ENT_QUOTES, 'UTF-8'); ?>">
-                            <img src="assets/images/logo-light-sr.png" width="34" height="34" alt="RAC">
+                            <img src="assets/images/logo-light-pk.png" width="34" height="34" alt="RAC">
                         </a>
                     </div><!-- /.main-menu__logo -->
 

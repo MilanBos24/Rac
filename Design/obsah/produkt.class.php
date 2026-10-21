@@ -1,6 +1,8 @@
 <?php
-// RAC layout detailu knihy – verze RAC-AUDIO-2026-10-13-B
+// RAC detail knihy – verze 019.05 (2026-10-21), vyber formatu a jazyka | PHP 7.4
 // Jedina zmena oproti verzi 09.45: pole vydani pouziva styl dropdownu Zeme doruceni.
+// Unassigned-language editions are not offered in the storefront.
+$variants = array_values(array_filter($variants ?? array(), static function($v): bool { return in_array((string)($v['language_code'] ?? ''), array('cs','en','de','pl','fr'), true); }));
 $detailImages = array();
 foreach ($images as $image) {
     $url = racShopImageUrl(isset($image['file_path']) ? $image['file_path'] : null);
@@ -35,7 +37,7 @@ foreach ($images as $image) {
 
 .product-details .rac-detail-actions{display:flex;gap:15px;flex-wrap:wrap;align-items:center}
 .product-details .rac-detail-actions .ogency-btn{margin:0}
-/* RAC-AUDIO-2026-10-13-B: animovany prvek z homepage v detailu knihy. */
+/* RAC-AUDIO-2026-10-13-C: animovany prvek z homepage v detailu knihy. */
 .product-details .rac-product-audio-sample{margin-top:28px;display:flex;justify-content:flex-start;align-items:center;min-height:190px}
 .product-details .rac-product-audio-sample .video-one__banner__curved-circle-box{display:block;position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;transform:none!important;margin:0;width:175px;height:175px;min-width:175px;border-radius:50%;background:var(--ogency-black2,#1d1d1d);z-index:1}
 .product-details .rac-product-audio-sample .curved-circle{pointer-events:none;color:#fff!important;animation:textRotate 20s linear infinite!important}
@@ -99,9 +101,16 @@ foreach ($images as $image) {
                                 <div class="rac-product-buy-options__col">
                                     <div class="rac-product-variants checkout-page__input-box">
                                         <h3 class="product-details__quantity-title"><?= racShopH(__('product.detail.choose_edition')) ?></h3>
-                                        <select id="rac-variant-select" class="selectpicker" data-live-search="false" data-width="100%">
+                                        <select id="rac-variant-select" class="selectpicker" data-live-search="false" data-width="100%" aria-label="Formát vydání">
                                             <?php foreach ($variants as $v): $price = racShopPrice($v); $sold = $v['kind'] === 'print' && $v['stock_quantity'] !== null && (int)$v['stock_quantity'] < 1; ?>
-                                            <option value="<?= (int)$v['id'] ?>" data-price="<?= racShopH(racShopMoney($price, $v['currency'])) ?>" data-original="<?= (float)$price < (float)$v['price'] ? racShopH(racShopMoney((string)$v['price'], $v['currency'])) : '' ?>" <?= $sold ? 'disabled' : '' ?>><?= racShopH(__(['print' => 'product.kind.print', 'ebook' => 'product.kind.ebook', 'audio' => 'product.kind.audio'][$v['kind']] ?? 'product.kind.print')) ?> – <?= racShopMoney($price, $v['currency']) ?><?= $sold ? ' (' . racShopH(__('product.detail.sold_out')) . ')' : '' ?></option>
+                                            <option value="<?= (int)$v['id'] ?>" data-language="<?= racShopH((string)($v['language_code'] ?? '')) ?>" data-price="<?= racShopH(racShopMoney($price, $v['currency'])) ?>" data-original="<?= (float)$price < (float)$v['price'] ? racShopH(racShopMoney((string)$v['price'], $v['currency'])) : '' ?>" <?= $sold ? 'disabled' : '' ?>><?= racShopH(__(['print'=>'product.kind.print','ebook'=>'product.kind.ebook','audio'=>'product.kind.audio'][$v['kind']] ?? 'product.kind.print')) ?> – <?= racShopMoney($price, $v['currency']) ?><?= $sold ? ' (' . racShopH(__('product.detail.sold_out')) . ')' : '' ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <h3 class="product-details__quantity-title" style="margin-top:16px"><?= racShopH(__('product.detail.edition_language')) ?></h3>
+                                        <select id="rac-edition-language-select" class="selectpicker" data-live-search="false" data-width="100%" aria-label="<?= racShopH(__('product.detail.edition_language')) ?>">
+                                            <?php $editionLanguages=[]; foreach($variants as $v) { $languageKey=(string)($v['language_code'] ?? ''); if(!array_key_exists($languageKey,$editionLanguages)) $editionLanguages[$languageKey]=racEditionLanguage($languageKey); } ?>
+                                            <?php foreach ($editionLanguages as $languageKey=>$languageLabel): ?>
+                                            <option value="<?= racShopH($languageKey) ?>"><?= racShopH($languageLabel) ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
@@ -138,11 +147,7 @@ foreach ($images as $image) {
                                     <?php endif; ?>
                                 </div>
                             </div>
-                        <?php else: ?>
-                                    <span class="rac-audio-play rac-audio-play--disabled" aria-label="<?= racShopH(__('action.listen_audio_sample')) ?>" title="<?= racShopH(__('action.listen_audio_sample')) ?>"><span class="fa fa-play" aria-hidden="true"></span></span>
-                                <?php endif; ?>
-                            </div>
-                        <?php else: ?><p>Momentálně není dostupné žádné vydání této knihy.</p><?php endif; ?>
+                        <?php else: ?><p>Momentálně není dostupné žádné jazykové vydání této knihy.</p><?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -178,29 +183,55 @@ foreach ($images as $image) {
         });
     }
     var select = document.getElementById('rac-variant-select');
-    if (select) {
-        var update = function() {
+    var languageSelect = document.getElementById('rac-edition-language-select');
+    if (select && languageSelect) {
+        var allEditions = Array.prototype.map.call(select.options, function (option) {
+            return {value:option.value,language:option.getAttribute('data-language') || '',text:option.textContent,
+                price:option.getAttribute('data-price') || '',original:option.getAttribute('data-original') || '',sold:option.disabled};
+        });
+        // Variants are filtered in the browser only for display. The server verifies the selected variant_id.
+        var syncEdition = function () {
             var selected = select.options[select.selectedIndex];
-            if (!selected) { return; }
             var cartVariant = document.getElementById('rac-cart-variant');
             var cartSubmit = document.getElementById('rac-cart-submit');
-            if (cartVariant) { cartVariant.value = selected.value; }
-            if (cartSubmit) { cartSubmit.disabled = !!selected.disabled; }
+            if (cartVariant) { cartVariant.value = selected ? selected.value : ''; }
+            if (cartSubmit) { cartSubmit.disabled = !selected || selected.disabled; }
             var price = document.getElementById('rac-variant-price');
             var original = document.getElementById('rac-variant-original');
-            if (price) { price.textContent = selected.getAttribute('data-price') || ''; }
+            if (price) { price.textContent = selected ? selected.getAttribute('data-price') || '' : ''; }
             if (original) {
                 original.textContent = '';
-                var old = selected.getAttribute('data-original');
+                var old = selected ? selected.getAttribute('data-original') : '';
                 if (old) { var del = document.createElement('del'); del.textContent = old; original.appendChild(del); }
             }
         };
-        select.addEventListener('change', update);
-        if (select.selectedIndex >= 0 && select.options[select.selectedIndex].disabled) {
-            for (var i = 0; i < select.options.length; i++) { if (!select.options[i].disabled) { select.selectedIndex = i; break; } }
-        }
-        update();
-        if (window.jQuery && window.jQuery.fn.selectpicker) { window.jQuery(select).selectpicker('refresh'); }
+        var filterEditions = function () {
+            var language = languageSelect.value;
+            var previous = select.value;
+            select.innerHTML = '';
+            allEditions.forEach(function (item) {
+                if (item.language !== language) return;
+                var option = document.createElement('option');
+                option.value = item.value;
+                option.textContent = item.text;
+                option.disabled = item.sold;
+                option.setAttribute('data-price',item.price);
+                option.setAttribute('data-original',item.original);
+                option.setAttribute('data-language',item.language);
+                select.appendChild(option);
+            });
+            var restored = Array.prototype.some.call(select.options,function(o){return o.value === previous && !o.disabled;});
+            if (restored) { select.value = previous; }
+            else { for (var i=0;i<select.options.length;i++){ if(!select.options[i].disabled){ select.selectedIndex=i; break; } } }
+            if (window.jQuery && window.jQuery.fn.selectpicker) { window.jQuery(select).selectpicker('refresh'); }
+            syncEdition();
+        };
+        var initial = allEditions.find(function(item){return !item.sold;}) || allEditions[0];
+        if (initial) languageSelect.value = initial.language;
+        languageSelect.addEventListener('change',filterEditions);
+        select.addEventListener('change',syncEdition);
+        filterEditions();
+        if (window.jQuery && window.jQuery.fn.selectpicker) { window.jQuery(languageSelect).selectpicker('refresh'); }
     }
     var quantity = document.getElementById('rac-detail-quantity');
     if (quantity) {

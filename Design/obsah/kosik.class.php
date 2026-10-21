@@ -1,4 +1,4 @@
-<?php // RAC kosik – responzivni layout, verze 2026-10-12-10.49 (PHP 7.4) ?>
+<?php // RAC kosik – responzivni layout, verze 2026-10-21-019.02 (PHP 7.4) ?>
 <style>
 /* Styly pouze pro obsah kosiku; ostatni stranky nejsou ovlivneny. */
 .rac-cart-grid {width:100%;}
@@ -59,7 +59,7 @@ $formId='rac-cart-update-'.(int)$v['id'];
  <div class="rac-cart-grid__item" id="cart-item-<?= (int)$v['id'] ?>" style="scroll-margin-top:120px">
   <div class="rac-cart-grid__book">
    <?php if ($line['image']!==''): ?><div class="rac-cart-grid__image"><img src="<?= racShopH($line['image']) ?>" alt="<?= racShopH($p['title']) ?>"></div><?php endif; ?>
-   <h3 class="rac-cart-grid__book-title"><a href="<?= racShopH(racUrl(rawurlencode($p['slug']))) ?>"><?= racShopH($p['title']) ?></a><small><?= racShopH(__( 'product.kind.' . $v['kind'] )) ?></small></h3>
+   <h3 class="rac-cart-grid__book-title"><a href="<?= racShopH(racUrl(rawurlencode($p['slug']))) ?>"><?= racShopH($p['title']) ?></a><small><?= racShopH(__( 'product.kind.' . $v['kind'] )) ?> · <?= racShopH(racEditionLanguage(isset($v['language_code']) ? $v['language_code'] : null)) ?></small></h3>
   </div>
   <div class="rac-cart-grid__price"><span class="rac-cart-grid__mobile-label"><?= racShopH(__('cart.price')) ?></span><?= racShopMoney((string)$line['price'],$v['currency']) ?></div>
   <div class="rac-cart-grid__quantity"><span class="rac-cart-grid__mobile-label"><?= racShopH(__('cart.quantity')) ?></span>

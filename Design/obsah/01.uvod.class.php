@@ -25,7 +25,7 @@
                             <div class="row">
                                 <div class="col-xl-8">
                                     <div class="main-slider__one-item__content">
-                                        <h2>Štefan<br> <span>Rác</h2>
+                                        <h2>Kovalovská<br> <span>Pavla</h2>
                                         <a href="<?= htmlspecialchars(racUrl('knihy.php'), ENT_QUOTES, 'UTF-8'); ?>" class="main-slider__one-item__content-curved-circle-box">
                                             <div class="curved-circle">
                                                 <span class="curved-circle--item">
@@ -63,7 +63,7 @@
                                 <h5 class="section-title__tagline section-title__tagline--has-dots"><?= htmlspecialchars(racCmsValue('intro', 'tagline', 'Myšlenka, která všechno spojuje'), ENT_QUOTES, 'UTF-8'); ?></h5>
                                 <h2 class="section-title__title"><?= nl2br(htmlspecialchars(racCmsValue('intro', 'title', "Nejdelší cesta nevede přes svět.\nVede do člověka."), ENT_QUOTES, 'UTF-8'), false); ?></h2>
                             </div>
-                            <img src="assets/images/resources/rac-podpis.png" alt="Štefan Rác" width="223" />
+                            <img src="assets/images/resources/kovalovska-podpis.webp" alt="Pavla Kovalovská" />
                         </div>
                     </div>
                     <div class="col-lg-4 wow fadeInUp animated" data-wow-delay="400ms">
@@ -170,7 +170,7 @@
                         <div class="about-one__thumb wow fadeInLeft animated" data-wow-delay="300ms">
                             <div class="about-one__thumb__round--top"></div>
                             <div class="about-one__thumb__img">
-                                <img src="assets/images/resources/rac-inicialy-color.jpg" alt="O autorovi">
+                                <img src="assets/images/resources/kov-inicialy-color.webp" alt="O autorovi">
                             </div>
                             <div class="about-one__thumb__round--bottom"></div>
                         </div>
@@ -181,7 +181,7 @@
                                 <h5 class="section-title__tagline section-title__tagline--has-dots"><?= htmlspecialchars(racCmsValue('author', 'tagline', 'O autorovi'), ENT_QUOTES, 'UTF-8'); ?></h5>
                                 <h2 class="section-title__title"><?= htmlspecialchars(racCmsValue('author', 'title', 'Slova mají smysl, když v nich poznáš život.'), ENT_QUOTES, 'UTF-8'); ?></h2>
                             </div>
-                            <p class="about-one__content__text-one"><?= nl2br(htmlspecialchars(racCmsValue('author', 'text_one', 'Štefan Rác je český autor, který ve své tvorbě zkoumá člověka, lidské vztahy a otázky, na které neexistují pohodlné odpovědi.'), ENT_QUOTES, 'UTF-8'), false); ?></p>
+                            <p class="about-one__content__text-one"><?= nl2br(htmlspecialchars(racCmsValue('author', 'text_one', 'Pavla Kovalovská je česká autorkyně, která ve své tvorbě zkoumá člověka, lidské vztahy a otázky, na které neexistují pohodlné odpovědi.'), ENT_QUOTES, 'UTF-8'), false); ?></p>
                             <p class="about-one__content__text-two"><?= nl2br(htmlspecialchars(racCmsValue('author', 'text_two', 'Jeho autorský svět propojuje sebepoznání, lásku, rodinu i kritický pohled na společnost. Každý rukopis stojí na přesvědčení, že silný příběh nezačíná efektem, ale opravdovostí.'), ENT_QUOTES, 'UTF-8'), false); ?></p>
                             <a href="<?= htmlspecialchars(racUrl('kontakt.php'), ENT_QUOTES, 'UTF-8'); ?>" class="ogency-btn"><?= htmlspecialchars(__('action.publisher_offers'), ENT_QUOTES, 'UTF-8'); ?></a>
                         </div>

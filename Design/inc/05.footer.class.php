@@ -2,7 +2,7 @@
             <div class="container">
                 <div class="main-footer__top wow fadeInUp animated" data-wow-delay="100ms">
                     <a href="<?= htmlspecialchars(racUrl('index.php'), ENT_QUOTES, 'UTF-8'); ?>" class="main-footer__logo">
-                        <img src="assets/images/loader-sr.png" alt="Štefan Rác" width="55" height="55">
+                        <img src="assets/images/loader-pk.png" alt="Pavla Kovalovská" width="55" height="55">
                     </a><!-- /.footer-logo -->
                     <div class="main-footer__social">
                         <a href="https://twitter.com/"><i class="fab fa-twitter"></i></a>
@@ -35,7 +35,7 @@
                         <div class="main-footer__navmenu">
                             <ul>
                                 <li><a href="#">Cookies</a></li>
-                                <li><a href="#">GDPR</a></li>
+                                <li><a href="/gdpr.php">GDPR</a></li>
                                 <li><a href="#"><?= htmlspecialchars(__('footer.terms'), ENT_QUOTES, 'UTF-8'); ?></a></li>
                             </ul><!-- /.list-unstyled -->
                         </div><!-- /.footer-widget -->

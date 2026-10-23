@@ -1,8 +1,19 @@
 <?php
-// RAC detail knihy – verze 019.05 (2026-10-21), vyber formatu a jazyka | PHP 7.4
-// Jedina zmena oproti verzi 09.45: pole vydani pouziva styl dropdownu Zeme doruceni.
-// Unassigned-language editions are not offered in the storefront.
-$variants = array_values(array_filter($variants ?? array(), static function($v): bool { return in_array((string)($v['language_code'] ?? ''), array('cs','en','de','pl','fr'), true); }));
+// RAC detail knihy – verze 2026-10-22-UX-08 | sekce O knize nad detailem, puvodni dropdown | PHP 7.4+
+// Zachovan vzhled Ogency, vyber formatu a jazyka, nakup i audio komponenta.
+// Jazyk vydani nezavisi na prekladech webu; nevypisovat historicka vydani bez jazyka.
+$variants = array_values(array_filter($variants ?? array(), static function($v): bool { return trim((string)($v['language_code'] ?? '')) !== ''; }));
+// Orientacni prepocet cen z CZK: oficialni referencni kurzy ECB.
+require_once dirname(__DIR__) . '/inc/rac-fx-display.php';
+$racFxRates = racFxDisplayRates();
+$racFxPrice = static function ($price, $currency) use ($racFxRates): string {
+    if (strtoupper((string)$currency) !== 'CZK' || !$racFxRates) return '';
+    $czk = (float)$price;
+    if ($czk < 0 || !is_finite($czk)) return '';
+    $eur = $czk / (float)$racFxRates['CZK'];
+    $usd = $eur * (float)$racFxRates['USD'];
+    return '(≈ ' . number_format($eur, 2, ',', ' ') . ' € | ≈ ' . number_format($usd, 2, ',', ' ') . ' $)';
+};
 $detailImages = array();
 foreach ($images as $image) {
     $url = racShopImageUrl(isset($image['file_path']) ? $image['file_path'] : null);
@@ -17,6 +28,8 @@ foreach ($images as $image) {
 .product-details .rac-product-heading .product-details__title {display:block;width:100%;margin-bottom:12px;}
 .product-details .rac-product-heading .product-details__price {display:block;width:100%;margin:0;}
 .product-details .rac-product-heading #rac-variant-original {display:block;margin-top:6px;margin-bottom:12px;}
+.product-details .rac-product-heading #rac-variant-price .rac-fx-converted{font-size:inherit;font-weight:inherit;font-family:inherit;line-height:inherit;color:inherit;opacity:1;vertical-align:baseline;}
+.product-details .rac-product-heading #rac-variant-price .rac-fx-converted:empty{display:none;}
 .product-details .rac-product-buy-options {display:flex;flex-wrap:wrap;margin:20px -10px 0;align-items:flex-start;}
 .product-details .rac-product-buy-options__col {width:50%;flex:0 0 50%;max-width:50%;padding:0 10px;min-width:0;}
 .product-details .rac-product-buy-options__label {display:block;font-weight:700;margin:0 0 9px;}
@@ -63,6 +76,12 @@ foreach ($images as $image) {
             <p>Požadovaná kniha není dostupná.</p>
             <a class="ogency-btn" href="<?= racShopH(racUrl('knihy.php')) ?>">Zpět na knihy</a>
         <?php else: ?>
+            <div class="product-details__description wow fadeInUp" data-wow-delay="300ms">
+                <h3 class="product-details__description__title"><?= racShopH($product['title']) ?></h3>
+                <?php if (!empty($product['description'])): ?>
+                <p class="product-details__description__text"><?= nl2br(racShopH($product['description'])) ?></p>
+                <?php endif; ?>
+            </div>
             <div class="row">
                 <div class="col-lg-6 col-xl-6 wow fadeInLeft" data-wow-delay="200ms">
                     <?php if ($detailImages): ?>
@@ -84,10 +103,9 @@ foreach ($images as $image) {
                 <div class="col-lg-6 col-xl-6 wow fadeInRight" data-wow-delay="300ms">
                     <div class="product-details__content">
                         <div class="product-details__top rac-product-heading">
-                            <h3 class="product-details__title"><?= racShopH($product['title']) ?></h3>
                             <?php if ($variants): ?>
                                 <?php $first = $variants[0]; $firstPrice = racShopPrice($first); ?>
-                                <div class="product-details__price" id="rac-variant-price"><?= racShopMoney($firstPrice, $first['currency']) ?></div>
+                                <div class="product-details__price" id="rac-variant-price"><span class="rac-price-primary"><?= racShopMoney($firstPrice, $first['currency']) ?></span> <span class="rac-fx-converted" title="Orientační přepočet podle referenčního kurzu ECB"><?= racShopH($racFxPrice($firstPrice, $first['currency'])) ?></span></div>
                                 <div id="rac-variant-original"><?php if ((float)$firstPrice < (float)$first['price']): ?><del><?= racShopMoney((string)$first['price'], $first['currency']) ?></del><?php endif; ?></div>
                             <?php endif; ?>
                         </div>
@@ -103,7 +121,7 @@ foreach ($images as $image) {
                                         <h3 class="product-details__quantity-title"><?= racShopH(__('product.detail.choose_edition')) ?></h3>
                                         <select id="rac-variant-select" class="selectpicker" data-live-search="false" data-width="100%" aria-label="Formát vydání">
                                             <?php foreach ($variants as $v): $price = racShopPrice($v); $sold = $v['kind'] === 'print' && $v['stock_quantity'] !== null && (int)$v['stock_quantity'] < 1; ?>
-                                            <option value="<?= (int)$v['id'] ?>" data-language="<?= racShopH((string)($v['language_code'] ?? '')) ?>" data-price="<?= racShopH(racShopMoney($price, $v['currency'])) ?>" data-original="<?= (float)$price < (float)$v['price'] ? racShopH(racShopMoney((string)$v['price'], $v['currency'])) : '' ?>" <?= $sold ? 'disabled' : '' ?>><?= racShopH(__(['print'=>'product.kind.print','ebook'=>'product.kind.ebook','audio'=>'product.kind.audio'][$v['kind']] ?? 'product.kind.print')) ?> – <?= racShopMoney($price, $v['currency']) ?><?= $sold ? ' (' . racShopH(__('product.detail.sold_out')) . ')' : '' ?></option>
+                                            <option value="<?= (int)$v['id'] ?>" data-language="<?= racShopH((string)($v['language_code'] ?? '')) ?>" data-price="<?= racShopH(racShopMoney($price, $v['currency'])) ?>" data-fx="<?= racShopH($racFxPrice($price, $v['currency'])) ?>" data-original="<?= (float)$price < (float)$v['price'] ? racShopH(racShopMoney((string)$v['price'], $v['currency'])) : '' ?>" <?= $sold ? 'disabled' : '' ?>><?= racShopH(__(['print'=>'product.kind.print','ebook'=>'product.kind.ebook','audio'=>'product.kind.audio'][$v['kind']] ?? 'product.kind.print')) ?> – <?= racShopMoney($price, $v['currency']) ?><?= $sold ? ' (' . racShopH(__('product.detail.sold_out')) . ')' : '' ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                         <h3 class="product-details__quantity-title" style="margin-top:16px"><?= racShopH(__('product.detail.edition_language')) ?></h3>
@@ -151,12 +169,6 @@ foreach ($images as $image) {
                     </div>
                 </div>
             </div>
-            <?php if (!empty($product['description'])): ?>
-            <div class="product-details__description wow fadeInUp" data-wow-delay="300ms">
-                <h3 class="product-details__description__title"><?= racShopH(__('product.detail.about')) ?></h3>
-                <p class="product-details__description__text"><?= nl2br(racShopH($product['description'])) ?></p>
-            </div>
-            <?php endif; ?>
         <?php endif; ?>
     </div>
 </section>
@@ -187,7 +199,7 @@ foreach ($images as $image) {
     if (select && languageSelect) {
         var allEditions = Array.prototype.map.call(select.options, function (option) {
             return {value:option.value,language:option.getAttribute('data-language') || '',text:option.textContent,
-                price:option.getAttribute('data-price') || '',original:option.getAttribute('data-original') || '',sold:option.disabled};
+                price:option.getAttribute('data-price') || '',fx:option.getAttribute('data-fx') || '',original:option.getAttribute('data-original') || '',sold:option.disabled};
         });
         // Variants are filtered in the browser only for display. The server verifies the selected variant_id.
         var syncEdition = function () {
@@ -198,7 +210,12 @@ foreach ($images as $image) {
             if (cartSubmit) { cartSubmit.disabled = !selected || selected.disabled; }
             var price = document.getElementById('rac-variant-price');
             var original = document.getElementById('rac-variant-original');
-            if (price) { price.textContent = selected ? selected.getAttribute('data-price') || '' : ''; }
+            if (price) {
+                var primaryPrice = price.querySelector('.rac-price-primary');
+                var fxPrice = price.querySelector('.rac-fx-converted');
+                if (primaryPrice) { primaryPrice.textContent = selected ? selected.getAttribute('data-price') || '' : ''; }
+                if (fxPrice) { fxPrice.textContent = selected ? selected.getAttribute('data-fx') || '' : ''; }
+            }
             if (original) {
                 original.textContent = '';
                 var old = selected ? selected.getAttribute('data-original') : '';
@@ -216,6 +233,7 @@ foreach ($images as $image) {
                 option.textContent = item.text;
                 option.disabled = item.sold;
                 option.setAttribute('data-price',item.price);
+                option.setAttribute('data-fx',item.fx);
                 option.setAttribute('data-original',item.original);
                 option.setAttribute('data-language',item.language);
                 select.appendChild(option);

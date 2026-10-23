@@ -163,6 +163,7 @@ return [
     'language.label' => 'Język',
     'product.detail.author' => 'Autor:',
     'product.detail.choose_edition' => 'Wybierz wydanie książki',
+    'product.detail.edition_language' => 'Język wydania',
     'product.kind.print' => 'Książka drukowana',
     'product.kind.ebook' => 'E-book',
     'product.kind.audio' => 'Audiobook',

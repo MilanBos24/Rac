@@ -163,6 +163,7 @@ return [
     'language.label' => 'Language',
     'product.detail.author' => 'Author:',
     'product.detail.choose_edition' => 'Choose a book edition',
+    'product.detail.edition_language' => 'Edition language',
     'product.kind.print' => 'Printed book',
     'product.kind.ebook' => 'E-book',
     'product.kind.audio' => 'Audiobook',

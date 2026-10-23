@@ -6,13 +6,14 @@ require_once __DIR__.'/inc/rac-products.php';
 require_once __DIR__.'/inc/rac-cart.php';
 require_once __DIR__.'/inc/rac-checkout.php';
 $racPdo=racFrontendPdo(); $racCheckoutErrors=array(); $racCheckoutSuccess=null;
-$racCheckoutLines=array();$racCheckoutMethods=array();$racCheckoutCurrency=null;$racCheckoutPhysical=false;$racCheckoutCountries=array();
+$racCheckoutLines=array();$racCheckoutMethods=array();$racCheckoutCurrency=null;$racCheckoutPhysical=false;$racCheckoutDigital=false;$racCheckoutCountries=array();
 try {
  if (!$racPdo instanceof PDO) throw new RuntimeException(__('checkout.error_database'));
  $racCheckoutLines=racCartLines($racPdo,$currentLanguage);
  if (!$racCheckoutLines) throw new RuntimeException(__('checkout.error_empty'));
  foreach ($racCheckoutLines as $line) {
    if ($line['variant']['kind']==='print')$racCheckoutPhysical=true;
+   else $racCheckoutDigital=true;
    $currency=(string)$line['variant']['currency'];
    if ($racCheckoutCurrency!==null && $racCheckoutCurrency!==$currency)throw new RuntimeException(__('checkout.error_currency'));
    $racCheckoutCurrency=$currency;

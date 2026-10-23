@@ -163,6 +163,7 @@ return [
     'language.label' => 'Jazyk',
     'product.detail.author' => 'Autor:',
     'product.detail.choose_edition' => 'Vyberte vydání knihy',
+    'product.detail.edition_language' => 'Jazyk vydání',
     'product.kind.print' => 'Tištěná kniha',
     'product.kind.ebook' => 'E-kniha',
     'product.kind.audio' => 'Audiokniha',

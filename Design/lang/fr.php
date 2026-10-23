@@ -3,6 +3,7 @@
 return [
     'product.detail.author' => 'Auteur :',
     'product.detail.choose_edition' => 'Choisissez une édition du livre',
+    'product.detail.edition_language' => 'Langue de l’édition',
     'product.kind.print' => 'Livre imprimé',
     'product.kind.ebook' => 'Livre numérique',
     'product.kind.audio' => 'Livre audio',

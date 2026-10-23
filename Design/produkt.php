@@ -1,5 +1,5 @@
 <?php
-// RAC detail knihy – verze 2026-10-08-13.21
+// RAC detail knihy – verze 2026-10-21-23.55 | jazykove galerie a ukazky vydani | PHP 7.4+
 require_once __DIR__ . '/inc/01.config.class.php';
 require_once __DIR__ . '/inc/02.language.class.php';
 require_once __DIR__ . '/inc/rac-products.php';
@@ -16,7 +16,8 @@ if (preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug)) {
             $product = racShopProduct($pdo, $slug, $currentLanguage);
             if ($product) {
                 $variants = racShopVariants($pdo, (int)$product['id']);
-                $images = racShopImages($pdo, (int)$product['id']);
+                // RAC: Jazyk webu -> cestina -> puvodni spolecna galerie.
+                $images = racShopImages($pdo, (int)$product['id'], (string)$currentLanguage);
             }
         } catch (Throwable $e) {
             error_log('RAC product load failed: ' . $e->getMessage());
@@ -25,7 +26,7 @@ if (preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug)) {
     }
 }
 // RAC – hezke URL, verze 2026-10-08-URL01.
-// Presmerovani jen pro primo vyzadanou puvodni adresu, ne pro interní rewrite.
+// Presmerovani jen pro primo vyzadanou puvodni adresu, ne pro interni rewrite.
 if ($product && isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'GET') {
     $requestedPath = (string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
     if (basename($requestedPath) === 'produkt.php') {
@@ -48,6 +49,8 @@ $racCmsPageContent = array('meta' => array(
 include __DIR__ . '/inc/03.head.class.php';
 include __DIR__ . '/inc/04.header.class.php';
 include __DIR__ . '/obsah/produkt.class.php';
+// Ukazky dle zvolene varianty e-knihy/audioknihy.
+if ($product) { include __DIR__ . '/inc/rac-preview-widget.php'; }
 include __DIR__ . '/inc/05.footer.class.php';
 include __DIR__ . '/inc/06.mobile-nav.class.php';
 include __DIR__ . '/inc/07.scripts.class.php';

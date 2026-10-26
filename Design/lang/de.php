@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'checkout.terms_heading' => 'Allgemeine Geschäftsbedingungen',
+    'checkout.terms_consent' => 'Ich stimme den Allgemeinen Geschäftsbedingungen des Shops zu.',
+    'checkout.terms_required' => 'Bitte stimmen Sie den Allgemeinen Geschäftsbedingungen zu, um die Bestellung abzuschließen.',
+    'checkout.pay_stripe' => 'Sicher mit Stripe bezahlen',
+    'checkout.error_field' => 'Bitte überprüfen Sie das Feld: {field}.',
+    'checkout.field_generic' => 'Pflichtfeld',
+    'checkout.email' => 'E-Mail',
+
     'meta.title' => 'RAC',
     'meta.description' => 'Bücher und Hörbücher',
 

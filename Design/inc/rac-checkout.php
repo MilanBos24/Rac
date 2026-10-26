@@ -49,7 +49,12 @@ function racCheckoutShippingMethods(PDO $pdo,string $lang,string $country,string
 }
 function racCheckoutField(array $post,string $name,int $max=190,bool $required=true): string {
  $value=trim((string)($post[$name]??''));
- if (($required && $value==='') || mb_strlen($value)>$max)throw new InvalidArgumentException('Zkontrolujte pole: '.$name.'.');
+ if (($required && $value==='') || mb_strlen($value)>$max) {
+  $labels=array('first_name'=>'checkout.first_name','last_name'=>'checkout.last_name','email'=>'checkout.email','phone'=>'contact.phone','shipping_name'=>'checkout.recipient_name','shipping_street'=>'checkout.street','shipping_city'=>'checkout.city','shipping_postal'=>'checkout.postal_code','shipping_country'=>'checkout.shipping_country','billing_name'=>'checkout.billing_name','billing_street'=>'checkout.street','billing_city'=>'checkout.city','billing_postal'=>'checkout.postal_code','billing_country'=>'checkout.billing_country','pickup_point'=>'checkout.pickup_location','billing_company'=>'checkout.company_name','billing_company_id'=>'checkout.company_id','billing_vat_id'=>'checkout.vat_id','note'=>'checkout.note');
+  $key=$labels[$name]??'';
+  $label=$key!==''?__($key):__('checkout.field_generic');
+  throw new InvalidArgumentException(__('checkout.error_field',array('field'=>$label)));
+ }
  return $value;
 }
 function racCheckoutAddress(array $post,string $prefix,bool $required): array {
@@ -86,6 +91,7 @@ function racCheckoutSubmit(PDO $pdo,array $lines,string $language,string $curren
  if($containsPrint!==$physical)throw new InvalidArgumentException('Obsah košíku se změnil.');
   $hasDigital=racCheckoutHasDigital($lines);
   if($hasDigital && (string)($_POST['digital_immediate_consent']??'')!=='1')throw new InvalidArgumentException(racCheckoutDigitalConsentError($language));
+  if ((string)($_POST['terms_accepted']??'')!=='1') throw new InvalidArgumentException(__('checkout.terms_required'));
  $methodId=null;$methodName=null;$type=null;$pickup=null;$shippingCents=0;
  if($physical){
   $chosen=(int)($_POST['shipping_method_id']??0);$found=null;

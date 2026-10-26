@@ -50,7 +50,7 @@
                 <a href="https://www.pinterest.com/" target="_blank"><i class="fab fa-pinterest-p"></i></a>
                 <a href="https://www.instagram.com/" target="_blank"><i class="fab fa-instagram"></i></a>
             </div>
-            <div class="main-slider__phone"><a href="mailto:stefan.rac1@gmail.com">stefan.rac1@gmail.com</a></div>
+            <div class="main-slider__phone"><a href="mailto:kovalovska.pavla@gmail.com">kovalovska.pavla@seznam.cz</a></div>
         </section>
         <!--Main Slider End-->
 

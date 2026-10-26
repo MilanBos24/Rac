@@ -38,9 +38,10 @@ function racShopProduct(PDO $pdo,string $slug,string $lang): ?array {
  WHERE p.slug=? AND p.status='active' LIMIT 1");
  $q->execute([$a,$b,$c,$slug]);$row=$q->fetch(PDO::FETCH_ASSOC);return $row?:null;
 }
+// RAC SALE-01: prodej pouze pri zapnute akci a splnenych volitelnych datech.
 function racShopVariants(PDO $pdo,int $id): array {
  // Vydani jsou nezavisla na mutacich webu. Nazev jazyka je z katalogu vydani.
- $q=$pdo->prepare("SELECT v.id,v.kind,v.language_code,v.price,v.sale_price,v.sale_starts_at,v.sale_ends_at,
+ $q=$pdo->prepare("SELECT v.id,v.kind,v.language_code,v.price,v.sale_price,v.sale_enabled,v.sale_starts_at,v.sale_ends_at,
  v.currency,v.stock_quantity,v.active,
  COALESCE(NULLIF(el.native_name,''),v.language_code) AS edition_language_name
  FROM product_variants v LEFT JOIN book_edition_languages el ON el.code=v.language_code
@@ -69,11 +70,17 @@ function racShopImageUrl(?string $path): string {
 }
 function racShopPrice(array $v): string {
  $price=(string)$v['price'];
- if($v['sale_price']===null || empty($v['sale_starts_at']) || empty($v['sale_ends_at']))return $price;
+ if(empty($v['sale_enabled']) || $v['sale_price']===null || (float)$v['sale_price']<=0 || (float)$v['sale_price']>=(float)$price)return $price;
  $tz=new DateTimeZone('Europe/Prague');$now=new DateTimeImmutable('now',$tz);
- $start=new DateTimeImmutable((string)$v['sale_starts_at'],$tz);
- $end=new DateTimeImmutable((string)$v['sale_ends_at'],$tz);
- return $now >= $start && $now < $end && (float)$v['sale_price']<(float)$price ? (string)$v['sale_price']:$price;
+ if(!empty($v['sale_starts_at'])){
+  try {if($now < new DateTimeImmutable((string)$v['sale_starts_at'],$tz))return $price;}
+  catch(Throwable $e){return $price;}
+ }
+ if(!empty($v['sale_ends_at'])){
+  try {if($now >= new DateTimeImmutable((string)$v['sale_ends_at'],$tz))return $price;}
+  catch(Throwable $e){return $price;}
+ }
+ return (string)$v['sale_price'];
 }
 function racShopMoney(string $amount,string $currency): string {return number_format((float)$amount,2,',',' ').' '.racShopH($currency);}
 function racShopKind(string $kind): string {return ['print'=>'Tištěná kniha','ebook'=>'E-kniha','audio'=>'Audiokniha'][$kind]??$kind;}

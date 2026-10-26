@@ -16,17 +16,14 @@
                     <div class="col-lg-8 col-md-6 wow fadeInUp animated" data-wow-delay="200ms">
                         <div class="main-footer__about">
                             <p class="footer-widget__text"><?= htmlspecialchars(__('footer.contact'), ENT_QUOTES, 'UTF-8'); ?></p>
-                            <a href="mailto:stefan.rac1@gmail.com">stefan.rac1@gmail.com</a>
+                            <a href="mailto:kovalovska.pavla@seznam.cz">kovalovska.pavla@seznam.cz</a>
                         </div><!-- /.footer-widget -->
                     </div>
 
                     <div class="col-lg-2 col-md-3 wow fadeInUp animated" data-wow-delay="300ms">
                         <div class="main-footer__navmenu">
                             <ul>
-                                <li><a href="#">Poznej sám sebe</a></li>
-                                <li><a href="#">Láska</a></li>
-                                <li><a href="#">Život</a></li>
-                                <li><a href="#">Mezi psychopaty</a></li>
+                                <li>&nbsp;</li>
                             </ul><!-- /.list-unstyled -->
                         </div><!-- /.footer-widget -->
                     </div>
@@ -43,7 +40,7 @@
                 </div><!-- /.row -->
 
                 <p class="main-footer__copyright wow fadeInUp animated" data-wow-delay="500ms">
-                    © <span class="dynamic-year"></span> Štefan Rác. <?= htmlspecialchars(__('footer.all_rights_reserved'), ENT_QUOTES, 'UTF-8'); ?>
+                    © <span class="dynamic-year"></span> Mgr. Pavla Kovalovská. <?= htmlspecialchars(__('footer.all_rights_reserved'), ENT_QUOTES, 'UTF-8'); ?>
                 </p>
             </div><!-- /.container -->
         </footer><!-- /.main-footer -->

@@ -1,5 +1,5 @@
 <?php
-// RAC detail knihy – verze 2026-10-22-UX-08 | sekce O knize nad detailem, puvodni dropdown | PHP 7.4+
+// RAC detail knihy – verze 2026-10-23-SALE-05 | mezera u slevy a poznamka ECB/Stripe | PHP 7.4+
 // Zachovan vzhled Ogency, vyber formatu a jazyka, nakup i audio komponenta.
 // Jazyk vydani nezavisi na prekladech webu; nevypisovat historicka vydani bez jazyka.
 $variants = array_values(array_filter($variants ?? array(), static function($v): bool { return trim((string)($v['language_code'] ?? '')) !== ''; }));
@@ -13,6 +13,22 @@ $racFxPrice = static function ($price, $currency) use ($racFxRates): string {
     $eur = $czk / (float)$racFxRates['CZK'];
     $usd = $eur * (float)$racFxRates['USD'];
     return '(≈ ' . number_format($eur, 2, ',', ' ') . ' € | ≈ ' . number_format($usd, 2, ',', ' ') . ' $)';
+};
+// Popisek konce akce lokalizovany podle jazyka webu (nikoli jazyka vydani knihy).
+$racSaleExpiryLabels = require dirname(__DIR__) . '/lang/rac-sale-expiry.php';
+$racFxNoteTranslations = require dirname(__DIR__) . '/lang/rac-fx-note.php';
+$racFxNoteText = (string)($racFxNoteTranslations[(string)($currentLanguage ?? 'cs')] ?? $racFxNoteTranslations['cs']);
+$racSaleExpiryLabel = (string)($racSaleExpiryLabels[(string)($currentLanguage ?? 'cs')] ?? $racSaleExpiryLabels['cs']);
+// Zobrazit pouze pri skutecne platne sleve, ktera ma datum konce.
+$racSaleExpiry = static function (array $v) use ($racSaleExpiryLabel): string {
+    if (empty($v['sale_ends_at']) || empty($v['sale_enabled'])) return '';
+    if ((float)racShopPrice($v) >= (float)($v['price'] ?? 0)) return '';
+    try {
+        $end = new DateTimeImmutable((string)$v['sale_ends_at'], new DateTimeZone('Europe/Prague'));
+        return '(' . $racSaleExpiryLabel . ' ' . $end->format('d.m.Y H:i') . ')';
+    } catch (Throwable $e) {
+        return '';
+    }
 };
 $detailImages = array();
 foreach ($images as $image) {
@@ -28,6 +44,14 @@ foreach ($images as $image) {
 .product-details .rac-product-heading .product-details__title {display:block;width:100%;margin-bottom:12px;}
 .product-details .rac-product-heading .product-details__price {display:block;width:100%;margin:0;}
 .product-details .rac-product-heading #rac-variant-original {display:block;margin-top:6px;margin-bottom:12px;}
+.product-details .rac-product-heading #rac-variant-original .rac-sale-until{font:inherit;color:inherit;}
+/* Vodorovna mezera za puvodni preskrtnutou cenou. */
+.product-details .rac-product-heading #rac-variant-original .rac-sale-until{margin-left:10px;}
+.product-details #rac-variant-price .rac-fx-asterisk{font-size:.66em;vertical-align:super;line-height:0;display:inline;}
+.product-details #rac-variant-price .rac-fx-asterisk[hidden]{display:none!important;}
+.product-details .rac-fx-footnote{margin:16px 0 0;font-size:13px;line-height:1.6;color:var(--ogency-color);}
+.product-details .rac-fx-footnote[hidden]{display:none!important;}
+.product-details .rac-fx-footnote .rac-fx-footnote-star{color:var(--ogency-base);}
 .product-details .rac-product-heading #rac-variant-price .rac-fx-converted{font-size:inherit;font-weight:inherit;font-family:inherit;line-height:inherit;color:inherit;opacity:1;vertical-align:baseline;}
 .product-details .rac-product-heading #rac-variant-price .rac-fx-converted:empty{display:none;}
 .product-details .rac-product-buy-options {display:flex;flex-wrap:wrap;margin:20px -10px 0;align-items:flex-start;}
@@ -105,8 +129,8 @@ foreach ($images as $image) {
                         <div class="product-details__top rac-product-heading">
                             <?php if ($variants): ?>
                                 <?php $first = $variants[0]; $firstPrice = racShopPrice($first); ?>
-                                <div class="product-details__price" id="rac-variant-price"><span class="rac-price-primary"><?= racShopMoney($firstPrice, $first['currency']) ?></span> <span class="rac-fx-converted" title="Orientační přepočet podle referenčního kurzu ECB"><?= racShopH($racFxPrice($firstPrice, $first['currency'])) ?></span></div>
-                                <div id="rac-variant-original"><?php if ((float)$firstPrice < (float)$first['price']): ?><del><?= racShopMoney((string)$first['price'], $first['currency']) ?></del><?php endif; ?></div>
+                                <div class="product-details__price" id="rac-variant-price"><span class="rac-price-primary"><?= racShopMoney($firstPrice, $first['currency']) ?></span> <span class="rac-fx-converted" title="Orientační přepočet podle referenčního kurzu ECB"><?= racShopH($racFxPrice($firstPrice, $first['currency'])) ?></span><sup class="rac-fx-asterisk" id="rac-fx-asterisk"<?= $racFxPrice($firstPrice, $first['currency']) === '' ? ' hidden' : '' ?>>*</sup></div>
+                                <div id="rac-variant-original"><?php if ((float)$firstPrice < (float)$first['price']): ?><del><?= racShopMoney((string)$first['price'], $first['currency']) ?></del><?php endif; ?><?php $initialSaleExpiry = $racSaleExpiry($first); if ($initialSaleExpiry !== ''): ?> <span class="rac-sale-until"><?= racShopH($initialSaleExpiry) ?></span><?php endif; ?></div>
                             <?php endif; ?>
                         </div>
                         <div class="product-details__divider"></div>
@@ -121,7 +145,7 @@ foreach ($images as $image) {
                                         <h3 class="product-details__quantity-title"><?= racShopH(__('product.detail.choose_edition')) ?></h3>
                                         <select id="rac-variant-select" class="selectpicker" data-live-search="false" data-width="100%" aria-label="Formát vydání">
                                             <?php foreach ($variants as $v): $price = racShopPrice($v); $sold = $v['kind'] === 'print' && $v['stock_quantity'] !== null && (int)$v['stock_quantity'] < 1; ?>
-                                            <option value="<?= (int)$v['id'] ?>" data-language="<?= racShopH((string)($v['language_code'] ?? '')) ?>" data-price="<?= racShopH(racShopMoney($price, $v['currency'])) ?>" data-fx="<?= racShopH($racFxPrice($price, $v['currency'])) ?>" data-original="<?= (float)$price < (float)$v['price'] ? racShopH(racShopMoney((string)$v['price'], $v['currency'])) : '' ?>" <?= $sold ? 'disabled' : '' ?>><?= racShopH(__(['print'=>'product.kind.print','ebook'=>'product.kind.ebook','audio'=>'product.kind.audio'][$v['kind']] ?? 'product.kind.print')) ?> – <?= racShopMoney($price, $v['currency']) ?><?= $sold ? ' (' . racShopH(__('product.detail.sold_out')) . ')' : '' ?></option>
+                                            <option value="<?= (int)$v['id'] ?>" data-language="<?= racShopH((string)($v['language_code'] ?? '')) ?>" data-price="<?= racShopH(racShopMoney($price, $v['currency'])) ?>" data-fx="<?= racShopH($racFxPrice($price, $v['currency'])) ?>" data-original="<?= (float)$price < (float)$v['price'] ? racShopH(racShopMoney((string)$v['price'], $v['currency'])) : '' ?>" data-sale-until="<?= racShopH($racSaleExpiry($v)) ?>" <?= $sold ? 'disabled' : '' ?>><?= racShopH(__(['print'=>'product.kind.print','ebook'=>'product.kind.ebook','audio'=>'product.kind.audio'][$v['kind']] ?? 'product.kind.print')) ?> – <?= racShopMoney($price, $v['currency']) ?><?= $sold ? ' (' . racShopH(__('product.detail.sold_out')) . ')' : '' ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                         <h3 class="product-details__quantity-title" style="margin-top:16px"><?= racShopH(__('product.detail.edition_language')) ?></h3>
@@ -150,6 +174,9 @@ foreach ($images as $image) {
                                     <a href="<?= racShopH(racUrl('knihy.php')) ?>" class="ogency-btn rac-back-to-shop"><?= racShopH(__('cart.back_to_shop')) ?></a>
                                 </div>
                             </form>
+                            <?php // Komponenta ukazek v produkt.php vklada tlacitka primo ZA formular. ?>
+                            <?php // Tato poznamka tak zustava POD tlacitky ukazek, nebo pod tlacitkem Zpet k nakupu. ?>
+                            <p id="rac-fx-footnote" class="rac-fx-footnote"<?= $racFxPrice($firstPrice, $first['currency']) === '' ? ' hidden' : '' ?>><span class="rac-fx-footnote-star">*</span> <?= racShopH($racFxNoteText) ?></p>
                             <div class="rac-product-audio-sample">
                                 <?php $racAudioSample = isset($product['audio_sample_url']) ? trim((string)$product['audio_sample_url']) : ''; ?>
                                 <?php $racAudioReady = $racAudioSample !== '' && (strpos($racAudioSample, 'https://') === 0 || (strpos($racAudioSample, '/') === 0 && strpos($racAudioSample, '//') !== 0)); ?>
@@ -199,7 +226,7 @@ foreach ($images as $image) {
     if (select && languageSelect) {
         var allEditions = Array.prototype.map.call(select.options, function (option) {
             return {value:option.value,language:option.getAttribute('data-language') || '',text:option.textContent,
-                price:option.getAttribute('data-price') || '',fx:option.getAttribute('data-fx') || '',original:option.getAttribute('data-original') || '',sold:option.disabled};
+                price:option.getAttribute('data-price') || '',fx:option.getAttribute('data-fx') || '',original:option.getAttribute('data-original') || '',saleUntil:option.getAttribute('data-sale-until') || '',sold:option.disabled};
         });
         // Variants are filtered in the browser only for display. The server verifies the selected variant_id.
         var syncEdition = function () {
@@ -215,11 +242,18 @@ foreach ($images as $image) {
                 var fxPrice = price.querySelector('.rac-fx-converted');
                 if (primaryPrice) { primaryPrice.textContent = selected ? selected.getAttribute('data-price') || '' : ''; }
                 if (fxPrice) { fxPrice.textContent = selected ? selected.getAttribute('data-fx') || '' : ''; }
+                var fxActive = !!(fxPrice && fxPrice.textContent.trim());
+                var fxMarker = document.getElementById('rac-fx-asterisk');
+                var fxFootnote = document.getElementById('rac-fx-footnote');
+                if (fxMarker) { fxMarker.hidden = !fxActive; }
+                if (fxFootnote) { fxFootnote.hidden = !fxActive; }
             }
             if (original) {
                 original.textContent = '';
                 var old = selected ? selected.getAttribute('data-original') : '';
                 if (old) { var del = document.createElement('del'); del.textContent = old; original.appendChild(del); }
+                var saleUntil = selected ? selected.getAttribute('data-sale-until') || '' : '';
+                if (old && saleUntil) { var note = document.createElement('span'); note.className='rac-sale-until'; note.textContent = saleUntil; original.appendChild(note); }
             }
         };
         var filterEditions = function () {
@@ -235,6 +269,7 @@ foreach ($images as $image) {
                 option.setAttribute('data-price',item.price);
                 option.setAttribute('data-fx',item.fx);
                 option.setAttribute('data-original',item.original);
+                option.setAttribute('data-sale-until',item.saleUntil);
                 option.setAttribute('data-language',item.language);
                 select.appendChild(option);
             });

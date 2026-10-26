@@ -12,7 +12,7 @@
             <ul class="mobile-nav__contact list-unstyled">
                 <li>
                     <i class="fas fa-envelope"></i>
-                    <a href="mailto:stefan.rac1@gmail.com">stefan.rac1@gmail.com</a>
+                    <a href="mailto:kovalovska.pavla@seznam.cz">kovalovska.pavla@seznam.cz</a>
                 </li>
                 <li>
                     <i class="icon-phone-call"></i>

@@ -1,5 +1,5 @@
 <?php
-// RAC kosik, verze 2026-10-08-15.00, PHP 7.4
+// RAC kosik, verze 2026-10-23-SALE-01, PHP 7.4
 if (session_status() !== PHP_SESSION_ACTIVE) {
     if (headers_sent()) { throw new RuntimeException('Session must start before HTML output'); }
     session_start();
@@ -15,7 +15,7 @@ function racCartStored(): array {
     return isset($_SESSION['rac_cart']) && is_array($_SESSION['rac_cart']) ? $_SESSION['rac_cart'] : array();
 }
 function racCartFindVariant(PDO $pdo, int $id): ?array {
-    $stmt = $pdo->prepare("SELECT v.id,v.product_id,v.kind,v.language_code,v.price,v.sale_price,v.sale_starts_at,v.sale_ends_at,v.currency,v.stock_quantity,p.slug
+    $stmt = $pdo->prepare("SELECT v.id,v.product_id,v.kind,v.language_code,v.price,v.sale_price,v.sale_enabled,v.sale_starts_at,v.sale_ends_at,v.currency,v.stock_quantity,p.slug
       FROM product_variants v JOIN products p ON p.id=v.product_id
       WHERE v.id=? AND v.active=1 AND p.status='active' LIMIT 1");
     $stmt->execute(array($id)); $row=$stmt->fetch(PDO::FETCH_ASSOC); return $row ?: null;

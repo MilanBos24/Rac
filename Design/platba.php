@@ -252,10 +252,14 @@ include __DIR__ . '/inc/04.header.class.php';
             <?php elseif ($nonce === ''): ?>
               <div class="alert alert-warning rac-pay-alert" role="status">Platba nemůže pokračovat, protože vypršelo ověření objednávky. Vraťte se do košíku a vytvořte novou objednávku.</div>
             <?php else: ?>
-              <form method="post" action="<?= $h(racUrl('platba.php')) ?>">
+              <form method="post" id="rac-stripe-payment-form" action="<?= $h(racUrl('platba.php')) ?>">
                 <input type="hidden" name="csrf" value="<?= $h($nonce) ?>">
                 <button class="ogency-btn" type="submit"><?= $h($label('payment.pay_now', 'Pokračovat k platbě')) ?></button>
               </form>
+              <?php if (($_GET['start'] ?? '') === '1'): ?>
+              <p class="rac-pay-muted" role="status"><?= $h($label('payment.redirecting', 'Přesměrování na zabezpečenou platbu Stripe…')) ?></p>
+              <script>(function(){var f=document.getElementById('rac-stripe-payment-form');if(f){f.submit();}})();</script>
+              <?php endif; ?>
             <?php endif; ?>
             <a class="rac-pay-secondary" href="<?= $h(racUrl('index.php')) ?>"><?= $h($label('breadcrumb.home', 'Úvod')) ?></a>
           </div>

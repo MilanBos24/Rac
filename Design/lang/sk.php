@@ -1,6 +1,14 @@
 
 <?php
 return [
+    'checkout.terms_heading' => 'Obchodné podmienky',
+    'checkout.terms_consent' => 'Súhlasím s obchodnými podmienkami e-shopu.',
+    'checkout.terms_required' => 'Na dokončenie objednávky musíte súhlasiť s obchodnými podmienkami.',
+    'checkout.pay_stripe' => 'Bezpečne zaplatiť cez Stripe',
+    'checkout.error_field' => 'Skontrolujte pole: {field}.',
+    'checkout.field_generic' => 'Povinné pole',
+    'checkout.email' => 'E-mail',
+
     'meta.title' => 'RAC',
     'meta.description' => 'Knihy a audioknihy',
 

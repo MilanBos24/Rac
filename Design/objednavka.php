@@ -29,7 +29,7 @@ try {
    if (session_status() !== PHP_SESSION_ACTIVE) session_start();
    $_SESSION['rac_payment_order']=(string)$racCheckoutSuccess;
    $_SESSION['rac_payment_nonce']=bin2hex(random_bytes(24));
-   header('Location: '.racUrl('platba.php'),true,303);
+   header('Location: '.racUrl('platba.php?start=1'),true,303);
    exit;
   } }
   catch(Throwable $e){error_log('RAC checkout: '.$e->getMessage());$racCheckoutErrors[]=$e instanceof InvalidArgumentException?$e->getMessage():__('checkout.error_save');}

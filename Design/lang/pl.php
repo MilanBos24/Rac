@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'checkout.terms_heading' => 'Regulamin sklepu',
+    'checkout.terms_consent' => 'Akceptuję regulamin sklepu.',
+    'checkout.terms_required' => 'Aby złożyć zamówienie, zaakceptuj regulamin sklepu.',
+    'checkout.pay_stripe' => 'Zapłać bezpiecznie przez Stripe',
+    'checkout.error_field' => 'Sprawdź pole: {field}.',
+    'checkout.field_generic' => 'Pole wymagane',
+    'checkout.email' => 'E-mail',
+
     'meta.title' => 'RAC',
     'meta.description' => 'Książki i audiobooki',
 

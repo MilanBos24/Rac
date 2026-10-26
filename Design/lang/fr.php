@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'checkout.terms_heading' => 'Conditions générales de vente',
+    'checkout.terms_consent' => 'J’accepte les conditions générales de vente de la boutique.',
+    'checkout.terms_required' => 'Pour finaliser la commande, veuillez accepter les conditions générales de vente.',
+    'checkout.pay_stripe' => 'Payer en toute sécurité avec Stripe',
+    'checkout.error_field' => 'Veuillez vérifier le champ : {field}.',
+    'checkout.field_generic' => 'Champ obligatoire',
+    'checkout.email' => 'E-mail',
+
     'product.detail.author' => 'Auteur :',
     'product.detail.choose_edition' => 'Choisissez une édition du livre',
     'product.detail.edition_language' => 'Langue de l’édition',

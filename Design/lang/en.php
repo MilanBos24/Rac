@@ -1,6 +1,14 @@
 <?php
 
 return [
+    'checkout.terms_heading' => 'Terms and conditions',
+    'checkout.terms_consent' => 'I agree to the shop\'s terms and conditions.',
+    'checkout.terms_required' => 'You must agree to the terms and conditions to place your order.',
+    'checkout.pay_stripe' => 'Pay securely with Stripe',
+    'checkout.error_field' => 'Please check the field: {field}.',
+    'checkout.field_generic' => 'Required field',
+    'checkout.email' => 'Email',
+
     'meta.title' => 'RAC',
     'meta.description' => 'Books and audiobooks',
 

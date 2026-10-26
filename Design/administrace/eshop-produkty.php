@@ -1,6 +1,6 @@
 <?php
-// RAC E-shop produkty | Porto/BOS24 | 2026-10-20-11.00 (RBAC 5B) | PHP 7.4
-// Zpracování dotazu a SQL převzato z původní funkční verze.
+// RAC E-shop produkty | Porto/BOS24 | 2026-10-23-UX-06 - shodne tlacitko a pozice jako editor produktu | PHP 7.4+
+// Jedina layoutova uprava: Vlozit produkt nad kartu Katalog knih.
 declare(strict_types=1);
 require_once __DIR__ . '/config/session.php';
 require_once __DIR__ . '/config/db.php';
@@ -114,13 +114,13 @@ $roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRo
         </div>
     </header>
     <div class="row mt-4"><div class="col-12">
+        <?php if ($racCanEditProducts): ?>
+        <div class="row pt-2 mb-4"><div class="col-12"><a class="btn btn-primary btn-md font-weight-semibold btn-py-2 px-4 me-2 mb-2" href="eshop-produkt.php"><i class="fas fa-plus me-1"></i> Vložit produkt</a></div></div>
+        <?php endif; ?>
         <?php if (isset($_GET['saved'])): ?><div class="alert alert-success">Produkt byl uložen.</div><?php endif; ?>
         <section class="card mb-4">
             <header class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <h2 class="card-title mb-0">Katalog knih</h2>
-                <?php if ($racCanEditProducts): ?>
-                <a class="btn btn-primary" href="eshop-produkt.php"><i class="fas fa-plus me-1"></i> Vložit produkt</a>
-                <?php endif; ?>
             </header>
             <div class="card-body">
                 <form method="get" action="eshop-produkty.php" class="row g-3 align-items-end mb-4">

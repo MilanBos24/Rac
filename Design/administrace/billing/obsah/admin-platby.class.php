@@ -40,6 +40,9 @@ function bpay_query(array $replace = array()): string
             <a href="/administrace/billing/admin.php" class="btn btn-default me-2 mb-2">
                 <i class="fas fa-cog me-1"></i> Nastavení
             </a>
+            <a href="/administrace/billing/admin-produkty.php" class="btn btn-default me-2 mb-2">
+                <i class="fas fa-box me-1"></i> Produkty
+            </a>
             <a href="/administrace/billing/admin-platby.php" class="btn btn-primary me-2 mb-2">
                 <i class="fas fa-credit-card me-1"></i> Platby
             </a>

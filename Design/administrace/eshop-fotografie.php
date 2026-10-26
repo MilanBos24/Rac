@@ -1,5 +1,5 @@
 <?php
-// RAC-FOTO-FIX-20261021-V6 | kompletni PHP blok | PHP 7.4+
+// RAC-FOTO-20261025-V7 | kompletni PHP blok | PHP 7.4+
 declare(strict_types=1);
 require_once __DIR__.'/config/session.php';
 require_once __DIR__.'/config/db.php';
@@ -10,7 +10,7 @@ $id=max(0,(int)($_GET['id']??0));
 $stmt=$pdo->prepare('SELECT id,slug FROM products WHERE id=?');$stmt->execute(array($id));$product=$stmt->fetch(PDO::FETCH_ASSOC);
 if (!$product){http_response_code(404);exit('Produkt nenalezen.');}
 $errors=array();$ok='';$csrf=csrf_token('csrf_product_images');
-$langs=['shared'=>'Společné (původní)', 'cs'=>'Čeština', 'en'=>'English', 'de'=>'Deutsch', 'pl'=>'Polski', 'fr'=>'Français'];
+$langs=['shared'=>'Společné (čeština)', 'cs'=>'Čeština', 'sk'=>'Slovenčina', 'en'=>'English', 'de'=>'Deutsch', 'pl'=>'Polski', 'fr'=>'Français'];
 $tab=(string)($_POST['gallery_lang']??$_GET['lang']??'shared');
 if (!isset($langs[$tab])) {$tab='shared';}
 $code=$tab==='shared' ? null : $tab;
@@ -134,7 +134,7 @@ function racImageH($value): string {
 include __DIR__.'/inc/header.class.php';include __DIR__.'/inc/leve-meny.class.php';
 ?>
 <section role="main" class="content-body content-body-modern mt-0">
-<header class="page-header"><h2>Fotografie produktu <small style="font-size:11px;opacity:.55">RAC-FOTO-V6</small></h2></header>
+<header class="page-header"><h2>Fotografie produktu <small style="font-size:11px;opacity:.55">RAC-FOTO-V7</small></h2></header>
 <div class="row pt-3 mb-4"><div class="col-12">
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3"><p class="mb-0 text-muted"><?= racImageH($product['slug']) ?> · <?= count($images) ?> / 10 fotografií v galerii</p><a class="btn btn-default" href="eshop-produkt.php?id=<?= $id ?>">← Zpět na produkt</a></div>
 <ul class="nav nav-tabs tabs-primary mb-3" role="tablist">

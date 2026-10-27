@@ -51,7 +51,33 @@ $title='Nastavení doručovacího e-mailu | RAC';$pageTitle='Nastavení doručov
 $currentPath='/administrace/eshop-dorucovaci-email.php';
 $viewer=current_user_row();$viewerName=(string)($viewer['username']??'Administrátor');
 $viewerRole=(string)($viewer['role']??'');$roleLabel=function_exists('role_label')?role_label($viewerRole):$viewerRole;
-$menuGroups=[];
+$menuGroups = [
+    ['Přehled', [
+        ['Dashboard', '/administrace/dashboard.php', 'bx bx-home-alt'],
+    ]],
+    ['Administrace', [
+        ['Vložit administrátora', '/administrace/sprava-admin.php', 'icons icon-user-follow'],
+        ['Zobrazit administrátory', '/administrace/sprava-admin-zobrazit.php', 'icons icon-people'],
+        ['Jazyky', '/administrace/jazyky.php', 'icons icon-globe'],
+    ]],
+    ['Obsah webu', [
+        ['Úvodní stránka', '/administrace/obsah-uvod.php', 'icons icon-home'],
+        ['O autorovi', '/administrace/obsah-autor.php', 'icons icon-note'],
+        ['Kontakt', '/administrace/obsah-kontakt.php', 'icons icon-envelope'],
+    ]],
+    ['E-shop', [
+        ['Produkty', '/administrace/eshop-produkty.php', 'icons icon-basket'],
+        ['Doprava', '/administrace/eshop-doprava.php', 'icons icon-drawer'],
+    ]],
+    ['Billing', [
+        ['Nastavení Stripe', '/administrace/billing/admin.php', 'el el-cogs'],
+        ['Produkty', '/administrace/billing/admin-produkty.php', 'icons icon-basket'],
+        ['Platby', '/administrace/billing/admin-platby.php', 'el el-credit-card'],
+        ['Předplatné', '/administrace/billing/admin-predplatne.php', 'icons icon-refresh'],
+        ['Webhooky', '/administrace/billing/admin-webhooky.php', 'icons icon-shuffle'],
+        ['Diagnostika', '/administrace/billing/admin-diagnostika.php', 'icons icon-wrench'],
+    ]],
+];
 // Sdilena Porto hlavicka vyzaduje $e pro escapovani HTML (vcetne <title>).
 $e=static function($value): string {return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');};
 include __DIR__.'/inc/header.class.php';include __DIR__.'/inc/leve-meny.class.php';

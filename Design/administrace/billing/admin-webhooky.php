@@ -16,7 +16,33 @@ $racUsePortoLayout=true;$base='/administrace';$assets=$base;
 $viewerName=(string)($viewer['username']??'Superadmin');
 $viewerRole=(string)($viewer['role']??'superadmin');
 $roleLabel=function_exists('role_label')?role_label($viewerRole):'Superadmin';
-$menuGroups=[['Přehled', [['Dashboard','/administrace/dashboard.php','bx bx-home-alt']]], ['Platební brána', [['Nastavení Stripe','/administrace/billing/admin.php','el el-cogs']]]];
+$menuGroups = [
+    ['Přehled', [
+        ['Dashboard', '/administrace/dashboard.php', 'bx bx-home-alt'],
+    ]],
+    ['Administrace', [
+        ['Vložit administrátora', '/administrace/sprava-admin.php', 'icons icon-user-follow'],
+        ['Zobrazit administrátory', '/administrace/sprava-admin-zobrazit.php', 'icons icon-people'],
+        ['Jazyky', '/administrace/jazyky.php', 'icons icon-globe'],
+    ]],
+    ['Obsah webu', [
+        ['Úvodní stránka', '/administrace/obsah-uvod.php', 'icons icon-home'],
+        ['O autorovi', '/administrace/obsah-autor.php', 'icons icon-note'],
+        ['Kontakt', '/administrace/obsah-kontakt.php', 'icons icon-envelope'],
+    ]],
+    ['E-shop', [
+        ['Produkty', '/administrace/eshop-produkty.php', 'icons icon-basket'],
+        ['Doprava', '/administrace/eshop-doprava.php', 'icons icon-drawer'],
+    ]],
+    ['Billing', [
+        ['Nastavení Stripe', '/administrace/billing/admin.php', 'el el-cogs'],
+        ['Produkty', '/administrace/billing/admin-produkty.php', 'icons icon-basket'],
+        ['Platby', '/administrace/billing/admin-platby.php', 'el el-credit-card'],
+        ['Předplatné', '/administrace/billing/admin-predplatne.php', 'icons icon-refresh'],
+        ['Webhooky', '/administrace/billing/admin-webhooky.php', 'icons icon-shuffle'],
+        ['Diagnostika', '/administrace/billing/admin-diagnostika.php', 'icons icon-wrench'],
+    ]],
+];
 $currentPath='/administrace/billing/admin-webhooky.php';
 $pageTitle='Webhooky';$title='Webhooky | RAC';
 $errors=[];$events=[];$stats=['processed'=>0,'received'=>0,'ignored'=>0,'errors'=>0];$total=0;

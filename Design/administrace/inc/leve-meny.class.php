@@ -34,6 +34,7 @@ $racMenuPermissions = [
  '/administrace/obsah-kontakt.php'=>'content.manage',
  '/administrace/pravni-dokumenty.php'=>'content.manage',
  '/administrace/eshop-dorucovaci-email.php'=>'contact.manage',
+ '/administrace/fakturace/faktury.php'=>'orders.view',
  '/administrace/fakturace/nastaveni.php'=>'billing.manage',
  '/administrace/jazyky.php'=>'languages.manage',
  '/administrace/kontaktni-formular.php'=>'contact.manage',
@@ -95,6 +96,25 @@ $racMenuPermissions = [
               }
           }
           unset($racShopGroup);
+          // Faktury: pouze jedna položka v E-shopu, ihned za Objednávkami.
+          $racInvoicesUrl = '/administrace/fakturace/faktury.php';
+          $racInvoicesItem = ['Faktury', $racInvoicesUrl, 'icons icon-doc'];
+          foreach ($menuGroups as &$racInvoicesGroup) {
+              $racInvoicesGroup[1] = array_values(array_filter($racInvoicesGroup[1], static function ($item) use ($racInvoicesUrl) {
+                  return ($item[1] ?? '') !== $racInvoicesUrl;
+              }));
+              if (($racInvoicesGroup[0] ?? '') === 'E-shop') {
+                  $racInsertAt = count($racInvoicesGroup[1]);
+                  foreach ($racInvoicesGroup[1] as $racIdx => $racEntry) {
+                      if (($racEntry[1] ?? '') === '/administrace/eshop-objednavky.php') {
+                          $racInsertAt = $racIdx + 1;
+                          break;
+                      }
+                  }
+                  array_splice($racInvoicesGroup[1], $racInsertAt, 0, [$racInvoicesItem]);
+              }
+          }
+          unset($racInvoicesGroup);
           // Právní dokumenty: jednotná položka v sekci E-shop i na starších stránkách.
           $racLegalUrl = '/administrace/pravni-dokumenty.php';
           $racLegalItem = ['Právní dokumenty', $racLegalUrl, 'icons icon-note'];

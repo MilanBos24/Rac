@@ -223,6 +223,11 @@ $racMenuPermissions = [
           });
           ?>
           <?php
+          // Odstranit staré lokální definice Nastavení systému, aby nevznikaly duplicitní sekce.
+          // Finální systémové menu sestavujeme centrálně níže pouze pro superadmina.
+          $menuGroups = array_values(array_filter($menuGroups, static function ($group) {
+              return ($group[0] ?? '') !== 'Nastavení systému';
+          }));
           // Nastaveni systemu neni soucasti bezne administrace.
           if ($racIsSuper) {
               $menuGroups[] = ['Nastavení systému', [

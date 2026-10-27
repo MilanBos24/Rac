@@ -20,7 +20,33 @@ $racUsePortoLayout=true;
 $base='/administrace';$assets=$base;
 $pageTitle='SQL – instalační příkazy';$title='SQL knihovna | RAC';
 $currentPath='/administrace/nastaveni-sql.php';
-$menuGroups=[]; // Sdílené levé menu doplní všechny povolené sekce.
+$menuGroups = [
+    ['Přehled', [
+        ['Dashboard', '/administrace/dashboard.php', 'bx bx-home-alt'],
+    ]],
+    ['Administrace', [
+        ['Vložit administrátora', '/administrace/sprava-admin.php', 'icons icon-user-follow'],
+        ['Zobrazit administrátory', '/administrace/sprava-admin-zobrazit.php', 'icons icon-people'],
+        ['Jazyky', '/administrace/jazyky.php', 'icons icon-globe'],
+    ]],
+    ['Obsah webu', [
+        ['Úvodní stránka', '/administrace/obsah-uvod.php', 'icons icon-home'],
+        ['O autorovi', '/administrace/obsah-autor.php', 'icons icon-note'],
+        ['Kontakt', '/administrace/obsah-kontakt.php', 'icons icon-envelope'],
+    ]],
+    ['E-shop', [
+        ['Produkty', '/administrace/eshop-produkty.php', 'icons icon-basket'],
+        ['Doprava', '/administrace/eshop-doprava.php', 'icons icon-drawer'],
+    ]],
+    ['Billing', [
+        ['Nastavení Stripe', '/administrace/billing/admin.php', 'el el-cogs'],
+        ['Produkty', '/administrace/billing/admin-produkty.php', 'icons icon-basket'],
+        ['Platby', '/administrace/billing/admin-platby.php', 'el el-credit-card'],
+        ['Předplatné', '/administrace/billing/admin-predplatne.php', 'icons icon-refresh'],
+        ['Webhooky', '/administrace/billing/admin-webhooky.php', 'icons icon-shuffle'],
+        ['Diagnostika', '/administrace/billing/admin-diagnostika.php', 'icons icon-wrench'],
+    ]],
+];
 $folders=[
  ['title'=>'Základ systému a e-shop','path'=>__DIR__.'/database','tag'=>'RAC'],
  ['title'=>'Platební brána (Billing)','path'=>__DIR__.'/billing/database','tag'=>'Billing'],

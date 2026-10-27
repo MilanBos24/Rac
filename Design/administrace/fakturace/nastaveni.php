@@ -1,5 +1,5 @@
 <?php
-// RAC FAKTURACE NASTAVENI | 2026-10-25-STEP03-03 | PHP 7.4+
+// RAC FAKTURACE NASTAVENI | 2026-10-27-19.55-MENU02 | PHP 7.4+
 declare(strict_types=1);
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/db.php';
@@ -141,11 +141,33 @@ $viewerName = (string)($viewer['username'] ?? 'Administrátor');
 $viewerRole = (string)($viewer['role'] ?? '');
 $roleLabel = function_exists('role_label') ? role_label($viewerRole) : $viewerRole;
 $e = static function ($value): string { return racFaktNastH($value); };
-$menuGroups = array(
-    array('Přehled', array(array('Dashboard', '/administrace/dashboard.php', 'bx bx-home-alt'))),
-    array('Administrace', array(array('Jazyky', '/administrace/jazyky.php', 'icons icon-globe'))),
-    array('E-shop', array(array('Produkty', '/administrace/eshop-produkty.php', 'icons icon-basket'))),
-);
+$menuGroups = [
+    ['Přehled', [
+        ['Dashboard', '/administrace/dashboard.php', 'bx bx-home-alt'],
+    ]],
+    ['Administrace', [
+        ['Vložit administrátora', '/administrace/sprava-admin.php', 'icons icon-user-follow'],
+        ['Zobrazit administrátory', '/administrace/sprava-admin-zobrazit.php', 'icons icon-people'],
+        ['Jazyky', '/administrace/jazyky.php', 'icons icon-globe'],
+    ]],
+    ['Obsah webu', [
+        ['Úvodní stránka', '/administrace/obsah-uvod.php', 'icons icon-home'],
+        ['O autorovi', '/administrace/obsah-autor.php', 'icons icon-note'],
+        ['Kontakt', '/administrace/obsah-kontakt.php', 'icons icon-envelope'],
+    ]],
+    ['E-shop', [
+        ['Produkty', '/administrace/eshop-produkty.php', 'icons icon-basket'],
+        ['Doprava', '/administrace/eshop-doprava.php', 'icons icon-drawer'],
+    ]],
+    ['Billing', [
+        ['Nastavení Stripe', '/administrace/billing/admin.php', 'el el-cogs'],
+        ['Produkty', '/administrace/billing/admin-produkty.php', 'icons icon-basket'],
+        ['Platby', '/administrace/billing/admin-platby.php', 'el el-credit-card'],
+        ['Předplatné', '/administrace/billing/admin-predplatne.php', 'icons icon-refresh'],
+        ['Webhooky', '/administrace/billing/admin-webhooky.php', 'icons icon-shuffle'],
+        ['Diagnostika', '/administrace/billing/admin-diagnostika.php', 'icons icon-wrench'],
+    ]],
+];
 include __DIR__ . '/../inc/header.class.php';
 include __DIR__ . '/../inc/leve-meny.class.php';
 ?>

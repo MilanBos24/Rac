@@ -115,7 +115,7 @@ $racE = static function ($v): string { return htmlspecialchars((string)$v,ENT_QU
    stopAudio();closePdf();
    actions.hidden=true;circle.hidden=true;links.hidden=true;read.hidden=true;download.hidden=true;
    if(!entry)return;
-   var url='ukazka.php?variant_id='+encodeURIComponent(id);
+   var url='/ukazka.php?variant_id='+encodeURIComponent(id);
    if(entry.kind==='audio' && (entry.type==='mp3'||entry.type==='m4a')){
      audio.src=url;circle.hidden=false;actions.hidden=false;
    }

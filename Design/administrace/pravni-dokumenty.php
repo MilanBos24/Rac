@@ -153,6 +153,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 $docs=$db->query('SELECT * FROM rac_legal_documents ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
 $versions=$db->query('SELECT v.*,d.title AS document_title FROM rac_legal_document_versions v JOIN rac_legal_documents d ON d.id=v.document_id ORDER BY v.document_id,v.language_code,v.version_number DESC')->fetchAll(PDO::FETCH_ASSOC);
+// Historie zobrazuje 10 nejnovějších verzí; kompletní seznam zůstává pro jazykové karty.
+$historyPerPage = 10;
+$historyTotal = count($versions);
+$historyPageCount = max(1, (int)ceil($historyTotal / $historyPerPage));
+$historyPage = filter_var($_GET['history_page'] ?? 1, FILTER_VALIDATE_INT);
+if ($historyPage === false || $historyPage < 1) $historyPage = 1;
+$historyPage = min($historyPage, $historyPageCount);
+$historyVersions = $versions;
+usort($historyVersions, static function (array $a, array $b): int {
+    $dateCompare = strcmp((string)$b['created_at'], (string)$a['created_at']);
+    return $dateCompare !== 0 ? $dateCompare : ((int)$b['id'] <=> (int)$a['id']);
+});
+$historyVersions = array_slice($historyVersions, ($historyPage - 1) * $historyPerPage, $historyPerPage);
+$historyUrl = static function (int $targetPage): string {
+    $params = $_GET;
+    unset($params['edit_version'], $params['view_version'], $params['notice']);
+    if ($targetPage <= 1) unset($params['history_page']);
+    else $params['history_page'] = $targetPage;
+    return 'pravni-dokumenty.php' . ($params ? '?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986) : '') . '#rac-legal-history';
+};
 $documentId=(int)($_GET['document_id']??$_POST['document_id']??0);
 $editVersion=(int)($_GET['edit_version']??0);
 $viewVersion=(int)($_GET['view_version']??0);
@@ -248,11 +268,28 @@ include __DIR__ . '/inc/leve-meny.class.php';
 <label class="form-label mt-3">Název</label><input class="form-control" name="document_title" required maxlength="255">
 <label class="form-label mt-3">Popis</label><textarea class="form-control" name="description" rows="2"></textarea>
 </div><footer class="card-footer text-end"><button type="submit" class="btn btn-primary">Vytvořit dokument</button></footer></form></section>
-<section class="card mb-4"><header class="card-header"><h2 class="card-title">Historie verzí</h2></header><div class="card-body"><div class="table-responsive"><table class="table table-striped align-middle"><thead><tr><th>Dokument</th><th>Verze</th><th>Stav</th><th>Akce</th></tr></thead><tbody>
-<?php foreach ($versions as $v): ?><tr><td><?= $e($v['document_title']) ?><div class="text-muted small"><?= $e(strtoupper($v['language_code'])) ?></div></td><td>v<?= (int)$v['version_number'] ?><div class="small"><?= $e($v['version_label'] ?? '') ?></div></td><td><span class="badge <?= $v['status'] === 'published' ? 'bg-success' : ($v['status'] === 'draft' ? 'bg-warning text-dark' : 'bg-secondary') ?>"><?= $e($v['status'] === 'published' ? 'Publikováno' : ($v['status'] === 'archived' ? 'Uloženo' : $v['status'])) ?></span></td><td><div class="d-flex gap-2 flex-wrap">
-<?php if ($v['status'] === 'draft'): ?><a class="btn btn-default btn-sm" href="?document_id=<?= (int)$v['document_id'] ?>&amp;edit_version=<?= (int)$v['id'] ?>">Upravit</a><form method="post" onsubmit="return confirm('Publikovat tuto verzi? Dosavadní publikovaná verze se archivuje.');"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="publish"><input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>"><button type="submit" class="btn btn-primary btn-sm">Publikovat</button></form><form method="post" onsubmit="return confirm('Smazat nepublikovaný návrh?');"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="delete_draft"><input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>"><button class="btn btn-danger btn-sm" type="submit">Smazat návrh</button></form>
-<?php else: ?><form method="post"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="copy_version"><input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>"><button type="submit" class="btn btn-default btn-sm">Vytvořit návrh z verze</button></form><?php endif; ?></div></td></tr><?php endforeach; ?>
-</tbody></table></div></div></section>
+<section class="card mb-4" id="rac-legal-history"><header class="card-header"><h2 class="card-title">Historie verzí</h2></header>
+<div class="card-body"><div class="table-responsive">
+<table class="table table-striped align-middle"><thead><tr><th>Dokument</th><th>Verze</th><th>Stav</th><th>Datum</th></tr></thead><tbody>
+<?php foreach ($historyVersions as $v): ?>
+<tr><td><?= $e($v['document_title']) ?><div class="text-muted small"><?= $e(strtoupper($v['language_code'])) ?></div></td>
+<td>v<?= (int)$v['version_number'] ?><div class="small"><?= $e($v['version_label'] ?? '') ?></div></td>
+<td><span class="badge <?= $v['status'] === 'published' ? 'bg-success' : ($v['status'] === 'draft' ? 'bg-warning text-dark' : 'bg-secondary') ?>"><?= $e($v['status'] === 'published' ? 'Publikováno' : ($v['status'] === 'archived' ? 'Uloženo' : ($v['status'] === 'draft' ? 'Návrh' : $v['status']))) ?></span></td>
+<td class="text-nowrap"><?= $e(date('d. m. Y', strtotime((string)$v['created_at']))) ?></td></tr>
+<?php endforeach; ?>
+<?php if (!$historyVersions): ?><tr><td colspan="4" class="text-muted">Zatím žádné verze.</td></tr><?php endif; ?>
+</tbody></table></div>
+<?php if ($historyPageCount > 1): ?>
+<nav aria-label="Stránkování historie verzí"><ul class="pagination pagination-sm mb-0 flex-wrap">
+<li class="page-item<?= $historyPage <= 1 ? ' disabled' : '' ?>"><a class="page-link" href="<?= $e($historyUrl(max(1, $historyPage - 1))) ?>" aria-label="Předchozí stránka">&laquo;</a></li>
+<?php $historyPages=[1,$historyPageCount]; for($i=max(1,$historyPage-2);$i<=min($historyPageCount,$historyPage+2);$i++)$historyPages[]=$i; $historyPages=array_values(array_unique($historyPages)); sort($historyPages); $historyPrev=0; foreach($historyPages as $n): ?>
+<?php if($historyPrev && $n>$historyPrev+1): ?><li class="page-item disabled"><span class="page-link">…</span></li><?php endif; ?>
+<li class="page-item<?= $n === $historyPage ? ' active' : '' ?>"><a class="page-link" href="<?= $e($historyUrl($n)) ?>"<?= $n === $historyPage ? ' aria-current="page"' : '' ?>><?= $n ?></a></li>
+<?php $historyPrev=$n; endforeach; ?>
+<li class="page-item<?= $historyPage >= $historyPageCount ? ' disabled' : '' ?>"><a class="page-link" href="<?= $e($historyUrl(min($historyPageCount, $historyPage+1))) ?>" aria-label="Další stránka">&raquo;</a></li>
+</ul></nav>
+<?php endif; ?>
+</div></section>
 </div>
 <div class="col-lg-8">
 <?php if ($docs): ?>
@@ -285,16 +322,16 @@ include __DIR__ . '/inc/leve-meny.class.php';
           <?php if ($draft): ?><div><span class="badge bg-warning text-dark">Rozpracovaný návrh</span> <small>v<?= (int)$draft['version_number'] ?></small></div><?php endif; ?>
           <div class="mt-auto pt-2 d-flex flex-row flex-wrap gap-2 align-items-start rac-legal-language-actions">
             <?php if ($draft || $published): $preview=$draft ?: $published; ?>
-              <a class="btn btn-default btn-sm" href="?document_id=<?= $documentId ?>&amp;lang=<?= $e($langCode) ?>&amp;view_version=<?= (int)$preview['id'] ?>#rac-legal-preview">Zobrazit verzi<?= $draft ? ' (návrh)' : '' ?></a>
+              <a class="btn btn-default btn-sm" href="?document_id=<?= $documentId ?>&amp;lang=<?= $e($langCode) ?>&amp;view_version=<?= (int)$preview['id'] ?>#rac-legal-preview">Zobrazit</a>
             <?php endif; ?>
             <?php if ($draft): ?>
-              <a class="btn btn-default btn-sm" href="?document_id=<?= $documentId ?>&amp;lang=<?= $e($langCode) ?>&amp;edit_version=<?= (int)$draft['id'] ?>#rac-legal-edit">Upravit verzi</a>
+              <a class="btn btn-default btn-sm" href="?document_id=<?= $documentId ?>&amp;lang=<?= $e($langCode) ?>&amp;edit_version=<?= (int)$draft['id'] ?>#rac-legal-edit">Upravit</a>
               <?php if ((int)$selected['is_enabled'] === 1): ?>
               <form method="post" onsubmit="return confirm('Publikovat tento návrh? Dosavadní publikovaná verze se archivuje.');"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="publish"><input type="hidden" name="version_id" value="<?= (int)$draft['id'] ?>"><button class="btn btn-primary btn-sm" type="submit">Publikovat</button></form>
               <?php else: ?><span class="text-muted small w-100">Pro publikování nejprve aktivujte dokument.</span><?php endif; ?>
             <?php elseif ($published): ?>
-              <form method="post"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="copy_version"><input type="hidden" name="version_id" value="<?= (int)$published['id'] ?>"><button class="btn btn-default btn-sm" type="submit">Upravit verzi</button></form>
-              <span class="text-muted small w-100">Úprava vytvoří nový návrh; publikovaná verze se nepřepisuje.</span>
+              <form method="post"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="copy_version"><input type="hidden" name="version_id" value="<?= (int)$published['id'] ?>"><button class="btn btn-default btn-sm" type="submit">Upravit</button></form>
+              
             <?php else: ?>
               <a class="btn btn-primary btn-sm" href="<?= $e($langUrl) ?>#rac-legal-edit">Vytvořit verzi</a>
             <?php endif; ?>

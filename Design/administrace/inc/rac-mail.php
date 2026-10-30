@@ -1,7 +1,7 @@
 <?php
 // RAC SMTP digital delivery; PHP 7.4; config validation fix 2026-10-16-12.04.
 declare(strict_types=1);
-const RAC_SMTP_MODULE_VERSION = '2026-10-16-UTF8-DIAG01';
+const RAC_SMTP_MODULE_VERSION = '2026-10-25-INVOICE-PDF-STEP08-02';
 function racMailConfig(): array {
  $path=dirname(__DIR__,2).'/rac-private/mail-config.php';
  if(!is_file($path)||!is_readable($path))throw new RuntimeException('Chybí chráněná konfigurace SMTP.');
@@ -55,19 +55,29 @@ function racMailHeaderUtf8(string $value,string $field='hlavicka'):string {
  return implode("\r\n ",$out);
 }
 /** MIME hlavičky + tělo zakódované Base64 pro přenos bez poškození diakritiky. */
-function racMailMimeMessage(array $c,string $to,string $subject,string $body):array {
+function racMailMimeMessage(array $c,string $to,string $subject,string $body,array $attachments=[]):array {
  $from=(string)$c['from_email'];
+ if(preg_match('//u',$body)!==1)throw new RuntimeException('Neplatné UTF-8 v těle e-mailu.');
  $headers='From: '.racMailHeaderUtf8((string)$c['from_name'],'from_name').' <'.$from.">\r\n".
           'Reply-To: '.$from."\r\n".
-          "MIME-Version: 1.0\r\n".
-          "Content-Type: text/plain; charset=UTF-8\r\n".
-          "Content-Transfer-Encoding: base64\r\n".
-          "Auto-Submitted: auto-generated\r\n";
+          "MIME-Version: 1.0\r\n";
  $encodedBody=rtrim(chunk_split(base64_encode(str_replace(["\r\n","\r"],"\n",$body)),76,"\r\n"));
- if(preg_match('//u',$body)!==1)throw new RuntimeException('Neplatné UTF-8 v poli body. Zkontrolujte název souboru a data objednávky.');
- return [racMailHeaderUtf8($subject,'subject'),$headers,$encodedBody];
+ if(!$attachments){
+  $headers.="Content-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\nAuto-Submitted: auto-generated\r\n";
+  return [racMailHeaderUtf8($subject,'subject'),$headers,$encodedBody];
+ }
+ if(count($attachments)!==1)throw new RuntimeException('Podporována je jediná PDF příloha.');
+ $attachment=$attachments[0];
+ $filename=(string)($attachment['filename']??'');$data=(string)($attachment['data']??'');
+ if(!preg_match('/^[A-Za-z0-9_-]{1,90}\.pdf$/D',$filename)||strncmp($data,'%PDF-',5)!==0||strlen($data)>7*1024*1024)throw new RuntimeException('Neplatná nebo příliš velká PDF příloha.');
+ $boundary='rac_'.bin2hex(random_bytes(16));
+ $headers.='Content-Type: multipart/mixed; boundary="'.$boundary.'"'."\r\nAuto-Submitted: auto-generated\r\n";
+ $parts='--'.$boundary."\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n".$encodedBody."\r\n";
+ $parts.='--'.$boundary."\r\nContent-Type: application/pdf; name=\"".$filename."\"\r\nContent-Disposition: attachment; filename=\"".$filename."\"\r\nContent-Transfer-Encoding: base64\r\n\r\n";
+ $parts.=rtrim(chunk_split(base64_encode($data),76,"\r\n"))."\r\n--".$boundary."--\r\n";
+ return [racMailHeaderUtf8($subject,'subject'),$headers,$parts];
 }
-function racMailSend(array $c,string $to,string $subject,string $body):void {
+function racMailSend(array $c,string $to,string $subject,string $body,array $attachments=[]):void {
  if(!filter_var($to,FILTER_VALIDATE_EMAIL))throw new RuntimeException('Neplatný e-mail zákazníka.');
  foreach([$to,(string)$c['from_email'],(string)$c['username']] as $s)if(preg_match('/[\r\n]/',$s))throw new RuntimeException('Neplatná hlavička.');
  $secure=(int)$c['port']===465;
@@ -87,20 +97,20 @@ function racMailSend(array $c,string $to,string $subject,string $body):void {
   if(stripos($hello,'AUTH')===false)throw new RuntimeException('SMTP nenabízí přihlášení.');
   racSmtpCmd($fp,'AUTH LOGIN',[334]); racSmtpCmd($fp,base64_encode((string)$c['username']),[334]);racSmtpCmd($fp,base64_encode((string)$c['password']),[235]);
   racSmtpCmd($fp,'MAIL FROM:<'.$c['from_email'].'>',[250]);racSmtpCmd($fp,'RCPT TO:<'.$to.'>',[250,251]);racSmtpCmd($fp,'DATA',[354]);
-  [$encodedSubject,$headers,$encodedBody]=racMailMimeMessage($c,$to,$subject,$body);
+  [$encodedSubject,$headers,$encodedBody]=racMailMimeMessage($c,$to,$subject,$body,$attachments);
   $payload=$headers.'To: <'.$to.">\r\n".'Subject: '.$encodedSubject."\r\n\r\n".$encodedBody;
   $payload=preg_replace('/^\./m','..',$payload);
   if(fwrite($fp,$payload."\r\n.\r\n")===false)throw new RuntimeException('SMTP zprávu nepřijal.');
   racSmtpExpect($fp,[250]); @fwrite($fp,"QUIT\r\n");
  } finally {fclose($fp);}
 }
-function racPhpMailSend(array $c,string $to,string $subject,string $body):void {
+function racPhpMailSend(array $c,string $to,string $subject,string $body,array $attachments=[]):void {
  if(!function_exists('mail'))throw new RuntimeException('Funkce PHP mail() není na serveru dostupná.');
  if(!filter_var($to,FILTER_VALIDATE_EMAIL))throw new RuntimeException('Neplatný e-mail zákazníka.');
  foreach([$to,(string)$c['from_email'],(string)$c['from_name'],$subject] as $value){
   if(preg_match('/[\r\n]/',(string)$value))throw new RuntimeException('Neplatné znaky v e-mailové hlavičce.');
  }
- [$encodedSubject,$headers,$encodedBody]=racMailMimeMessage($c,$to,$subject,$body);
+ [$encodedSubject,$headers,$encodedBody]=racMailMimeMessage($c,$to,$subject,$body,$attachments);
  if(@mail($to,$encodedSubject,$encodedBody,$headers)!==true)throw new RuntimeException('PHP mail() odmítlo zprávu. Ověřte adresu odesílatele a pravidla hostingu.');
 }
 function racDigitalSmtpEmail(PDO $db,int $orderId,string $source='manual'):bool {
@@ -111,11 +121,42 @@ function racDigitalSmtpEmail(PDO $db,int $orderId,string $source='manual'):bool 
  if($source==='webhook' && empty($c['automatic_enabled']))return false;
  $s=$db->prepare('SELECT email,order_number FROM shop_orders WHERE id=?');$s->execute([$orderId]);$o=$s->fetch(PDO::FETCH_ASSOC);
  if(!$o||!filter_var($o['email']??'',FILTER_VALIDATE_EMAIL))throw new RuntimeException('Chybí adresa zákazníka.');
- $s=$db->prepare("SELECT a.token_encrypted,f.original_filename FROM shop_digital_access a JOIN product_files f ON f.id=a.file_id WHERE a.order_id=? AND a.revoked_at IS NULL AND a.expires_at>NOW() AND f.purpose='paid' ORDER BY a.id");$s->execute([$orderId]);$rows=$s->fetchAll(PDO::FETCH_ASSOC);
+ $s=$db->prepare("SELECT a.token_encrypted,f.id AS file_id,f.original_filename FROM shop_digital_access a JOIN product_files f ON f.id=a.file_id WHERE a.order_id=? AND a.revoked_at IS NULL AND a.expires_at>NOW() AND f.purpose='paid' ORDER BY a.id");
+ $s->execute([$orderId]);$rows=$s->fetchAll(PDO::FETCH_ASSOC);
  if(!$rows)throw new RuntimeException('K objednávce nejsou platné digitální přístupy.');
- $body="Dobrý den,\n\nděkujeme za objednávku č. ".$o['order_number'].".\n\nZakoupené digitální soubory si stáhnete zde:\n\n";
- foreach($rows as $r){$body.=$r['original_filename']."\n".$c['base_url'].'/digital-stahnout.php?token='.rawurlencode(racDigitalDecrypt($r['token_encrypted']))."\n\n";}
- $body.="Odkazy mají platnost 30 dní od vytvoření. Nesdílejte je s dalšími osobami.\n\nDěkujeme za váš nákup.\n";
+ require_once __DIR__.'/rac-delivery-mail-template.php';
+ $fileLabels=[];
+ if(function_exists('racDeliveryEditionTitles')) {
+  try{$fileLabels=racDeliveryEditionTitles($db,array_column($rows,'file_id'));}
+  catch(Throwable $labelError){error_log('RAC delivery labels order '.$orderId.': '.$labelError->getMessage());}
+ }
+ $downloadLinks='';
+ foreach($rows as $row){
+  $label=(string)($fileLabels[(int)$row['file_id']]??$row['original_filename']);
+  $downloadLinks.=$label."\n".$c['base_url'].'/digital-stahnout.php?token='.rawurlencode(racDigitalDecrypt((string)$row['token_encrypted']))."\n\n";
+ }
+ $template=racDeliveryMailTemplate($db);
+ if(strpos((string)$template['body'],'{download_links}')===false)throw new RuntimeException('Doručovací šablona neobsahuje povinný zástupný text {download_links}.');
+ $values=['order_number'=>(string)$o['order_number'],'validity_days'=>'30','download_links'=>$downloadLinks];
+ $body=racDeliveryMailRender((string)$template['body'],$values);
+ $subject=racDeliveryMailRender((string)$template['subject'],$values);
+ if(trim($subject)==='')throw new RuntimeException('Předmět doručovacího e-mailu je prázdný.');
+ // If an issued invoice exists, its valid PDF attachment is mandatory.
+ // Orders without an invoice (e.g. outside current invoicing scope) keep the existing flow.
+ $invoiceAttachments=[];
+ $invoiceQuery=$db->prepare("SELECT id FROM fakturace_doklady WHERE order_id=? AND typ='faktura' AND stav='zaplaceno' LIMIT 1");
+ $invoiceQuery->execute([$orderId]);
+ $hasInvoice=(bool)$invoiceQuery->fetchColumn();
+ if($hasInvoice){
+  require_once __DIR__.'/../fakturace/inc/rac-faktury-attachment.php';
+  $one=racFakturaPdfAttachment($db,$orderId);
+  if(!is_array($one)
+    || strncmp((string)($one['data']??''),'%PDF-',5)!==0
+    || !preg_match('/^[A-Za-z0-9_-]{1,90}\.pdf$/D',(string)($one['filename']??''))){
+   throw new RuntimeException('K vystavene fakture chybi platna PDF priloha; e-mail nebyl odeslan.');
+  }
+  $invoiceAttachments[]=$one;
+ }
  // Claim webhook send only once; manual resend intentionally permitted.
  if($source==='webhook'){
   $db->beginTransaction();
@@ -126,9 +167,21 @@ function racDigitalSmtpEmail(PDO $db,int $orderId,string $source='manual'):bool 
   }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
  }else{$s=$db->prepare("INSERT INTO shop_digital_mail_log(order_id,recipient,source,status) VALUES (?,?,'manual','sending')");$s->execute([$orderId,$o['email']]);$logId=(int)$db->lastInsertId();}
  try{
-  $subject='Odkazy ke stažení – objednávka '.$o['order_number'];
-  if($c['transport']==='mail')racPhpMailSend($c,(string)$o['email'],$subject,$body);
-  else racMailSend($c,(string)$o['email'],$subject,$body);
-  $s=$db->prepare("UPDATE shop_digital_mail_log SET status='accepted',sent_at=NOW() WHERE id=?");$s->execute([$logId]);return true;
+  if($c['transport']==='mail')racPhpMailSend($c,(string)$o['email'],$subject,$body,$invoiceAttachments);
+  else racMailSend($c,(string)$o['email'],$subject,$body,$invoiceAttachments);
+  // Kopie pro provozovatele se posila az PO potvrzeni prijeti zpravy pro zakaznika.
+  // Jeji selhani nesmi zpusobit opakovane zaslani zakaznickeho e-mailu.
+  $s=$db->prepare("UPDATE shop_digital_mail_log SET status='accepted',sent_at=NOW() WHERE id=?");$s->execute([$logId]);
+  try {
+   $stCopy=$db->query('SELECT operator_copy_email FROM shop_delivery_email_templates WHERE id=1 LIMIT 1');
+   $copyTo=trim((string)$stCopy->fetchColumn());
+   if($copyTo!=='' && filter_var($copyTo,FILTER_VALIDATE_EMAIL) && strcasecmp($copyTo,(string)$o['email'])!==0){
+    if($c['transport']==='mail')racPhpMailSend($c,$copyTo,$subject,$body,$invoiceAttachments);
+    else racMailSend($c,$copyTo,$subject,$body,$invoiceAttachments);
+   }
+  } catch(Throwable $copyError) {
+   error_log('RAC operator mail copy order '.$orderId.': '.$copyError->getMessage());
+  }
+  return true;
  }catch(Throwable $e){$s=$db->prepare("UPDATE shop_digital_mail_log SET status='failed',error_code=? WHERE id=?");$s->execute([substr($e->getMessage(),0,180),$logId]);throw $e;}
 }

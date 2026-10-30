@@ -6,11 +6,12 @@ if (empty($racUsePortoLayout)) {
 }
 ?>
 <?php
-/** RAC Porto shared footer; 2026-10-12-04. */
+/** RAC Porto shared footer; 2026-10-30-HELP-01. */
 ?>
 </section>
 </div>
 </section>
-<?php include __DIR__ . "/scripts-bottom.class.php"; ?>
+<?php include __DIR__ . '/napoveda-widget.php'; ?>
+<?php include __DIR__ . '/scripts-bottom.class.php'; ?>
 </body>
 </html>

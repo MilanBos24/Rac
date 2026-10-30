@@ -240,7 +240,7 @@ include __DIR__ . '/inc/leve-meny.class.php';
 <section role="main" class="content-body content-body-modern mt-0">
 <header class="page-header"><h2>Právní dokumenty</h2></header>
 <div class="row pt-3 mb-4"><div class="col-12">
-<div class="alert alert-info">Publikované verze jsou neměnné. Při úpravách vytvořte návrh nové verze a samostatně jej publikujte. Veřejné GDPR zobrazuje publikovanou jazykovou mutaci; checkout dosud není propojený.</div>
+
 <?php if (isset($_GET['notice'])): ?><div class="alert alert-success"><?= $e($_GET['notice']) ?></div><?php endif; ?>
 <?php if ($error): ?><div class="alert alert-danger"><?= $e($error) ?></div><?php endif; ?>
 <div class="row">

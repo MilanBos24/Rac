@@ -1,5 +1,5 @@
 <?php
-/* RAC | Právní dokumenty | verze 2026-10-21-12.00 | jazykové mutace + vizuální editor + Porto */
+/* RAC | Právní dokumenty | verze 2026-10-27-20.15 | dynamicke taby + kompaktni seznam dokumentu | v11 | PHP 7.4+ */
 /* Používá existující přihlášení, PDO a tabulky RAC (migrace 017). */
 declare(strict_types=1);
 require_once __DIR__ . '/config/session.php';
@@ -14,9 +14,46 @@ $db = $pdo;
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $csrf = csrf_token('csrf_legal_documents');
 $e = static function ($v): string { return htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); };
-function legalRedirect(string $notice): void { header('Location: pravni-dokumenty.php?notice=' . rawurlencode($notice), true, 303); exit; }
+function legalRedirect(string $notice, int $documentId=0, string $language=''): void {
+    $query=['notice'=>$notice];
+    if ($documentId > 0) $query['document_id']=$documentId;
+    if ($language !== '') $query['lang']=$language;
+    header('Location: pravni-dokumenty.php?'.http_build_query($query,'','&',PHP_QUERY_RFC3986), true, 303);
+    exit;
+}
 function legalPost(PDO $db, string $sql, array $params = []): void { $s=$db->prepare($sql); $s->execute($params); }
 function legalOne(PDO $db, string $sql, array $params = []): ?array { $s=$db->prepare($sql); $s->execute($params); $r=$s->fetch(PDO::FETCH_ASSOC); return $r ?: null; }
+function legalPreviewHtml(string $html): string {
+    // Read-only nahled: bezpecne odstrani skripty a atributy mimo vybrany styl barvy.
+    if (!class_exists('DOMDocument')) return nl2br(htmlspecialchars(strip_tags($html), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+    $doc=new DOMDocument('1.0','UTF-8');
+    $previous=libxml_use_internal_errors(true);
+    $doc->loadHTML('<?xml encoding="UTF-8"><div id="rac-preview-root">'.$html.'</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    libxml_clear_errors(); libxml_use_internal_errors($previous);
+    $root=$doc->getElementById('rac-preview-root');
+    if (!$root) return htmlspecialchars(strip_tags($html), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $allowed=['p','br','strong','b','em','i','u','h2','h3','h4','ul','ol','li','blockquote','span'];
+    $walk=function(DOMNode $node) use (&$walk,$allowed): void {
+        for ($child=$node->firstChild; $child;) {
+            $next=$child->nextSibling;
+            if ($child instanceof DOMElement) {
+                $tag=strtolower($child->tagName);
+                if (!in_array($tag,$allowed,true)) {
+                    // Neznamy element zobrazime jen jako bezpecny text.
+                    $node->replaceChild($node->ownerDocument->createTextNode($child->textContent),$child);
+                } else {
+                    $style=$child->getAttribute('style');
+                    while ($child->attributes->length) $child->removeAttributeNode($child->attributes->item(0));
+                    if ($tag==='span' && preg_match('/^\s*(?:background-color|color)\s*:\s*#f5900d\s*;?\s*$/i',$style)) $child->setAttribute('style',$style);
+                    $walk($child);
+                }
+            }
+            $child=$next;
+        }
+    };
+    $walk($root);$out='';foreach($root->childNodes as $child)$out.=$doc->saveHTML($child);return $out;
+}
+
 $languages = ['cs'=>'Čeština', 'en'=>'English', 'de'=>'Deutsch', 'pl'=>'Polski', 'fr'=>'Français'];
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -28,19 +65,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $title = trim((string)($_POST['document_title'] ?? ''));
             if (!preg_match('/^[a-z0-9][a-z0-9_-]{1,99}$/', $key) || $title === '' || mb_strlen($title) > 255) { throw new RuntimeException('Zadejte platný identifikátor a název dokumentu.'); }
             legalPost($db,'INSERT INTO rac_legal_documents (document_key,title,description) VALUES (?,?,?)',[$key,$title,trim((string)($_POST['description']??''))]);
-            legalRedirect('Dokument byl založen.');
+            legalRedirect('Dokument byl založen.', (int)$db->lastInsertId());
         }
         if ($action === 'toggle_document') {
             $id = (int)($_POST['document_id'] ?? 0);
             if ($id < 1 || !legalOne($db, 'SELECT id FROM rac_legal_documents WHERE id=?', [$id])) { throw new RuntimeException('Dokument nenalezen.'); }
             legalPost($db,'UPDATE rac_legal_documents SET is_enabled = IF(is_enabled=1,0,1) WHERE id=?',[$id]);
-            legalRedirect('Dostupnost dokumentu byla změněna.');
+            legalRedirect('Dostupnost dokumentu byla změněna.', $id);
         }
         if ($action === 'save_draft') {
             $id = (int)($_POST['document_id'] ?? 0);
             $lang=(string)($_POST['language_code']??'');
             $title=trim((string)($_POST['title']??''));
             $html=(string)($_POST['content_html']??'');
+            // NBSP z contenteditable nema byt viditelny jako HTML entita na verejnem webu.
+            $html = str_replace(['&amp;nbsp;', '&nbsp;', '&#160;', '&#xA0;', "\xC2\xA0"], ' ', $html);
             $label=trim((string)($_POST['version_label']??''));
             $versionId=(int)($_POST['version_id']??0);
             if (!isset($languages[$lang]) || $title === '' || mb_strlen($title)>255 || trim(strip_tags($html)) === '' || mb_strlen($label)>40) { throw new RuntimeException('Vyplňte platný jazyk, název a obsah.'); }
@@ -68,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 legalPost($db,"INSERT INTO rac_legal_document_versions (document_id,language_code,version_number,version_label,title,content_html,content_sha256,status,created_by) VALUES (?,?,?,?,?,?,?,'draft',?)",[$id,$lang,(int)$last['n']+1,$label?:null,$title,$html,$hash,$adminId]);
                 $db->commit();
             }
-            legalRedirect('Návrh verze byl uložen.');
+            legalRedirect('Návrh verze byl uložen.', $id, $lang);
         }
         if ($action === 'publish') {
             $versionId=(int)($_POST['version_id']??0);
@@ -79,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             legalOne($db,'SELECT id FROM rac_legal_documents WHERE id=? FOR UPDATE',[(int)$v['document_id']]);
             legalPost($db,"UPDATE rac_legal_document_versions SET status='archived' WHERE document_id=? AND language_code=? AND status='published'",[(int)$v['document_id'],$v['language_code']]);
             legalPost($db,"UPDATE rac_legal_document_versions SET status='published',published_at=NOW(),effective_from=NOW(),published_by=? WHERE id=? AND status='draft'",[$adminId,$versionId]);
-            $db->commit(); legalRedirect('Nová verze byla publikována; předchozí je archivována.');
+            $db->commit(); legalRedirect('Nová verze byla publikována; předchozí je archivována.', (int)$v['document_id'], (string)$v['language_code']);
         }
         if ($action === 'copy_version') {
             $versionId = (int)($_POST['version_id'] ?? 0);
@@ -96,13 +135,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 [(int)$v['document_id'], $v['language_code'], (int)$last['n'] + 1, null, $v['title'], $v['content_html'], $v['content_sha256'], $adminId]);
             $newId = (int)$db->lastInsertId();
             $db->commit();
-            header('Location: pravni-dokumenty.php?edit_version=' . $newId . '&notice=' . rawurlencode('Nový návrh byl vytvořen z předchozí verze.'), true, 303);
+            header('Location: pravni-dokumenty.php?document_id='.(int)$v['document_id'].'&lang='.rawurlencode((string)$v['language_code']).'&edit_version=' . $newId . '&notice=' . rawurlencode('Nový návrh byl vytvořen z předchozí verze.'), true, 303);
             exit;
         }
         if ($action === 'delete_draft') {
             $id=(int)($_POST['version_id']??0);
+            $versionContext=legalOne($db,"SELECT document_id,language_code FROM rac_legal_document_versions WHERE id=? AND status='draft'",[$id]);
             legalPost($db,"DELETE FROM rac_legal_document_versions WHERE id=? AND status='draft'",[$id]);
-            legalRedirect('Nepublikovaný návrh byl odstraněn.');
+            legalRedirect('Nepublikovaný návrh byl odstraněn.', (int)($versionContext['document_id'] ?? 0), (string)($versionContext['language_code'] ?? ''));
         }
         throw new RuntimeException('Neznámá operace.');
     } catch (Throwable $ex) {
@@ -113,8 +153,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 $docs=$db->query('SELECT * FROM rac_legal_documents ORDER BY id')->fetchAll(PDO::FETCH_ASSOC);
 $versions=$db->query('SELECT v.*,d.title AS document_title FROM rac_legal_document_versions v JOIN rac_legal_documents d ON d.id=v.document_id ORDER BY v.document_id,v.language_code,v.version_number DESC')->fetchAll(PDO::FETCH_ASSOC);
-$documentId=(int)($_GET['document_id']??0);
+$documentId=(int)($_GET['document_id']??$_POST['document_id']??0);
 $editVersion=(int)($_GET['edit_version']??0);
+$viewVersion=(int)($_GET['view_version']??0);
+$viewCurrent=null;
+if ($viewVersion > 0) { $viewCurrent=legalOne($db, 'SELECT * FROM rac_legal_document_versions WHERE id=?', [$viewVersion]); if ($viewCurrent) $documentId=(int)$viewCurrent['document_id']; }
 $current=null;
 if ($editVersion) { $current=legalOne($db,"SELECT * FROM rac_legal_document_versions WHERE id=? AND status='draft'",[$editVersion]); if($current) $documentId=(int)$current['document_id']; }
 if (!$documentId && $docs) $documentId=(int)$docs[0]['id'];
@@ -123,6 +166,7 @@ $selected=null;foreach($docs as $d)if((int)$d['id']===$documentId)$selected=$d;
 $selectedLanguage=(string)($_GET['lang']??'cs');
 if (!isset($languages[$selectedLanguage])) $selectedLanguage='cs';
 if ($current) $selectedLanguage=(string)$current['language_code'];
+if ($viewCurrent && !$current) $selectedLanguage=(string)$viewCurrent['language_code'];
 $languageVersions=[];
 foreach($versions as $v) {
     if ((int)$v['document_id'] !== $documentId) continue;
@@ -184,16 +228,43 @@ include __DIR__ . '/inc/leve-meny.class.php';
 <section class="card mb-4"><header class="card-header"><h2 class="card-title">Dokumenty</h2></header><div class="card-body">
 <?php if (!$docs): ?><p>Zatím nejsou založené žádné dokumenty.</p><?php endif; ?>
 <?php foreach ($docs as $d): ?>
-<div class="border-bottom py-3"><a href="?document_id=<?= (int)$d['id'] ?>"><strong><?= $e($d['title']) ?></strong></a><div class="text-muted small"><?= $e($d['document_key']) ?> · <?= $d['is_enabled'] ? 'Aktivní' : 'Neaktivní' ?></div>
-<form method="post" class="mt-2"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="toggle_document"><input type="hidden" name="document_id" value="<?= (int)$d['id'] ?>"><button type="submit" class="btn btn-default btn-sm"><?= $d['is_enabled'] ? 'Deaktivovat' : 'Aktivovat' ?></button></form></div>
+<div class="border-bottom py-2">
+  <div class="d-flex align-items-center justify-content-between gap-2">
+    <div class="flex-grow-1" style="min-width:0">
+      <a href="?document_id=<?= (int)$d['id'] ?>"><strong><?= $e($d['title']) ?></strong></a>
+      <div class="text-muted small"><?= $e($d['document_key']) ?> · <?= $d['is_enabled'] ? 'Aktivní' : 'Neaktivní' ?></div>
+    </div>
+    <form method="post" class="m-0 flex-shrink-0">
+      <input type="hidden" name="csrf" value="<?= $e($csrf) ?>">
+      <input type="hidden" name="action" value="toggle_document">
+      <input type="hidden" name="document_id" value="<?= (int)$d['id'] ?>">
+      <button type="submit" class="btn btn-primary btn-sm"><?= $d['is_enabled'] ? 'Deaktivovat' : 'Aktivovat' ?></button>
+    </form>
+  </div>
+</div>
 <?php endforeach; ?></div></section>
 <section class="card mb-4"><header class="card-header"><h2 class="card-title">Nový dokument</h2></header><form method="post"><div class="card-body"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="create_document">
 <label class="form-label">Identifikátor</label><input class="form-control" name="document_key" placeholder="obchodni-podminky" required pattern="[a-z0-9_-]+" maxlength="100">
 <label class="form-label mt-3">Název</label><input class="form-control" name="document_title" required maxlength="255">
 <label class="form-label mt-3">Popis</label><textarea class="form-control" name="description" rows="2"></textarea>
 </div><footer class="card-footer text-end"><button type="submit" class="btn btn-primary">Vytvořit dokument</button></footer></form></section>
+<section class="card mb-4"><header class="card-header"><h2 class="card-title">Historie verzí</h2></header><div class="card-body"><div class="table-responsive"><table class="table table-striped align-middle"><thead><tr><th>Dokument / jazyk</th><th>Verze</th><th>Stav</th><th>Vytvořeno</th><th>Akce</th></tr></thead><tbody>
+<?php foreach ($versions as $v): ?><tr><td><?= $e($v['document_title']) ?><div class="text-muted small"><?= $e(strtoupper($v['language_code'])) ?></div></td><td>v<?= (int)$v['version_number'] ?><div class="small"><?= $e($v['version_label'] ?? '') ?></div></td><td><span class="badge <?= $v['status'] === 'published' ? 'bg-success' : ($v['status'] === 'draft' ? 'bg-warning text-dark' : 'bg-secondary') ?>"><?= $e($v['status']) ?></span></td><td><?= $e($v['created_at']) ?></td><td><div class="d-flex gap-2 flex-wrap">
+<?php if ($v['status'] === 'draft'): ?><a class="btn btn-default btn-sm" href="?document_id=<?= (int)$v['document_id'] ?>&amp;edit_version=<?= (int)$v['id'] ?>">Upravit</a><form method="post" onsubmit="return confirm('Publikovat tuto verzi? Dosavadní publikovaná verze se archivuje.');"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="publish"><input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>"><button type="submit" class="btn btn-primary btn-sm">Publikovat</button></form><form method="post" onsubmit="return confirm('Smazat nepublikovaný návrh?');"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="delete_draft"><input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>"><button class="btn btn-danger btn-sm" type="submit">Smazat návrh</button></form>
+<?php else: ?><form method="post"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="copy_version"><input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>"><button type="submit" class="btn btn-default btn-sm">Vytvořit návrh z verze</button></form><?php endif; ?></div></td></tr><?php endforeach; ?>
+</tbody></table></div></div></section>
 </div>
 <div class="col-lg-8">
+<?php if ($docs): ?>
+<ul class="nav nav-tabs flex-wrap mb-0" id="rac-legal-document-tabs" role="tablist" aria-label="Právní dokumenty">
+<?php foreach ($docs as $tabDoc): $tabId=(int)$tabDoc['id']; $tabActive=$tabId===$documentId; ?>
+<li class="nav-item" role="presentation">
+  <a class="nav-link<?= $tabActive ? ' active' : '' ?>" href="?document_id=<?= $tabId ?>" role="tab" aria-selected="<?= $tabActive ? 'true' : 'false' ?>"<?= $tabActive ? ' aria-current="page"' : '' ?>><?= $e($tabDoc['title']) ?></a>
+</li>
+<?php endforeach; ?>
+</ul>
+<div class="border border-top-0 rounded-bottom p-3 pt-4 mb-4 rac-legal-tab-content">
+<?php endif; ?>
 <?php if ($selected): ?>
 <section class="card mb-4">
   <header class="card-header"><h2 class="card-title">Jazykové mutace – <?= $e($selected['title']) ?></h2></header>
@@ -212,13 +283,20 @@ include __DIR__ . '/inc/leve-meny.class.php';
             <div><span class="badge bg-success">Publikováno</span> <small>v<?= (int)$published['version_number'] ?></small></div>
           <?php else: ?><span class="badge bg-secondary align-self-start">Překlad není publikován</span><?php endif; ?>
           <?php if ($draft): ?><div><span class="badge bg-warning text-dark">Rozpracovaný návrh</span> <small>v<?= (int)$draft['version_number'] ?></small></div><?php endif; ?>
-          <div class="mt-auto pt-2">
+          <div class="mt-auto pt-2 d-flex flex-row flex-wrap gap-2 align-items-start rac-legal-language-actions">
+            <?php if ($draft || $published): $preview=$draft ?: $published; ?>
+              <a class="btn btn-default btn-sm" href="?document_id=<?= $documentId ?>&amp;lang=<?= $e($langCode) ?>&amp;view_version=<?= (int)$preview['id'] ?>#rac-legal-preview">Zobrazit verzi<?= $draft ? ' (návrh)' : '' ?></a>
+            <?php endif; ?>
             <?php if ($draft): ?>
-              <a class="btn btn-primary btn-sm w-100" href="?edit_version=<?= (int)$draft['id'] ?>">Upravit návrh</a>
+              <a class="btn btn-default btn-sm" href="?document_id=<?= $documentId ?>&amp;lang=<?= $e($langCode) ?>&amp;edit_version=<?= (int)$draft['id'] ?>#rac-legal-edit">Upravit verzi</a>
+              <?php if ((int)$selected['is_enabled'] === 1): ?>
+              <form method="post" onsubmit="return confirm('Publikovat tento návrh? Dosavadní publikovaná verze se archivuje.');"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="publish"><input type="hidden" name="version_id" value="<?= (int)$draft['id'] ?>"><button class="btn btn-primary btn-sm" type="submit">Publikovat</button></form>
+              <?php else: ?><span class="text-muted small w-100">Pro publikování nejprve aktivujte dokument.</span><?php endif; ?>
             <?php elseif ($published): ?>
-              <form method="post"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="copy_version"><input type="hidden" name="version_id" value="<?= (int)$published['id'] ?>"><button class="btn btn-default btn-sm w-100" type="submit">Nová verze</button></form>
+              <form method="post"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="copy_version"><input type="hidden" name="version_id" value="<?= (int)$published['id'] ?>"><button class="btn btn-default btn-sm" type="submit">Upravit verzi</button></form>
+              <span class="text-muted small w-100">Úprava vytvoří nový návrh; publikovaná verze se nepřepisuje.</span>
             <?php else: ?>
-              <a class="btn btn-primary btn-sm w-100" href="<?= $e($langUrl) ?>">Přidat překlad</a>
+              <a class="btn btn-primary btn-sm" href="<?= $e($langUrl) ?>#rac-legal-edit">Vytvořit verzi</a>
             <?php endif; ?>
           </div>
         </div>
@@ -227,8 +305,13 @@ include __DIR__ . '/inc/leve-meny.class.php';
     </div>
   </div>
 </section>
+<?php if ($viewCurrent): ?>
+<section class="card mb-4" id="rac-legal-preview"><header class="card-header d-flex justify-content-between align-items-center"><h2 class="card-title">Zobrazení verze – <?= $e($languages[(string)$viewCurrent['language_code']] ?? strtoupper((string)$viewCurrent['language_code'])) ?> · v<?= (int)$viewCurrent['version_number'] ?></h2><a class="btn btn-default btn-sm" href="?document_id=<?= $documentId ?>&amp;lang=<?= $e($selectedLanguage) ?>">Zavřít náhled</a></header>
+<div class="card-body"><p class="text-muted small">Stav: <?= $e($viewCurrent['status']) ?><?= $viewCurrent['published_at'] ? ' · Publikováno: '.$e($viewCurrent['published_at']) : '' ?></p><h3><?= $e($viewCurrent['title']) ?></h3><div class="rac-legal-version-preview border rounded p-3 mt-3" style="background:#fff;color:#20252a;line-height:1.7;overflow-wrap:anywhere"><?= legalPreviewHtml((string)$viewCurrent['content_html']) ?></div></div>
+</section>
+<?php endif; ?>
 <?php if ($current || !(($languageVersions[$selectedLanguage]['draft']??null) || ($languageVersions[$selectedLanguage]['published']??null))): ?>
-<section class="card mb-4"><header class="card-header"><h2 class="card-title"><?= $e($selected['title']) ?> – <?= $current ? 'Úprava návrhu' : (($languageVersions[$selectedLanguage]['published']??null) ? 'Nový návrh' : 'Přidat překlad') ?></h2></header>
+<section class="card mb-4" id="rac-legal-edit"><header class="card-header"><h2 class="card-title"><?= $e($selected['title']) ?> – <?= $current ? 'Úprava návrhu' : (($languageVersions[$selectedLanguage]['published']??null) ? 'Nový návrh' : 'Přidat překlad') ?></h2></header>
 <form method="post"><div class="card-body"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="save_draft"><input type="hidden" name="document_id" value="<?= $documentId ?>"><input type="hidden" name="version_id" value="<?= (int)($current['id'] ?? 0) ?>">
 <div class="row g-3"><div class="col-md-6"><label class="form-label">Jazyk</label><input class="form-control" value="<?= $e($languages[$selectedLanguage]) ?>" readonly><input type="hidden" name="language_code" value="<?= $e($selectedLanguage) ?>"><small class="text-muted">Jazyk vyberete v přehledu mutací výše.</small></div>
 <div class="col-md-6"><label class="form-label">Označení verze (volitelné)</label><input class="form-control" name="version_label" maxlength="40" value="<?= $e($current['version_label'] ?? '') ?>" placeholder="např. 2026-10"></div>
@@ -254,16 +337,16 @@ include __DIR__ . '/inc/leve-meny.class.php';
 </div>
 <div class="form-text">Vyberte text a použijte formátování. Enter vloží nový odstavec; nadpis vyberete v nabídce „Styl odstavce“. Režim HTML je volitelný. Při uložení se ponechají jen povolené formátovací značky, bez atributů. Zvýraznění použije barvu #f5900d. Odkazy zatím nejsou podporovány.</div>
 </div></div>
-</div><footer class="card-footer d-flex flex-wrap justify-content-end gap-2"><button class="btn btn-primary" type="submit">Uložit návrh</button><?php if ($current): ?><a class="btn btn-default" href="?document_id=<?= $documentId ?>">Zrušit úpravy</a><?php endif; ?></footer></form></section><?php else: ?><div class="alert alert-info">Pro tento jazyk použijte tlačítko „Upravit návrh“ nebo „Nová verze“ v přehledu mutací.</div><?php endif; ?>
-<section class="card mb-4"><header class="card-header"><h2 class="card-title">Historie verzí</h2></header><div class="card-body"><div class="table-responsive"><table class="table table-striped align-middle"><thead><tr><th>Dokument / jazyk</th><th>Verze</th><th>Stav</th><th>Vytvořeno</th><th>Akce</th></tr></thead><tbody>
-<?php foreach ($versions as $v): ?><tr><td><?= $e($v['document_title']) ?><div class="text-muted small"><?= $e(strtoupper($v['language_code'])) ?></div></td><td>v<?= (int)$v['version_number'] ?><div class="small"><?= $e($v['version_label'] ?? '') ?></div></td><td><span class="badge <?= $v['status'] === 'published' ? 'bg-success' : ($v['status'] === 'draft' ? 'bg-warning text-dark' : 'bg-secondary') ?>"><?= $e($v['status']) ?></span></td><td><?= $e($v['created_at']) ?></td><td><div class="d-flex gap-2 flex-wrap">
-<?php if ($v['status'] === 'draft'): ?><a class="btn btn-default btn-sm" href="?edit_version=<?= (int)$v['id'] ?>">Upravit</a><form method="post" onsubmit="return confirm('Publikovat tuto verzi? Dosavadní publikovaná verze se archivuje.');"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="publish"><input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>"><button type="submit" class="btn btn-primary btn-sm">Publikovat</button></form><form method="post" onsubmit="return confirm('Smazat nepublikovaný návrh?');"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="delete_draft"><input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>"><button class="btn btn-danger btn-sm" type="submit">Smazat návrh</button></form>
-<?php else: ?><form method="post"><input type="hidden" name="csrf" value="<?= $e($csrf) ?>"><input type="hidden" name="action" value="copy_version"><input type="hidden" name="version_id" value="<?= (int)$v['id'] ?>"><button type="submit" class="btn btn-default btn-sm">Vytvořit návrh z verze</button></form><?php endif; ?></div></td></tr><?php endforeach; ?>
-</tbody></table></div></div></section>
+</div><footer class="card-footer d-flex flex-wrap justify-content-end gap-2"><button class="btn btn-primary" type="submit">Uložit návrh</button><?php if ($current): ?><a class="btn btn-default" href="?document_id=<?= $documentId ?>&amp;lang=<?= $e($selectedLanguage) ?>">Zrušit úpravy</a><?php endif; ?></footer></form></section><?php else: ?><div class="alert alert-info">Pro tento jazyk použijte tlačítko „Upravit návrh“ nebo „Nová verze“ v přehledu mutací.</div><?php endif; ?>
+
 <?php endif; ?>
+<?php if ($docs): ?></div><?php endif; ?>
 </div></div></div></div></section>
 <style>
-.rac-legal-toolbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;padding:10px;border:1px solid #ced4da;border-radius:5px 5px 0 0;background:#f3f4f6}
+#rac-legal-document-tabs .nav-link{white-space:nowrap}
+.rac-legal-tab-content > .card:last-child{margin-bottom:0!important}
+
+.rac-legal-language-actions form{margin:0;display:inline-flex}.rac-legal-language-actions .btn{white-space:nowrap}.rac-legal-toolbar{display:flex;gap:7px;flex-wrap:wrap;align-items:center;padding:10px;border:1px solid #ced4da;border-radius:5px 5px 0 0;background:#f3f4f6}
 .rac-legal-toolbar .rac-legal-block{width:auto;min-width:150px}
 .rac-legal-visual{min-height:340px;max-height:700px;overflow:auto;padding:20px;background:#fff;color:#20252a;border:1px solid #ced4da;border-top:0;border-radius:0 0 5px 5px;line-height:1.7;white-space:normal;overflow-wrap:anywhere}
 .rac-legal-visual:focus{outline:2px solid #ffc107;outline-offset:-2px}
@@ -298,7 +381,7 @@ function cleaned(html){
   return target;
  }
  var out=document.createElement('div');Array.from(box.childNodes).forEach(function(n){out.appendChild(clean(n));});
- return out.innerHTML.trim();
+ return out.innerHTML.replace(/&(?:amp;)?nbsp;|&#0*160;|&#x0*a0;/gi,' ').replace(/\u00a0/g,' ').trim();
 }
 var starting=source.value.trim();visual.innerHTML=starting?( /<\s*(?:p|h[234]|ul|ol|li|blockquote|mark|span|br|strong|b|em|i|u)\b/i.test(starting)?cleaned(starting):plainToHtml(starting)):'<p></p>';
 function sync(){source.value=cleaned(visual.innerHTML);}
@@ -333,7 +416,7 @@ colorButton.addEventListener('click',function(){
  selection.removeAllRanges();visual.normalize();sync();
 });
 wrap.querySelector('.rac-legal-block').addEventListener('change',function(){visual.focus();document.execCommand('formatBlock',false,this.value);sync();});
-visual.addEventListener('paste',function(event){event.preventDefault();var text=(event.clipboardData||window.clipboardData).getData('text/plain');document.execCommand('insertText',false,text);});
+visual.addEventListener('paste',function(event){event.preventDefault();var text=(event.clipboardData||window.clipboardData).getData('text/plain').replace(/\u00a0/g,' ');document.execCommand('insertText',false,text);});
 visual.addEventListener('input',sync);
 toggle.addEventListener('click',function(){if(wrap.classList.contains('is-source')){visual.innerHTML=cleaned(source.value);wrap.classList.remove('is-source');toggle.textContent='HTML';}else{sync();wrap.classList.add('is-source');toggle.textContent='Vizuální editor';}});
 var form=wrap.closest('form');if(form)form.addEventListener('submit',function(){if(!wrap.classList.contains('is-source'))sync();else source.value=cleaned(source.value);});

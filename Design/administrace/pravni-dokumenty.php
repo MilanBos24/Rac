@@ -306,7 +306,7 @@ include __DIR__ . '/inc/leve-meny.class.php';
 <section class="card mb-4">
   <header class="card-header"><h2 class="card-title">Jazykové mutace – <?= $e($selected['title']) ?></h2></header>
   <div class="card-body">
-    <p class="text-muted mb-3">Každý jazyk se publikuje a verzuje samostatně. Chybějící publikovaný překlad veřejný web nahradí českou verzí.</p>
+    
     <div class="row g-3">
     <?php foreach ($languages as $langCode => $langLabel):
       $state=$languageVersions[$langCode]??['published'=>null,'draft'=>null,'archived'=>null];
@@ -374,7 +374,7 @@ include __DIR__ . '/inc/leve-meny.class.php';
 </div>
 <div class="form-text">Vyberte text a použijte formátování. Enter vloží nový odstavec; nadpis vyberete v nabídce „Styl odstavce“. Režim HTML je volitelný. Při uložení se ponechají jen povolené formátovací značky, bez atributů. Zvýraznění použije barvu #f5900d. Odkazy zatím nejsou podporovány.</div>
 </div></div>
-</div><footer class="card-footer d-flex flex-wrap justify-content-end gap-2"><button class="btn btn-primary" type="submit">Uložit návrh</button><?php if ($current): ?><a class="btn btn-default" href="?document_id=<?= $documentId ?>&amp;lang=<?= $e($selectedLanguage) ?>">Zrušit úpravy</a><?php endif; ?></footer></form></section><?php else: ?><div class="alert alert-info">Pro tento jazyk použijte tlačítko „Upravit návrh“ nebo „Nová verze“ v přehledu mutací.</div><?php endif; ?>
+</div><footer class="card-footer d-flex flex-wrap justify-content-end gap-2"><button class="btn btn-primary" type="submit">Uložit návrh</button><?php if ($current): ?><a class="btn btn-default" href="?document_id=<?= $documentId ?>&amp;lang=<?= $e($selectedLanguage) ?>">Zrušit úpravy</a><?php endif; ?></footer></form></section><?php else: ?><div class="alert alert-info">Každý jazyk se publikuje samostatně. Chybějící překlad web nahradí českou verzí.</div><?php endif; ?>
 
 <?php endif; ?>
 <?php if ($docs): ?></div><?php endif; ?>

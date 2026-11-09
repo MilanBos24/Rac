@@ -24,7 +24,7 @@ $menuGroups=[
 ];
 $currentPath='/administrace/eshop-platby.php';$pageTitle='Platby e-shopu';$title='Platby e-shopu | RAC';
 function rac_payment_table_exists(PDO $pdo,string $name):bool{$s=$pdo->prepare('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?');$s->execute([$name]);return (int)$s->fetchColumn()>0;}
-function rac_payment_status_label(string $status):string {return ['paid'=>'Zaplaceno','pending'=>'Čeká na platbu','failed'=>'Neúspěšná','expired'=>'Vypršela','refunded'=>'Vráceno','cancelled'=>'Zrušena','canceled'=>'Zrušena'][$status]??$status;}
+function rac_payment_status_label(string $status):string {return ['paid'=>'Zaplaceno','pending'=>'Čeká na platbu','failed'=>'Neúspěšná','expired'=>'Platba vypršela','refunded'=>'Vráceno','cancelled'=>'Zrušena','canceled'=>'Zrušena'][$status]??$status;}
 function rac_payment_amount($minor,$currency):string{return number_format(((int)$minor)/100,2,',',' ').' '.(string)$currency;}
 $environment=(string)($_GET['environment']??'');if(!in_array($environment,['','test','live'],true))$environment='';
 $status=(string)($_GET['status']??'');if(!in_array($status,['','pending','paid','failed','expired','refunded'],true))$status='';

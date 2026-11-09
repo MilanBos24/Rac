@@ -1,5 +1,5 @@
 <?php
-/** RAC Billing - vzhled administrace; verze 2026-10-15-08.00 / Porto Stripe test */
+/** RAC Billing - vzhled administrace; verze 2026-10-27-01 / Porto Stripe test / rozliseni webhooku */
 ?>
 <?php $pageTitle = 'Billing – RAC'; include __DIR__ . '/../../inc/header.class.php'; ?>
 <?php include __DIR__ . '/../../inc/leve-meny.class.php'; ?>
@@ -71,16 +71,24 @@
                                     <label class="form-label" for="default_currency">Výchozí měna</label>
                                     <input class="form-control" type="text" maxlength="3" name="default_currency" id="default_currency" value="<?= billing_admin_e($values['default_currency']) ?>" placeholder="CZK">
                                 </div>
-                                <div class="col-lg-3">
-                                    <label class="form-label">Webhook URL</label>
-                                    <input class="form-control" type="text" readonly value="<?= billing_admin_e($webhookUrl !== '' ? $webhookUrl : 'Doplní se po zadání Base URL') ?>">
-                                </div>
                             </div>
                             <div class="row form-group pb-3">
                                 <div class="col-lg-12">
                                     <label class="form-label" for="base_url">Base URL billing modulu</label>
                                     <input class="form-control" type="url" name="base_url" id="base_url" value="<?= billing_admin_e($values['base_url']) ?>" placeholder="https://domena.cz/billing" required>
-                                    <small class="text-muted">Bez koncového lomítka. Například https://domena.cz/billing</small>
+                                    <small class="text-muted">Bez koncového lomítka. Například https://domena.cz/administrace/billing</small>
+                                </div>
+                            </div>
+                            <div class="row form-group pb-3">
+                                <div class="col-lg-6">
+                                    <label class="form-label" for="billing_webhook_url">Webhook billing modulu</label>
+                                    <input class="form-control" type="text" id="billing_webhook_url" readonly value="<?= billing_admin_e($webhookUrl !== '' ? $webhookUrl : 'Doplní se po zadání Base URL') ?>">
+                                    <small class="text-muted">Pro původní billing modul. Adresa je pouze informační.</small>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label" for="shop_webhook_url">Webhook e-shopu RAC</label>
+                                    <input class="form-control" type="text" id="shop_webhook_url" readonly value="<?= billing_admin_e($webhookUrl !== '' ? preg_replace('~/webhook\.php$~', '/shop-webhook.php', $webhookUrl) : 'Doplní se po zadání Base URL') ?>">
+                                    <small class="text-muted">Tuto adresu nastavte v Stripe jako webhook pro objednávky knih.</small>
                                 </div>
                             </div>
                         </div>

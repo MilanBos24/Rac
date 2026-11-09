@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 /**
- * RAC E-shop - Stripe Checkout webhook (SANDBOX ONLY)
- * Version 2026-10-25-SHOP-INVOICE-EU-01 / PHP 7.4+
+ * RAC E-shop - Stripe Checkout webhook (TEST + LIVE)
+ * Version 2026-10-26-SHOP-LIVE-READY-01 / PHP 7.4+
  *
  * Dedicated endpoint for shop_orders + shop_payments.
  * Does NOT modify the existing billing/webhook.php.
@@ -61,24 +61,31 @@ if (!billing_settings_table_ready($pdo)) {
     racShopWebhookReply(500, 'Billing settings unavailable');
 }
 
+// Decode the untrusted mode only to select its own signing secret.
+// No event is trusted until its corresponding Stripe signature is verified.
+$body = file_get_contents('php://input');
+$signature = (string)($_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '');
+$event = is_string($body) ? json_decode($body, true) : null;
+if (!is_array($event) || !isset($event['livemode']) || !is_bool($event['livemode'])) {
+    racShopWebhookReply(400, 'Invalid Stripe event');
+}
+$isLiveEvent = $event['livemode'];
+$environment = $isLiveEvent ? 'live' : 'test';
 try {
-    $secret = trim((string)billing_setting_get($pdo, 'stripe_test_webhook_secret', ''));
+    $secretName = $isLiveEvent ? 'stripe_live_webhook_secret' : 'stripe_test_webhook_secret';
+    $secret = trim((string)billing_setting_get($pdo, $secretName, ''));
 } catch (Throwable $e) {
     error_log('RAC shop webhook config load failed');
     racShopWebhookReply(500, 'Webhook configuration unavailable');
 }
 if (strpos($secret, 'whsec_') !== 0) {
-    racShopWebhookReply(500, 'Sandbox webhook secret is not configured');
+    racShopWebhookReply(503, 'Webhook secret for this environment is not configured');
 }
-
-$body = file_get_contents('php://input');
-$signature = (string)($_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '');
 if (!is_string($body) || $body === '' || !racShopWebhookSignatureValid($body, $signature, $secret)) {
     racShopWebhookReply(400, 'Invalid Stripe signature');
 }
-$event = json_decode($body, true);
-if (!is_array($event) || empty($event['id']) || empty($event['type']) || !empty($event['livemode'])) {
-    racShopWebhookReply(400, 'Invalid or non-sandbox event');
+if (empty($event['id']) || empty($event['type'])) {
+    racShopWebhookReply(400, 'Invalid event');
 }
 $eventType = (string)$event['type'];
 $allowed = array(
@@ -95,8 +102,8 @@ if (!is_array($session) || (string)($session['object'] ?? '') !== 'checkout.sess
     racShopWebhookReply(400, 'Invalid checkout session');
 }
 $sessionId = trim((string)($session['id'] ?? ''));
-if (strpos($sessionId, 'cs_test_') !== 0) {
-    racShopWebhookReply(400, 'Invalid sandbox session ID');
+if (strpos($sessionId, $isLiveEvent ? 'cs_live_' : 'cs_test_') !== 0) {
+    racShopWebhookReply(400, 'Invalid checkout session environment');
 }
 
 $metadata = isset($session['metadata']) && is_array($session['metadata']) ? $session['metadata'] : array();
@@ -146,7 +153,7 @@ try {
     if (!$row) {
         throw new RuntimeException('No matching shop payment for Checkout Session');
     }
-    if ((string)$row['environment'] !== 'test'
+    if ((string)$row['environment'] !== $environment
         || (int)$row['shop_order_id'] !== (int)$shopOrderId
         || (string)$row['order_number'] !== $orderNumber) {
         throw new RuntimeException('Checkout Session mismatches stored shop order');

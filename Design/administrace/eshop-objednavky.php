@@ -21,7 +21,7 @@ function rac_orders_cols(PDO $pdo,string $name):array {
     $st=$pdo->prepare('SELECT column_name FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name=? ORDER BY ordinal_position');
     $st->execute([$name]);return $st->fetchAll(PDO::FETCH_COLUMN);
 }
-function rac_orders_label(string $s):string {return ['awaiting_payment'=>'Čeká na platbu','paid'=>'Zaplaceno','cancelled'=>'Zrušeno','canceled'=>'Zrušeno','pending'=>'Čeká','failed'=>'Neúspěšná','expired'=>'Vypršela','refunded'=>'Vráceno','fulfilled'=>'Vyřízeno','processing'=>'Zpracovává se','shipped'=>'Odesláno'][$s]??$s;}
+function rac_orders_label(string $s):string {return ['awaiting_payment'=>'Čeká na platbu','paid'=>'Zaplaceno','cancelled'=>'Zrušeno','canceled'=>'Zrušeno','pending'=>'Čeká','failed'=>'Neúspěšná','expired'=>'Platba vypršela','refunded'=>'Vráceno','fulfilled'=>'Vyřízeno','processing'=>'Zpracovává se','shipped'=>'Odesláno'][$s]??$s;}
 function rac_orders_money($n,$c):string{return number_format((float)$n,2,',',' ').' '.(string)$c;}
 $racUsePortoLayout=true;
 $base='/administrace';$assets=$base;

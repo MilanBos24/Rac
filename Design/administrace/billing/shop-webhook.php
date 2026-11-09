@@ -169,6 +169,19 @@ try {
         );
         $up->execute(array(':status' => $transition, ':intent_id' => $paymentIntentId, ':id' => $paymentId));
     }
+    if ($transition === 'expired' && $currentPaymentStatus !== 'paid') {
+        // Expire only an unpaid order linked to this verified Checkout Session.
+        // Never overwrite a paid/cancelled order or an order with another paid payment.
+        $up = $pdo->prepare(
+            "UPDATE shop_orders SET status = 'expired' "
+            . "WHERE id = :id AND status = 'awaiting_payment' "
+            . "AND NOT EXISTS ("
+            . "SELECT 1 FROM shop_payments paid_payment "
+            . "WHERE paid_payment.order_id = :paid_order_id AND paid_payment.status = 'paid'"
+            . ")"
+        );
+        $up->execute(array(':id' => (int)$shopOrderId, ':paid_order_id' => (int)$shopOrderId));
+    }
     if ($transition === 'paid') {
         // Do not convert refunded/cancelled orders back to paid via a delayed event.
         $up = $pdo->prepare(

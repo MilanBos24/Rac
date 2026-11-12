@@ -221,11 +221,11 @@ if ($action === 'callback' || isset($_GET['code']) || isset($_GET['error'])) {
             throw new RuntimeException('Google nevrátil access token.');
         }
         if ($refreshToken === '') {
-            $existing = racReportingConnection($pdo);
-            if (!$existing || empty($existing['refresh_token'])) {
-                throw new RuntimeException('Google nevrátil refresh token. Zrušte dřívější oprávnění aplikace u Google účtu a propojení spusťte znovu.');
-            }
-            $refreshToken = $oauth->decrypt((string)$existing['refresh_token']);
+            throw new RuntimeException(
+                'Google nevrátil nový obnovovací token. Propojení nebylo změněno, aby se znovu neuložil neplatný token. '
+                . 'Zkontrolujte, že jste udělili souhlas s offline přístupem. '
+                . 'Případně odeberte dřívější oprávnění aplikace v nastavení Google účtu a propojení opakujte.'
+            );
         }
         $encrypted = $oauth->encrypt($refreshToken);
         $stmt = $pdo->prepare(
@@ -415,6 +415,11 @@ include dirname(__DIR__) . '/inc/leve-meny.class.php';
         <div class="alert alert-info">
             Reporting používá <strong>Google Analytics Data API přes OAuth 2.0</strong>. Klient nepotřebuje servisní účet ani JSON klíč. OAuth aplikace je společná technická konfigurace systému; následně se pouze přihlásí Google účet s přístupem ke konkrétní GA4 službě.
         </div>
+        <div class="alert alert-warning">
+            <strong>Platnost přístupu Google:</strong> Pokud má OAuth aplikace v Google Cloud typ uživatelů External a stav <strong>Testing</strong>, obnovovací token pro Google Analytics obvykle vyprší po 7 dnech.
+            V Google Cloud zkontrolujte <strong>Google Auth Platform &rarr; Audience &rarr; Publishing status</strong> a pro dlouhodobý provoz použijte stav <strong>In production</strong>.
+            Po změně stavu je potřeba propojit účet Google znovu. Nastavení OAuth Client ID a Client Secret přitom neměňte.
+        </div>
 
         <div class="row g-4">
             <div class="col-xl-7">
@@ -459,7 +464,10 @@ include dirname(__DIR__) . '/inc/leve-meny.class.php';
                             <a class="btn btn-primary" href="reporting-nastaveni.php?action=connect"><i class="fab fa-google me-1"></i> Připojit Google Analytics</a>
                         <?php elseif (empty($connection['property_id'])): ?>
                             <p>Google účet je autorizován, ale ještě není vybrána GA4 služba.</p>
-                            <a class="btn btn-primary" href="reporting-nastaveni.php?action=properties">Vybrat GA4 službu</a>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a class="btn btn-primary" href="reporting-nastaveni.php?action=properties">Vybrat GA4 službu</a>
+                                <a class="btn btn-default" href="reporting-nastaveni.php?action=connect"><i class="fab fa-google me-1"></i> Obnovit propojení Google</a>
+                            </div>
                         <?php else: ?>
                             <dl class="row mb-3">
                                 <dt class="col-5">Účet</dt><dd class="col-7"><?= $e((string)$connection['google_account_name']) ?></dd>
@@ -467,6 +475,7 @@ include dirname(__DIR__) . '/inc/leve-meny.class.php';
                                 <dt class="col-5">Property ID</dt><dd class="col-7"><code><?= $e((string)$connection['property_id']) ?></code></dd>
                             </dl>
                             <div class="d-flex flex-wrap gap-2">
+                                <a class="btn btn-primary" href="reporting-nastaveni.php?action=connect"><i class="fab fa-google me-1"></i> Obnovit propojení Google</a>
                                 <a class="btn btn-default" href="reporting-nastaveni.php?action=properties">Změnit službu</a>
                                 <form method="post" action="reporting-nastaveni.php?action=test" class="d-inline">
                                     <input type="hidden" name="csrf" value="<?= $e($csrf) ?>">

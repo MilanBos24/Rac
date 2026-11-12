@@ -9,6 +9,8 @@ require_once dirname(__DIR__) . '/config/auth.php';
 require_once dirname(__DIR__) . '/config/auth_roles.php';
 require_once __DIR__ . '/google-analytics-oauth.class.php';
 require_once __DIR__ . '/google-analytics-data.class.php';
+require_once __DIR__ . '/google-analytics.class.php';
+require_once __DIR__ . '/google-analytics-service-account.class.php';
 
 $viewer = current_user_row();
 if (!$viewer) {
@@ -334,6 +336,53 @@ if ($action === 'test' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     exit;
 }
 
+// Otestování ani aktivace servisního účtu nemění stávající OAuth tokeny.
+if (($action === 'test-service-account' || $action === 'enable-service-account')
+    && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    try {
+        if (!csrf_valid('rac_reporting_settings', (string)($_POST['csrf'] ?? ''))) {
+            throw new RuntimeException('Neplatný bezpečnostní token.');
+        }
+        $propertyId = trim((string)($_POST['service_property_id'] ?? ''));
+        $keyPath = trim((string)($_POST['service_key_path'] ?? ''));
+        // Uchováváme jen cestu, nikdy obsah soukromého klíče.
+        $_SESSION['rac_reporting_sa_form'] = array('property_id' => $propertyId, 'key_file' => $keyPath);
+        $validated = RacGa4ServiceAccount::validate($propertyId, $keyPath);
+        $client = new GoogleAnalyticsRestClient($validated['property_id'], $validated['key_file']);
+        $client->runReport(array(
+            'dateRanges' => array(array('startDate' => '7daysAgo', 'endDate' => 'today')),
+            'metrics' => array(array('name' => 'activeUsers')),
+            'limit' => 1,
+        ));
+        if ($action === 'enable-service-account') {
+            RacGa4ServiceAccount::save($validated);
+            unset($_SESSION['rac_reporting_sa_form']);
+            $_SESSION['rac_reporting_flash_ok'] = 'Servisní účet byl otestován a aktivován. Reporting nyní používá servisní účet; OAuth zůstává uložen jako záloha.';
+        } else {
+            $_SESSION['rac_reporting_flash_ok'] = 'Test servisního účtu proběhl úspěšně. GA4 Data API odpovědělo správně. Nyní můžete aktivovat tento způsob připojení.';
+        }
+    } catch (Throwable $e) {
+        $_SESSION['rac_reporting_flash_err'] = 'Servisní účet GA4: ' . $e->getMessage();
+    }
+    header('Location: /administrace/reporting/reporting-nastaveni.php');
+    exit;
+}
+
+if ($action === 'disable-service-account' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    try {
+        if (!csrf_valid('rac_reporting_settings', (string)($_POST['csrf'] ?? ''))) {
+            throw new RuntimeException('Neplatný bezpečnostní token.');
+        }
+        RacGa4ServiceAccount::disable();
+        unset($_SESSION['rac_reporting_sa_form']);
+        $_SESSION['rac_reporting_flash_ok'] = 'Servisní účet byl deaktivován. Reporting opět používá původní OAuth propojení.';
+    } catch (Throwable $e) {
+        $_SESSION['rac_reporting_flash_err'] = 'Deaktivace servisního účtu se nezdařila: ' . $e->getMessage();
+    }
+    header('Location: /administrace/reporting/reporting-nastaveni.php');
+    exit;
+}
+
 if ($action === 'disconnect' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     try {
         if (!csrf_valid('rac_reporting_settings', (string)($_POST['csrf'] ?? ''))) {
@@ -369,6 +418,14 @@ if (!empty($_SESSION['rac_reporting_flash_err'])) {
 }
 
 $config = racReportingLoadConfig();
+$serviceAccountSettings = null;
+try {
+    $serviceAccountSettings = RacGa4ServiceAccount::load();
+} catch (Throwable $e) {
+    $errors[] = 'Servisní účet GA4: ' . $e->getMessage();
+}
+$serviceAccountDraft = isset($_SESSION['rac_reporting_sa_form']) && is_array($_SESSION['rac_reporting_sa_form'])
+    ? $_SESSION['rac_reporting_sa_form'] : array();
 $connection = null;
 if ($dbReady) {
     try {
@@ -482,6 +539,49 @@ include dirname(__DIR__) . '/inc/leve-meny.class.php';
                 </section>
             </div>
         </div>
+
+        <section class="card mb-4">
+            <header class="card-header">
+                <h2 class="card-title">3. Automatický reporting přes servisní účet</h2>
+            </header>
+            <div class="card-body">
+                <p class="text-muted">Bez opakovaného přihlašování Google účtu. Privátní JSON klíč nahrajte mimo veřejný kořen webu (document root) pomocí správce souborů hostingu nebo SFTP. Do GitHubu ani do tohoto formuláře nevkládejte obsah klíče.</p>
+                <?php if ($serviceAccountSettings !== null): ?>
+                    <div class="alert alert-success">
+                        <strong>Aktivní připojení: Service Account.</strong>
+                        Reporting načítá data z GA4 Property ID <?= $e((string)$serviceAccountSettings['property_id']) ?>.
+                        Původní OAuth propojení zůstává uloženo jako záloha.
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-info">
+                        Reporting zatím používá původní OAuth připojení. Servisní účet se zapne teprve po úspěšném testu a kliknutí na „Aktivovat servisní účet“.
+                    </div>
+                <?php endif; ?>
+                <form method="post" action="reporting-nastaveni.php?action=test-service-account" autocomplete="off">
+                    <input type="hidden" name="csrf" value="<?= $e($csrf) ?>">
+                    <div class="mb-3">
+                        <label class="form-label" for="ga-sa-property-id">GA4 Property ID</label>
+                        <input class="form-control" id="ga-sa-property-id" name="service_property_id" inputmode="numeric" pattern="[0-9]+" maxlength="32" required value="<?= $e((string)($serviceAccountDraft['property_id'] ?? $serviceAccountSettings['property_id'] ?? $connection['property_id'] ?? '')) ?>">
+                        <div class="form-text">Číselné ID služby GA4, ke které má servisní účet oprávnění Viewer.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="ga-sa-key-path">Absolutní cesta k JSON klíči na serveru</label>
+                        <input class="form-control font-monospace" id="ga-sa-key-path" name="service_key_path" maxlength="4096" required value="<?= $e((string)($serviceAccountDraft['key_file'] ?? $serviceAccountSettings['key_file'] ?? '')) ?>" placeholder="/home/uzivatel/private/rac-ga4-service-account.json">
+                        <div class="form-text">Zadejte skutečnou cestu na hostingu. Klíč musí být čitelný pro PHP, ale nesmí být veřejně dostupný přes HTTPS.</div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-default">Otestovat servisní účet</button>
+                        <button type="submit" class="btn btn-primary" formaction="reporting-nastaveni.php?action=enable-service-account">Otestovat a aktivovat servisní účet</button>
+                    </div>
+                </form>
+                <?php if ($serviceAccountSettings !== null): ?>
+                    <form method="post" action="reporting-nastaveni.php?action=disable-service-account" class="mt-3" onsubmit="return confirm('Vypnout servisní účet a přejít zpět na OAuth?');">
+                        <input type="hidden" name="csrf" value="<?= $e($csrf) ?>">
+                        <button type="submit" class="btn btn-outline-danger">Deaktivovat servisní účet (návrat k OAuth)</button>
+                    </form>
+                <?php endif; ?>
+            </div>
+        </section>
 
         <?php if ($showProperties): ?>
         <section class="card mb-4">

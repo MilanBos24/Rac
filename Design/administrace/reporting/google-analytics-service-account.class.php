@@ -46,7 +46,29 @@ final class RacGa4ServiceAccount
         }
         $root = rtrim($documentRoot, DIRECTORY_SEPARATOR);
         if ($resolved === $root || strpos($resolved, $root . DIRECTORY_SEPARATOR) === 0) {
-            throw new RuntimeException('Z bezpečnostních důvodů musí JSON klíč ležet mimo veřejný kořen webu (document root).');
+            // Výjimka pro hosting RAC bez přístupu mimo www:
+            // povolíme pouze www/rac-private s lokální .htaccess ochranou.
+            $privateDir = realpath($root . DIRECTORY_SEPARATOR . 'rac-private');
+            $htaccessFile = $privateDir !== false ? $privateDir . DIRECTORY_SEPARATOR . '.htaccess' : '';
+            if ($privateDir === false
+                || dirname($resolved) !== $privateDir
+                || strtolower((string)pathinfo($resolved, PATHINFO_EXTENSION)) !== 'json'
+                || $htaccessFile === ''
+                || !is_file($htaccessFile)
+                || !is_readable($htaccessFile)) {
+                throw new RuntimeException(
+                    'Klíč uvnitř webového kořene je povolen jen v /rac-private '
+                    . 's platným souborem .htaccess. Jinak musí být mimo DocumentRoot.'
+                );
+            }
+            $denyRules = file_get_contents($htaccessFile);
+            if ($denyRules === false || !preg_match('/^\\s*(?:Require\\s+all\\s+denied|Deny\\s+from\\s+all)\\s*$/mi', $denyRules)) {
+                throw new RuntimeException(
+                    'Soubor rac-private/.htaccess musí obsahovat pravidlo „Require all denied“ '
+                    . 'nebo „Deny from all“. Před vložením klíče ověřte také HTTP 403 '
+                    . 'na neškodném souboru ve stejné složce.'
+                );
+            }
         }
 
         if (filesize($resolved) === false || filesize($resolved) > 131072) {

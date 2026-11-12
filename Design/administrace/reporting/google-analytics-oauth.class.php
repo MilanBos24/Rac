@@ -132,6 +132,14 @@ final class GoogleAnalyticsOAuth
             throw new RuntimeException('Google OAuth vrátil neplatnou odpověď.');
         }
         if ($raw['status'] < 200 || $raw['status'] >= 300) {
+            $errorCode = isset($decoded['error']) && is_string($decoded['error']) ? $decoded['error'] : '';
+            if ($errorCode === 'invalid_grant' && ($fields['grant_type'] ?? '') === 'refresh_token') {
+                throw new RuntimeException(
+                    'Platnost propojení Google Analytics vypršela nebo bylo oprávnění odvoláno. '
+                    . 'V nastavení reportingu klikněte na „Obnovit propojení Google“. '
+                    . 'Pokud je OAuth aplikace v Google Cloud v režimu Testing, přepněte ji na In production.'
+                );
+            }
             $message = isset($decoded['error_description']) ? (string)$decoded['error_description'] : 'Neznámá chyba OAuth.';
             throw new RuntimeException('Google OAuth chyba (' . $raw['status'] . '): ' . $message);
         }

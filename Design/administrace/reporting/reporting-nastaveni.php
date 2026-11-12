@@ -426,6 +426,12 @@ try {
 }
 $serviceAccountDraft = isset($_SESSION['rac_reporting_sa_form']) && is_array($_SESSION['rac_reporting_sa_form'])
     ? $_SESSION['rac_reporting_sa_form'] : array();
+$serviceAccountSuggestedPath = '';
+$siteDocumentRoot = realpath((string)($_SERVER['DOCUMENT_ROOT'] ?? ''));
+if ($siteDocumentRoot !== false) {
+    $serviceAccountSuggestedPath = rtrim($siteDocumentRoot, DIRECTORY_SEPARATOR)
+        . DIRECTORY_SEPARATOR . 'rac-private' . DIRECTORY_SEPARATOR . 'rac-ga4-service-account.json';
+}
 $connection = null;
 if ($dbReady) {
     try {
@@ -545,7 +551,7 @@ include dirname(__DIR__) . '/inc/leve-meny.class.php';
                 <h2 class="card-title">3. Automatický reporting přes servisní účet</h2>
             </header>
             <div class="card-body">
-                <p class="text-muted">Bez opakovaného přihlašování Google účtu. Privátní JSON klíč nahrajte mimo veřejný kořen webu (document root) pomocí správce souborů hostingu nebo SFTP. Do GitHubu ani do tohoto formuláře nevkládejte obsah klíče.</p>
+                <p class="text-muted">Bez opakovaného přihlašování Google účtu. Preferované umístění klíče je mimo webový kořen. Pro hosting RAC je také podporováno <code>www/rac-private</code>, pokud je tento adresář chráněný pomocí <code>.htaccess</code> s pravidlem <code>Require all denied</code> a blokace byla ověřena skutečným HTTP 403 na neškodném testovacím souboru. JSON nikdy nevkládejte do GitHubu ani do formuláře.</p>
                 <?php if ($serviceAccountSettings !== null): ?>
                     <div class="alert alert-success">
                         <strong>Aktivní připojení: Service Account.</strong>
@@ -566,8 +572,8 @@ include dirname(__DIR__) . '/inc/leve-meny.class.php';
                     </div>
                     <div class="mb-3">
                         <label class="form-label" for="ga-sa-key-path">Absolutní cesta k JSON klíči na serveru</label>
-                        <input class="form-control font-monospace" id="ga-sa-key-path" name="service_key_path" maxlength="4096" required value="<?= $e((string)($serviceAccountDraft['key_file'] ?? $serviceAccountSettings['key_file'] ?? '')) ?>" placeholder="/home/uzivatel/private/rac-ga4-service-account.json">
-                        <div class="form-text">Zadejte skutečnou cestu na hostingu. Klíč musí být čitelný pro PHP, ale nesmí být veřejně dostupný přes HTTPS.</div>
+                        <input class="form-control font-monospace" id="ga-sa-key-path" name="service_key_path" maxlength="4096" required value="<?= $e((string)($serviceAccountDraft['key_file'] ?? $serviceAccountSettings['key_file'] ?? $serviceAccountSuggestedPath)) ?>" placeholder="/home/uzivatel/www/rac-private/rac-ga4-service-account.json">
+                        <div class="form-text">Zadejte skutečnou absolutní cestu na hostingu. Klíč musí být čitelný pro PHP, ale nesmí být přístupný přes HTTPS. Pokud je v <code>www/rac-private</code>, musí být v tomto adresáři platný zákaz přístupu přes <code>.htaccess</code>.</div>
                     </div>
                     <div class="d-flex flex-wrap gap-2">
                         <button type="submit" class="btn btn-default">Otestovat servisní účet</button>

@@ -1,0 +1,4 @@
+# Soukromá serverová konfigurace a JSON klíče nesmějí být v Gitu.
+/private/
+/*.json
+/**/*.json

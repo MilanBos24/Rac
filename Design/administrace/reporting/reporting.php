@@ -9,6 +9,8 @@ require_once dirname(__DIR__) . '/config/auth.php';
 require_once dirname(__DIR__) . '/config/auth_roles.php';
 require_once __DIR__ . '/google-analytics-oauth.class.php';
 require_once __DIR__ . '/google-analytics-data.class.php';
+require_once __DIR__ . '/google-analytics.class.php';
+require_once __DIR__ . '/google-analytics-service-account.class.php';
 
 $viewer = current_user_row();
 if (!$viewer) {
@@ -104,32 +106,52 @@ list($previousStartDate,$previousEndDate)=reporting_previous_period($startDate,$
 $summaryCurrent=array('activeUsers'=>0,'newUsers'=>0,'sessions'=>0,'screenPageViews'=>0,'averageSessionDuration'=>0);
 $summaryPrevious=$summaryCurrent;
 $dailyRows=array(); $pageRows=array(); $sourceRows=array(); $deviceRows=array(); $realtimeUsers=0;
-$reportingError=null; $setupMessage=''; $gaReady=false; $connection=null;
+$reportingError=null; $setupMessage=''; $gaReady=false; $connection=null; $serviceAccount=null;
 
+// Pokud je servisní účet aktivován, připojení GA4 již nezávisí na uživatelském OAuth ani na databázi tokenů.
 try {
-    $connection = reporting_connection($pdo);
+    $serviceAccount = RacGa4ServiceAccount::load();
 } catch (Throwable $e) {
-    $setupMessage = 'Reporting ještě není nainstalován v databázi. Spusťte SQL soubor 027_reporting_google_analytics.sql.';
+    $reportingError = $e->getMessage();
 }
 
-$configFile = __DIR__ . '/private/google-oauth-config.php';
-if ($setupMessage === '' && (!is_file($configFile) || !is_readable($configFile))) {
-    $setupMessage = 'Reporting ještě nemá nastavenou OAuth aplikaci Google.';
-}
-if ($setupMessage === '' && (!$connection || empty($connection['refresh_token']))) {
-    $setupMessage = 'Google Analytics zatím není připojeno.';
-}
-if ($setupMessage === '' && empty($connection['property_id'])) {
-    $setupMessage = 'Google účet je připojený, ale ještě není vybrána GA4 služba.';
-}
-
-if ($setupMessage === '') {
+if ($serviceAccount === null && $reportingError === null) {
     try {
-        $config = require $configFile;
-        if (!is_array($config)) throw new RuntimeException('OAuth konfigurace nemá platný formát.');
-        $oauth = new GoogleAnalyticsOAuth($config);
-        $accessToken = reporting_access_token($pdo, $oauth, $connection);
-        $analytics = new GoogleAnalyticsDataClient((string)$connection['property_id'], $accessToken);
+        $connection = reporting_connection($pdo);
+    } catch (Throwable $e) {
+        $setupMessage = 'Reporting ještě není nainstalován v databázi. Spusťte SQL soubor 027_reporting_google_analytics.sql.';
+    }
+
+    $configFile = __DIR__ . '/private/google-oauth-config.php';
+    if ($setupMessage === '' && (!is_file($configFile) || !is_readable($configFile))) {
+        $setupMessage = 'Reporting ještě nemá nastavenou OAuth aplikaci Google.';
+    }
+    if ($setupMessage === '' && (!$connection || empty($connection['refresh_token']))) {
+        $setupMessage = 'Google Analytics zatím není připojeno.';
+    }
+    if ($setupMessage === '' && empty($connection['property_id'])) {
+        $setupMessage = 'Google účet je připojený, ale ještě není vybrána GA4 služba.';
+    }
+}
+
+if ($setupMessage === '' && $reportingError === null) {
+    try {
+        if ($serviceAccount !== null) {
+            $serviceSettings = RacGa4ServiceAccount::validate(
+                (string)$serviceAccount['property_id'],
+                (string)$serviceAccount['key_file']
+            );
+            $analytics = new GoogleAnalyticsRestClient(
+                $serviceSettings['property_id'],
+                $serviceSettings['key_file']
+            );
+        } else {
+            $config = require $configFile;
+            if (!is_array($config)) throw new RuntimeException('OAuth konfigurace nemá platný formát.');
+            $oauth = new GoogleAnalyticsOAuth($config);
+            $accessToken = reporting_access_token($pdo, $oauth, $connection);
+            $analytics = new GoogleAnalyticsDataClient((string)$connection['property_id'], $accessToken);
+        }
         $gaReady = true;
 
         $metrics = array(
